@@ -1,0 +1,25 @@
+# 철마수 (Spike Tank) - 이름 변경
+display_name: "&8철마수"
+archetype_internal_id: "WARRIOR"
+archetype_display_name: "&4전사 계열"
+description:
+  - "&7받은 피해를 적에게 되돌려주는 굳건한 탱커입니다."
+  - "&7높은 생존력과 주문력 기반의 반사 데미지가 특징입니다."
+unique_mechanic_summary: "주문력 비례 피해 반사"
+icon_material: "SHIELD"
+custom_model_data: null
+allowed_main_hand_materials:
+  - "WOODEN_SWORD"
+  - "STONE_SWORD"
+  - "IRON_SWORD"
+  - "GOLDEN_SWORD"
+  - "DIAMOND_SWORD"
+  - "NETHERITE_SWORD"
+  - "MACE"
+starter_skills:
+  ACTIVE:
+    - "taunt"           # 도발: 자신 주변 n칸에 있는 적의 타겟을 자신으로 변경한다.
+    - "shield_charge"   # 실드 차지: 전방으로 5칸 돌격한다. 중간에 장애물이 있거나, 적이 있다면 해당 위치에 멈춘다. 직접 부딪힌 적에게 데미지를 주고 넉백시키며, 멈춘 위치 주위 n칸의 적에게는 데미지를 준다. 시전 후 0.5초동안 피해로부터 무적이 된다.
+    - "mode_switching"  # 강공 태세: 자신의 무적 시간을 0으로 만드는 대신 반사 데미지를 1.5배로 증가시키는 '공격모드'로 전환한다. 다시 누르면 원래대로 돌아간다. (무적시간동안은 반사 데미지를 줄 수 없으므로 매우 약한 적의 무리를 상대할 때 유리)
+innate_passive_skill_ids:
+  - "reflection_aura"

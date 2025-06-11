@@ -1,0 +1,13 @@
+name: RPGcore
+version: '0.0.1'
+main: org.flash.rpgcore.RPGcore
+api-version: '1.21'
+author: Flash Choi
+description: Minecraft RPG Core Plugin
+
+commands:
+  rpg: # 주 명령어 /rpg
+    description: RPGCore+ 플러그인의 메인 명령어입니다. 사용 가능한 하위 명령어를 보려면 /rpg help를 입력하세요.
+    usage: /rpg <subcommand> [args...]
+    aliases: [r, rpgcore] # (선택 사항) 명령어 단축 별명
+    permission: rpgcore.command.base # (선택 사항) 기본 /rpg 명령어 사용 권한

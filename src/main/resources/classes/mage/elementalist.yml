@@ -1,0 +1,25 @@
+# 원소술사 (Elementalist)
+display_name: "&9원소술사"
+archetype_internal_id: "MAGE"
+archetype_display_name: "&1마법사 계열"
+description:
+  - "&7화염, 냉기, 번개의 세 가지 원소를 다루는 마법사입니다."
+  - "&7적에게 원소 스택을 중첩시켜 강력한 '엘리멘탈 익스플로전'을"
+  - "&7일으키는 것이 핵심입니다."
+unique_mechanic_summary: "엘리멘탈 익스플로전"
+icon_material: "ENCHANTING_TABLE"
+custom_model_data: null
+allowed_main_hand_materials:
+  - "BLAZE_ROD"
+  - "STICK"
+  - "BREEZE_ROD" # 브리즈 막대기 추가
+starter_skills:
+  ACTIVE:
+    - "fireball"            # 화염탄: 전방에 화염구를 발사한다. 화염구는 탄착지점 주위 n칸의 모든 적에게 피해를 주고 버닝 스택을 부여한다.
+    - "iceball"             # 빙백탄: 전방에 빙백탄을 발사한다. 빙백탄은 탄착지점 주위 n칸의 모든 적에게 피해를 주고 프리징 스택을 부여한다.
+    - "lightning_strike"    # 전격파: 자신 주위에 전기를 흘려 자신 주위 n칸의 적에게 데미지를 주고 패럴라이징 스택을 부여한다.
+innate_passive_skill_ids:
+  - "elemental_explosion"
+  - "burning_stack_mastery"
+  - "freezing_stack_mastery"
+  - "paralyzing_stack_mastery"

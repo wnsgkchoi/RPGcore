@@ -1,0 +1,11 @@
+run/
+note/
+gradle/
+build/
+.vscode/
+.idea/
+.gradle/
+.kotlin/
+gradlew.bat
+gradlew
+settings.gradle.kts
