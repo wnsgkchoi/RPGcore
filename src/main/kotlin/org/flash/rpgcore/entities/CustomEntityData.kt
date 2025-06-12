@@ -1,13 +1,15 @@
 package org.flash.rpgcore.entities
 
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
 data class CustomEntityData(
     val entityUUID: UUID,
-    val monsterId: String, // 원본 몬스터 ID 추가
+    val monsterId: String,
     var maxHp: Double,
     var currentHp: Double,
-    var stats: Map<String, Double>, // 랜덤화된 최종 스탯 저장
+    var stats: Map<String, Double>,
     var aggroTarget: UUID? = null,
-    var lastAggroChangeTime: Long = 0L
+    var lastAggroChangeTime: Long = 0L,
+    val skillCooldowns: MutableMap<String, Long> = ConcurrentHashMap() // 몬스터 스킬 쿨타임
 )
