@@ -1,28 +1,54 @@
 package org.flash.rpgcore.listeners
 
+import org.bukkit.ChatColor
+import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerDropItemEvent
 import org.bukkit.event.player.PlayerSwapHandItemsEvent
+import org.bukkit.inventory.ItemStack
+import org.flash.rpgcore.managers.ClassManager
 import org.flash.rpgcore.managers.PlayerDataManager
+import org.flash.rpgcore.managers.PlayerScoreboardManager
 import org.flash.rpgcore.managers.SkillManager
 import org.flash.rpgcore.skills.SkillEffectExecutor
 
 class SkillKeyListener : Listener {
 
-    // F키 (아이템 스왑)
+    private fun isWeaponValid(player: Player, itemStack: ItemStack): Boolean {
+        val playerData = PlayerDataManager.getPlayerData(player)
+        val playerClass = playerData.currentClassId?.let { ClassManager.getClass(it) } ?: return false
+
+        if (playerClass.allowedMainHandMaterials.isEmpty()) {
+            return true
+        }
+
+        if (itemStack.type == Material.AIR || !playerClass.allowedMainHandMaterials.contains(itemStack.type.name)) {
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[알림] &f현재 클래스는 이 무기로 스킬을 사용할 수 없습니다."))
+            return false
+        }
+        return true
+    }
+
+    private fun isWeaponValid(player: Player): Boolean {
+        return isWeaponValid(player, player.inventory.itemInMainHand)
+    }
+
     @EventHandler
     fun onPlayerSwapHand(event: PlayerSwapHandItemsEvent) {
         val player = event.player
         val playerData = PlayerDataManager.getPlayerData(player)
         val skillId = playerData.equippedActiveSkills["SLOT_F"] ?: return
 
-        event.isCancelled = true // 아이템 스왑 방지
+        if (!isWeaponValid(player)) {
+            return
+        }
+
+        event.isCancelled = true
         executeSkillIfPossible(player, skillId)
     }
 
-    // Q키 및 Shift+Q키 (아이템 버리기)
     @EventHandler
     fun onPlayerDropItem(event: PlayerDropItemEvent) {
         val player = event.player
@@ -34,7 +60,11 @@ class SkillKeyListener : Listener {
             playerData.equippedActiveSkills["SLOT_Q"]
         } ?: return
 
-        event.isCancelled = true // 아이템 버리기 방지
+        if (!isWeaponValid(player, event.itemDrop.itemStack)) {
+            return
+        }
+
+        event.isCancelled = true
         executeSkillIfPossible(player, skillId)
     }
 
@@ -44,23 +74,23 @@ class SkillKeyListener : Listener {
         val level = playerData.getLearnedSkillLevel(skillId)
         val levelData = skill.levelData[level] ?: return
 
-        // 쿨타임 확인
         if (playerData.isOnCooldown(skillId)) {
             val remaining = playerData.getRemainingCooldownMillis(skillId) / 1000.0
             player.sendMessage("§c아직 쿨타임입니다. (${String.format("%.1f", remaining)}초)")
             return
         }
 
-        // MP 확인
         if (playerData.currentMp < levelData.mpCost) {
             player.sendMessage("§bMP가 부족합니다.")
             return
         }
 
-        // 조건 통과, 스킬 실행
         playerData.currentMp -= levelData.mpCost
         val cooldownEndTime = System.currentTimeMillis() + (levelData.cooldownTicks * 50)
         playerData.startSkillCooldown(skillId, cooldownEndTime)
+
+        // 스킬 사용 직후 스코어보드 즉시 업데이트
+        PlayerScoreboardManager.updateScoreboard(player)
 
         SkillEffectExecutor.execute(player, skillId)
     }

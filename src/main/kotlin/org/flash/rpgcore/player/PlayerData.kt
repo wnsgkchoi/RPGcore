@@ -31,6 +31,7 @@ data class PlayerData(
     ),
     val equippedPassiveSkills: MutableList<String?> = MutableList(3) { null },
     val skillCooldowns: MutableMap<String, Long> = ConcurrentHashMap(),
+    var lastBasicAttackTime: Long = 0L, // 일반 공격 쿨타임용
 
     // --- 제작 관련 데이터 ---
     val learnedRecipes: MutableSet<String> = mutableSetOf(),
@@ -38,10 +39,10 @@ data class PlayerData(
     // --- 클래스 고유 매커니즘 데이터 ---
     var furyStacks: Int = 0,
     var lastFuryActionTime: Long = 0L,
-    var galeRushStacks: Int = 0, // 질풍검객 '질풍노도' 스택
-    var lastGaleRushActionTime: Long = 0L, // 스택 획득 관련 마지막 활동 시간
-    var bowChargeLevel: Int = 0, // 명사수 '차징 샷' 레벨
-    var isChargingBow: Boolean = false // 현재 활을 당기는 중인지 여부
+    var galeRushStacks: Int = 0,
+    var lastGaleRushActionTime: Long = 0L,
+    var bowChargeLevel: Int = 0,
+    var isChargingBow: Boolean = false
 ) {
 
     init {

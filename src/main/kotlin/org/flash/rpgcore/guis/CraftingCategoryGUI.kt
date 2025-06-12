@@ -7,6 +7,7 @@ import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder
+import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import org.flash.rpgcore.RPGcore
@@ -18,10 +19,9 @@ class CraftingCategoryGUI(private val player: Player) : InventoryHolder {
 
     companion object {
         val GUI_TITLE: String = "${ChatColor.DARK_GRAY}${ChatColor.BOLD}제작 - 카테고리 선택"
-        const val GUI_SIZE: Int = 27 // 3x9
-
-        // NBT 키
+        const val GUI_SIZE: Int = 27
         val CATEGORY_TYPE_KEY = NamespacedKey(RPGcore.instance, "rpgcore_craft_category")
+        val ACTION_KEY = NamespacedKey(RPGcore.instance, "rpgcore_gui_action")
     }
 
     init {
@@ -30,7 +30,6 @@ class CraftingCategoryGUI(private val player: Player) : InventoryHolder {
     }
 
     private fun initializeItems() {
-        // 대표 아이콘 및 슬롯 위치 정의
         val categoryIcons = mapOf(
             EquipmentSlotType.WEAPON to Pair(10, Material.NETHERITE_SWORD),
             EquipmentSlotType.HELMET to Pair(11, Material.NETHERITE_HELMET),
@@ -49,7 +48,6 @@ class CraftingCategoryGUI(private val player: Player) : InventoryHolder {
         categoryIcons.forEach { (slotType, pair) ->
             val slot = pair.first
             val material = pair.second
-
             val item = ItemStack(material)
             val meta = item.itemMeta!!
             meta.setDisplayName("${ChatColor.AQUA}${slotType.displayName} 제작")
@@ -57,17 +55,23 @@ class CraftingCategoryGUI(private val player: Player) : InventoryHolder {
                 "${ChatColor.GRAY}클릭하여 ${slotType.displayName} 부위의",
                 "${ChatColor.GRAY}제작 가능한 아이템 목록을 봅니다."
             )
+            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
             meta.persistentDataContainer.set(CATEGORY_TYPE_KEY, PersistentDataType.STRING, slotType.name)
             item.itemMeta = meta
             inventory.setItem(slot, item)
         }
+
+        val backButton = ItemStack(Material.BARRIER)
+        val meta = backButton.itemMeta!!
+        meta.setDisplayName("${ChatColor.RED}장비창으로 돌아가기")
+        meta.persistentDataContainer.set(ACTION_KEY, PersistentDataType.STRING, "GO_BACK")
+        backButton.itemMeta = meta
+        inventory.setItem(22, backButton) // Bottom center
     }
 
     fun open() {
         player.openInventory(inventory)
     }
 
-    override fun getInventory(): Inventory {
-        return inventory
-    }
+    override fun getInventory(): Inventory = inventory
 }

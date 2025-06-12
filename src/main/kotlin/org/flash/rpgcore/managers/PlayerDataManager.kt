@@ -87,7 +87,7 @@ object PlayerDataManager {
         logger.info("Attempting to save data for all online players (async: $async)...")
         plugin.server.onlinePlayers.forEach { player -> // server.onlinePlayers는 메인 스레드에서 접근 권장
             playerDataCache[player.uniqueId]?.let { playerData -> // 캐시에 있는 데이터만 저장 시도
-                val dataToSave = playerData.copy() // 동시성 문제를 피하기 위해 데이터 복사본 사용 고려 (특히 async true일 때)
+                val dataToSave = playerData.copy()
                 if (async) {
                     plugin.server.scheduler.runTaskAsynchronously(plugin, Runnable {
                         actualSaveToFile(player.uniqueId, dataToSave)
@@ -137,7 +137,6 @@ object PlayerDataManager {
             }
         }
 
-        // --- 스킬 관련 데이터 저장 ---
         val learnedSkillsSection = config.createSection("learned-skills")
         playerData.learnedSkills.forEach { (skillId, level) ->
             learnedSkillsSection.set(skillId, level)
@@ -147,22 +146,18 @@ object PlayerDataManager {
         playerData.equippedActiveSkills.forEach { (slotKey, skillId) ->
             equippedActiveSkillsSection.set(slotKey, skillId)
         }
-        // List는 set(path, list)로 직접 저장 가능
+
         config.set("equipped-passive-skills", playerData.equippedPassiveSkills)
 
-        // skillCooldowns 저장 (주의: 서버 재시작 시 유효하지 않을 수 있음)
         val skillCooldownsSection = config.createSection("skill-cooldowns")
         playerData.skillCooldowns.forEach { (skillId, endTime) ->
-            // 현재 시간보다 미래인 쿨타임만 저장하는 것이 의미 있을 수 있음
             if (endTime > System.currentTimeMillis()) {
                 skillCooldownsSection.set(skillId, endTime)
             }
         }
-        // --- 스킬 관련 데이터 저장 끝 ---
 
         try {
             config.save(playerFile)
-            // logger.info("Data for ${playerData.playerName} (${uuid}) saved to file.") // 비동기 실행 시 여기서 로깅하면 메인 스레드 아님
         } catch (e: IOException) {
             logger.severe("Failed to save data file for ${playerData.playerName} (${uuid}): ${e.message}")
             e.printStackTrace()
@@ -171,7 +166,7 @@ object PlayerDataManager {
 
     private fun loadPlayerDataFromFile(uuid: UUID, playerNameIfNew: String): PlayerData {
         val playerFile = File(playerDataFolder, "$uuid.yml")
-        val playerData = PlayerData(uuid, playerNameIfNew) // 기본값으로 먼저 생성
+        val playerData = PlayerData(uuid, playerNameIfNew)
 
         if (!playerFile.exists()) {
             logger.info("No data file found for ${playerNameIfNew} (${uuid}). Creating new data.")
@@ -184,8 +179,9 @@ object PlayerDataManager {
             playerData.lastLoginTimestamp = config.getLong("last-login-timestamp", System.currentTimeMillis())
             playerData.currentClassId = config.getString("current-class-id")
 
-            val loadedCurrentHp = config.getDouble("current-hp", playerData.currentHp)
-            val loadedCurrentMp = config.getDouble("current-mp", playerData.currentMp)
+            // HP/MP는 일단 불러오고, 최종 보정은 StatManager에서 수행
+            playerData.currentHp = config.getDouble("current-hp", playerData.currentHp)
+            playerData.currentMp = config.getDouble("current-mp", playerData.currentMp)
 
             val baseStatsSection = config.getConfigurationSection("base-stats")
             if (baseStatsSection != null) {
@@ -198,12 +194,6 @@ object PlayerDataManager {
                     } catch (e: IllegalArgumentException) { logger.warning("Unknown stat key '$statKey' in ${uuid}.yml. Ignoring.") }
                 }
             }
-
-            // 로드된 baseStats 기준으로 currentHp/Mp 최대치 보정
-            val maxHp = playerData.baseStats[StatType.MAX_HP] ?: StatType.MAX_HP.defaultValue
-            val maxMp = playerData.baseStats[StatType.MAX_MP] ?: StatType.MAX_MP.defaultValue
-            playerData.currentHp = loadedCurrentHp.coerceIn(0.0, maxHp)
-            playerData.currentMp = loadedCurrentMp.coerceIn(0.0, maxMp)
 
             val equipmentSection = config.getConfigurationSection("custom-equipment")
             if (equipmentSection != null) {
@@ -219,7 +209,6 @@ object PlayerDataManager {
                 }
             }
 
-            // --- 스킬 관련 데이터 로드 ---
             val learnedSkillsSection = config.getConfigurationSection("learned-skills")
             learnedSkillsSection?.getKeys(false)?.forEach { skillId ->
                 playerData.learnedSkills[skillId] = learnedSkillsSection.getInt(skillId)
@@ -227,13 +216,11 @@ object PlayerDataManager {
 
             val equippedActiveSkillsSection = config.getConfigurationSection("equipped-active-skills")
             equippedActiveSkillsSection?.getKeys(false)?.forEach { slotKey ->
-                // SLOT_Q, SLOT_F, SLOT_SHIFT_Q 키가 존재하는지 확인하고 로드
                 if (playerData.equippedActiveSkills.containsKey(slotKey)) {
                     playerData.equippedActiveSkills[slotKey] = equippedActiveSkillsSection.getString(slotKey)
                 }
             }
 
-            // getStringList는 null을 반환할 수 없으므로, 안전하게 처리
             val loadedPassiveSkills = config.getStringList("equipped-passive-skills")
             for (i in 0 until playerData.equippedPassiveSkills.size) {
                 playerData.equippedPassiveSkills[i] = loadedPassiveSkills.getOrNull(i)
@@ -242,12 +229,11 @@ object PlayerDataManager {
             val skillCooldownsSection = config.getConfigurationSection("skill-cooldowns")
             skillCooldownsSection?.getKeys(false)?.forEach { skillId ->
                 val endTime = skillCooldownsSection.getLong(skillId)
-                // 현재 시간보다 미래인 유효한 쿨타임만 로드
                 if (endTime > System.currentTimeMillis()) {
                     playerData.skillCooldowns[skillId] = endTime
                 }
             }
-            // --- 스킬 관련 데이터 로드 끝 ---
+
             playerData.learnedRecipes.addAll(config.getStringList("learned-recipes"))
             logger.info("Successfully loaded data for ${playerData.playerName} (${uuid}) from file.")
         } catch (e: Exception) {

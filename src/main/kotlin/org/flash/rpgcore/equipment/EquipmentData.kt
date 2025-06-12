@@ -15,22 +15,18 @@ data class EquipmentData(
     val lore: List<String>,
     val equipmentType: EquipmentSlotType,
 
-    // 착용 조건: 오직 클래스 제한만 적용
-    val requiredClassInternalIds: List<String> = emptyList(), // 착용 가능 클래스 ID 목록
+    val requiredClassInternalIds: List<String> = emptyList(),
 
     val maxUpgradeLevel: Int,
-    // Key: 강화 레벨 (0은 기본 상태), Value: 해당 레벨의 스탯 정보
     val statsPerLevel: Map<Int, EquipmentStats>,
-    // Key: 다음 강화 레벨 (1부터 maxUpgradeLevel까지), Value: 해당 레벨 도달에 필요한 XP 비용
     val xpCostPerUpgradeLevel: Map<Int, Long>,
 
-    // 고유 효과 (임시 EffectDefinition 사용, 향후 스킬 시스템의 효과 정의와 통일 예정)
     val uniqueEffectsOnEquip: List<EffectDefinition> = emptyList(),
     val uniqueEffectsOnHitDealt: List<EffectDefinition> = emptyList(),
     val uniqueEffectsOnHitTaken: List<EffectDefinition> = emptyList(),
 
     val setId: String? = null,
-    val baseCooldownMs: Int? = null // 무기류
+    val baseCooldownMs: Int? = null // 무기 기본 공격 속도 (밀리초)
 )
 
 /**

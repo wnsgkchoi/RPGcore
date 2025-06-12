@@ -64,7 +64,6 @@ object StatManager {
                 totalPercentage += encyclopediaProvider.getAdditivePercentageBonus(player, statType)
 
                 if (statType == StatType.COOLDOWN_REDUCTION) {
-                    val playerData = PlayerDataManager.getPlayerData(player)
                     if (playerData.currentClassId == "gale_striker" && playerData.galeRushStacks >= 5) {
                         SkillManager.getSkill("gale_rush")?.let { skill ->
                             val level = playerData.getLearnedSkillLevel(skill.internalId)
@@ -160,8 +159,11 @@ object StatManager {
             if (statType == StatType.MAX_HP) finalMaxHp = finalValue
             if (statType == StatType.MAX_MP) finalMaxMp = finalValue
         }
+
+        // 여기서 최종 max 값 기준으로 현재 값을 보정
         playerData.currentHp = playerData.currentHp.coerceAtMost(finalMaxHp.coerceAtLeast(1.0))
         playerData.currentMp = playerData.currentMp.coerceAtMost(finalMaxMp.coerceAtLeast(0.0))
+
         PlayerScoreboardManager.updateScoreboard(player)
         logger.info("[StatManager] Stat recalculation finished for ${player.name}.")
     }

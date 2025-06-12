@@ -7,6 +7,7 @@ import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder
+import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import org.flash.rpgcore.RPGcore
@@ -30,7 +31,6 @@ class CraftingRecipeGUI(
         val GUI_TITLE: String = "${ChatColor.DARK_GRAY}${ChatColor.BOLD}제작 - 레시피 목록"
         const val GUI_SIZE: Int = 54
         const val ITEMS_PER_PAGE: Int = 45
-
         val RECIPE_ID_KEY = NamespacedKey(RPGcore.instance, "rpgcore_craft_recipe_id")
         val ACTION_KEY = NamespacedKey(RPGcore.instance, "rpgcore_craft_action")
         val PAGE_KEY = NamespacedKey(RPGcore.instance, "rpgcore_craft_page")
@@ -46,14 +46,9 @@ class CraftingRecipeGUI(
         val playerData = PlayerDataManager.getPlayerData(player)
         val allRecipes = CraftingManager.getAllRecipes()
         val displayableRecipes = allRecipes.filter { recipe ->
-            // a. 플레이어가 배운 레시피인가? -> 필터링 활성화
-            val hasLearned = playerData.learnedRecipes.contains(recipe.recipeId)
-
-            // b. 올바른 카테고리인가?
             val outputItemDef = EquipmentManager.getEquipmentDefinition(recipe.outputItemId)
             val isCorrectCategory = outputItemDef != null && outputItemDef.equipmentType == category
-
-            hasLearned && isCorrectCategory
+            isCorrectCategory // 현재는 배운 레시피 필터링 없음
         }.sortedBy { it.recipeId }
 
         this.maxPage = if (displayableRecipes.isEmpty()) 0 else (displayableRecipes.size - 1) / ITEMS_PER_PAGE
@@ -73,13 +68,11 @@ class CraftingRecipeGUI(
     private fun createRecipeItem(recipe: CraftingRecipe): ItemStack? {
         val item = EquipmentManager.createEquipmentItemStack(recipe.outputItemId, 0, 1) ?: return null
         val meta = item.itemMeta ?: return null
-
-        val lore = meta.lore ?: mutableListOf()
+        val lore = meta.lore?.toMutableList() ?: mutableListOf()
         lore.add(ChatColor.translateAlternateColorCodes('&', "&m--------------------"))
         lore.add(ChatColor.translateAlternateColorCodes('&', "&e&l[제작 정보]"))
         lore.add(ChatColor.translateAlternateColorCodes('&', "&6요구 경험치: &e${recipe.xpCost}"))
         lore.add(ChatColor.translateAlternateColorCodes('&', "&a&l[필요 재료]"))
-
         recipe.ingredients.forEach { ingredient ->
             val ingredientName = when (ingredient.itemType) {
                 IngredientType.VANILLA -> ingredient.itemId.replace("_", " ").lowercase().replaceFirstChar { it.titlecase() }
@@ -91,7 +84,6 @@ class CraftingRecipeGUI(
         }
         lore.add(" ")
         lore.add(ChatColor.translateAlternateColorCodes('&', "&a&l우클릭으로 제작"))
-
         meta.lore = lore
         meta.persistentDataContainer.set(RECIPE_ID_KEY, PersistentDataType.STRING, recipe.recipeId)
         item.itemMeta = meta
@@ -99,22 +91,26 @@ class CraftingRecipeGUI(
     }
 
     private fun setupNavigation() {
-        val background = ItemStack(Material.BLACK_STAINED_GLASS_PANE).apply { itemMeta = itemMeta?.apply { setDisplayName(" ") } }
-        for (i in ITEMS_PER_PAGE until GUI_SIZE) inventory.setItem(i, background)
-
+        for (i in ITEMS_PER_PAGE until GUI_SIZE) {
+            val background = ItemStack(Material.BLACK_STAINED_GLASS_PANE)
+            val meta = background.itemMeta!!; meta.setDisplayName(" "); background.itemMeta = meta
+            inventory.setItem(i, background)
+        }
         if (page > 0) {
             inventory.setItem(45, createNavItem("PREV_PAGE", "&e이전 페이지", Material.ARROW))
         }
         if (page < maxPage) {
             inventory.setItem(53, createNavItem("NEXT_PAGE", "&e다음 페이지", Material.ARROW))
         }
-        inventory.setItem(49, createNavItem(null, "&6페이지 ${page + 1} / ${maxPage + 1}", Material.BOOK))
+        inventory.setItem(48, createNavItem(null, "&6페이지 ${page + 1} / ${maxPage + 1}", Material.BOOK))
+        inventory.setItem(49, createNavItem("GO_BACK", "&c카테고리로 돌아가기", Material.BARRIER))
     }
 
     private fun createNavItem(action: String?, name: String, material: Material): ItemStack {
         return ItemStack(material).apply {
             itemMeta = itemMeta?.apply {
                 setDisplayName(ChatColor.translateAlternateColorCodes('&', name))
+                addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
                 action?.let { persistentDataContainer.set(ACTION_KEY, PersistentDataType.STRING, it) }
                 persistentDataContainer.set(PAGE_KEY, PersistentDataType.INTEGER, page)
                 persistentDataContainer.set(CATEGORY_KEY, PersistentDataType.STRING, category.name)

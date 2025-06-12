@@ -1,63 +1,37 @@
-package org.flash.rpgcore // 대표님 패키지명
+package org.flash.rpgcore
 
 import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitRunnable
-import java.util.logging.Logger // 필요시 직접 사용 가능
-import org.flash.rpgcore.managers.PlayerDataManager
-import org.flash.rpgcore.listeners.PlayerConnectionListener
 import org.flash.rpgcore.commands.RPGCommandExecutor
-import org.flash.rpgcore.listeners.BowChargeListener
-import org.flash.rpgcore.listeners.ClassGUIListener
-import org.flash.rpgcore.listeners.CombatListener
-import org.flash.rpgcore.listeners.CraftingCategoryGUIListener
-import org.flash.rpgcore.listeners.CraftingRecipeGUIListener
-import org.flash.rpgcore.listeners.StatGUIListener
-import org.flash.rpgcore.managers.ClassManager
-import org.flash.rpgcore.listeners.EquipmentGUIListener
-import org.flash.rpgcore.listeners.SkillKeyListener
-import org.flash.rpgcore.listeners.SkillLibraryGUIListener
-import org.flash.rpgcore.listeners.SkillManagementGUIListener
-import org.flash.rpgcore.listeners.TradeXPInputListener
-import org.flash.rpgcore.listeners.VanillaXPChangeListener
-import org.flash.rpgcore.managers.CraftingManager
-import org.flash.rpgcore.managers.EquipmentManager
-import org.flash.rpgcore.managers.PlayerScoreboardManager
-import org.flash.rpgcore.managers.SetBonusManager
-import org.flash.rpgcore.managers.SkillManager
-import org.flash.rpgcore.managers.StatusEffectManager
+import org.flash.rpgcore.listeners.*
+import org.flash.rpgcore.managers.*
+import org.flash.rpgcore.stats.StatManager
+import org.flash.rpgcore.stats.StatType
+import kotlin.math.max
+import kotlin.math.min
 
 class RPGcore : JavaPlugin() {
 
     companion object {
         lateinit var instance: RPGcore
             private set
-        // const val LOG_PREFIX = "[RPGcore] " // 로깅 접두사 (선택 사항)
     }
 
     override fun onEnable() {
         instance = this
-        logger.info("[RPGcore] 플러그인이 활성화되었습니다. (v${description.version})") // LOG_PREFIX 사용 가능
+        logger.info("[RPGcore] 플러그인이 활성화되었습니다. (v${description.version})")
 
-        // --- 향후 시스템 초기화 순서 (Bottom-to-Top) ---
-        // 1. Core Data Structures & Enums (예: StatType - 파일로 분리)
-        // 2. Configuration Manager (config.yml 등 로드)
-        // 3. Player Data Manager (플레이어 데이터 로드/저장/캐시 관리)
-        // 4. Helper Utilities (예: XPHelper)
-        // 5. System Managers (StatManager, SkillManager, EquipmentManager 등 - 각 매니저가 자신의 설정 YAML 로드)
-        // 6. Command Executors 등록
-        // 7. Event Listeners 등록
-
-        // Manager 초기화
         PlayerDataManager.initializeOnlinePlayers()
         ClassManager.loadClasses()
         EquipmentManager.loadEquipmentDefinitions()
         SkillManager.loadSkills()
         SetBonusManager.loadSetBonuses()
         CraftingManager.loadAllCraftingData()
+        MonsterManager.loadMonsters()
+        LootManager.loadLootTables()
         StatusEffectManager.start()
 
-        // 이벤트 리스너 등록
         server.pluginManager.registerEvents(PlayerConnectionListener(), this)
         server.pluginManager.registerEvents(StatGUIListener(), this)
         server.pluginManager.registerEvents(ClassGUIListener(), this)
@@ -71,6 +45,7 @@ class RPGcore : JavaPlugin() {
         server.pluginManager.registerEvents(CombatListener(), this)
         server.pluginManager.registerEvents(SkillKeyListener(), this)
         server.pluginManager.registerEvents(BowChargeListener(), this)
+        server.pluginManager.registerEvents(MonsterAIListener(), this)
 
         val rpgCommandExecutor = RPGCommandExecutor()
         getCommand("rpg")?.setExecutor(rpgCommandExecutor)
@@ -78,25 +53,80 @@ class RPGcore : JavaPlugin() {
         logger.info("[RPGcore] '/rpg' 주 명령어를 등록했습니다.")
 
         object : BukkitRunnable() {
+            private var tickCounter = 0
+
             override fun run() {
+                tickCounter++
+
                 for (player in Bukkit.getOnlinePlayers()) {
                     val playerData = PlayerDataManager.getPlayerData(player)
-                    // 광전사 스택 감소
-                    if (playerData.currentClassId == "frenzy_dps" && playerData.furyStacks > 0) {
-                        // ... (기존 광전사 스택 감소 로직)
+                    var needsUpdate = false
+
+                    // 3초마다 실행되는 로직 (자연 회복)
+                    if (tickCounter % 3 == 0) {
+                        val maxHp = StatManager.getFinalStatValue(player, StatType.MAX_HP)
+                        val hpToRegen = max(1.0, maxHp * 0.01)
+                        if (playerData.currentHp < maxHp) {
+                            playerData.currentHp = min(maxHp, playerData.currentHp + hpToRegen)
+                            needsUpdate = true
+                        }
+
+                        val maxMp = StatManager.getFinalStatValue(player, StatType.MAX_MP)
+                        val mpToRegen = max(1.0, maxMp * 0.02)
+                        if (playerData.currentMp < maxMp) {
+                            playerData.currentMp = min(maxMp, playerData.currentMp + mpToRegen)
+                            needsUpdate = true
+                        }
                     }
-                    // 질풍검객 스택 감소
+
+                    // 1초마다 실행되는 로직
+                    if (playerData.currentClassId == "frenzy_dps" && playerData.furyStacks > 0) {
+                        val furySkill = SkillManager.getSkill("fury_stack")
+                        if (furySkill != null) {
+                            val level = playerData.getLearnedSkillLevel(furySkill.internalId)
+                            val params = furySkill.levelData[level]?.effects?.find { it.type == "MANAGE_FURY_STACK" }?.parameters
+                            val expireMillis = (params?.get("stack_expire_ticks")?.toLongOrNull() ?: 60L) * 50L
+                            if (System.currentTimeMillis() - playerData.lastFuryActionTime > expireMillis) {
+                                playerData.furyStacks--
+                                needsUpdate = true
+                            }
+                        }
+                    }
+
                     if (playerData.currentClassId == "gale_striker" && playerData.galeRushStacks > 0) {
                         SkillManager.getSkill("gale_rush")?.let { skill ->
                             val level = playerData.getLearnedSkillLevel(skill.internalId)
                             val params = skill.levelData[level]?.effects?.find { it.type == "MANAGE_GALE_RUSH_STACK" }?.parameters
                             val expireTicks = params?.get("stack_expire_ticks")?.toLongOrNull() ?: 60L
-
                             if (System.currentTimeMillis() - playerData.lastGaleRushActionTime > expireTicks * 50L) {
-                                playerData.galeRushStacks = 0 // 3초 지나면 스택 초기화
-                                PlayerScoreboardManager.updateScoreboard(player)
+                                playerData.galeRushStacks = 0
+                                needsUpdate = true
                             }
                         }
+                    }
+
+                    if (StatusEffectManager.hasStatus(player, "explosive_arrow_mode")) {
+                        val effect = StatusEffectManager.getActiveStatus(player, "explosive_arrow_mode")
+                        val mpDrain = effect?.parameters?.get("mp_drain_per_second")?.toDoubleOrNull() ?: 0.0
+                        if (mpDrain > 0 && playerData.currentMp >= mpDrain) {
+                            playerData.currentMp -= mpDrain
+                            needsUpdate = true
+                        } else if (playerData.currentMp < mpDrain) {
+                            StatusEffectManager.removeStatus(player, "explosive_arrow_mode")
+                            player.sendMessage("§b[폭발 화살] §fMP가 부족하여 모드가 해제됩니다.")
+                            needsUpdate = true
+                        }
+                    }
+
+                    playerData.equippedActiveSkills.values.filterNotNull().forEach { skillId ->
+                        if (!playerData.isOnCooldown(skillId) && playerData.skillCooldowns.containsKey(skillId)) {
+                            playerData.skillCooldowns.remove(skillId)
+                            needsUpdate = true
+                        }
+                    }
+
+                    if (needsUpdate) {
+                        PlayerScoreboardManager.updateScoreboard(player)
                     }
                 }
             }
@@ -106,9 +136,6 @@ class RPGcore : JavaPlugin() {
     }
 
     override fun onDisable() {
-        // 예시: PlayerDataManager 모든 데이터 저장
-        // PlayerDataManager.saveAllPlayerData() // PlayerDataManager 구현 후 주석 해제
-
         PlayerDataManager.saveAllOnlinePlayerData()
         logger.info("[RPGcore] 플러그인이 비활성화되었습니다.")
     }

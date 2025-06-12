@@ -157,6 +157,8 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
                 EquipmentManager.reloadEquipmentDefinitions()
                 SetBonusManager.loadSetBonuses()
                 CraftingManager.loadAllCraftingData()
+                MonsterManager.loadMonsters()
+                LootManager.loadLootTables()
 
                 Bukkit.getOnlinePlayers().forEach { player ->
                     StatManager.fullyRecalculateAndApplyStats(player)

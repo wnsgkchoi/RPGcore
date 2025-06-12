@@ -1,6 +1,5 @@
 package org.flash.rpgcore.listeners
 
-import org.bukkit.ChatColor
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -10,6 +9,7 @@ import org.flash.rpgcore.RPGcore
 import org.flash.rpgcore.equipment.EquipmentSlotType
 import org.flash.rpgcore.guis.CraftingCategoryGUI
 import org.flash.rpgcore.guis.CraftingRecipeGUI
+import org.flash.rpgcore.guis.EquipmentGUI
 
 class CraftingCategoryGUIListener : Listener {
 
@@ -25,13 +25,19 @@ class CraftingCategoryGUIListener : Listener {
 
         if (!clickedItem.hasItemMeta()) return
 
-        val categoryName = clickedItem.itemMeta!!.persistentDataContainer.get(CraftingCategoryGUI.CATEGORY_TYPE_KEY, PersistentDataType.STRING)
+        val pdc = clickedItem.itemMeta!!.persistentDataContainer
+        val categoryName = pdc.get(CraftingCategoryGUI.CATEGORY_TYPE_KEY, PersistentDataType.STRING)
+        val action = pdc.get(CraftingCategoryGUI.ACTION_KEY, PersistentDataType.STRING)
+
+        if (action == "GO_BACK") {
+            EquipmentGUI(player).open()
+            return
+        }
+
         if (categoryName != null) {
             try {
                 val slotType = EquipmentSlotType.valueOf(categoryName)
                 CraftingRecipeGUI(player, slotType).open()
-                logger.info("Player ${player.name} selected crafting category: $slotType")
-
             } catch (e: IllegalArgumentException) {
                 logger.warning("Invalid category type '$categoryName' clicked in CraftingCategoryGUI by ${player.name}")
             }
