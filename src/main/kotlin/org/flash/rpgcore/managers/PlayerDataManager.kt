@@ -1,10 +1,13 @@
 package org.flash.rpgcore.managers
 
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import org.flash.rpgcore.RPGcore
 import org.flash.rpgcore.equipment.EquipmentSlotType
 import org.flash.rpgcore.equipment.EquippedItemInfo
+import org.flash.rpgcore.player.MonsterEncounterData
 import org.flash.rpgcore.player.PlayerData
 import org.flash.rpgcore.stats.StatType
 import java.io.File
@@ -18,6 +21,7 @@ object PlayerDataManager {
     private val plugin = RPGcore.instance
     private val logger = plugin.logger
     private val playerDataFolder = File(plugin.dataFolder, "playerdata")
+    private val gson = Gson()
 
     init {
         if (!playerDataFolder.exists()) {
@@ -62,7 +66,7 @@ object PlayerDataManager {
 
         if (playerDataToSave != null) {
             playerDataToSave.lastLoginTimestamp = System.currentTimeMillis()
-            playerDataToSave.playerName = player.name // Update player name on save
+            playerDataToSave.playerName = player.name
 
             if (async) {
                 plugin.server.scheduler.runTaskAsynchronously(plugin, Runnable {
@@ -70,7 +74,7 @@ object PlayerDataManager {
                     logger.info("Player data for ${player.name} scheduled for async save.")
                 })
             } else {
-                actualSaveToFile(uuid, playerDataToSave) // Synchronous save
+                actualSaveToFile(uuid, playerDataToSave)
                 logger.info("Player data for ${player.name} saved synchronously.")
             }
 
@@ -85,8 +89,8 @@ object PlayerDataManager {
 
     fun saveAllOnlinePlayerData(async: Boolean = false) {
         logger.info("Attempting to save data for all online players (async: $async)...")
-        plugin.server.onlinePlayers.forEach { player -> // server.onlinePlayers는 메인 스레드에서 접근 권장
-            playerDataCache[player.uniqueId]?.let { playerData -> // 캐시에 있는 데이터만 저장 시도
+        plugin.server.onlinePlayers.forEach { player ->
+            playerDataCache[player.uniqueId]?.let { playerData ->
                 val dataToSave = playerData.copy()
                 if (async) {
                     plugin.server.scheduler.runTaskAsynchronously(plugin, Runnable {
@@ -156,6 +160,10 @@ object PlayerDataManager {
             }
         }
 
+        // 몬스터 도감 데이터 저장
+        val encyclopediaJson = gson.toJson(playerData.monsterEncyclopedia)
+        config.set("monster-encyclopedia", encyclopediaJson)
+
         try {
             config.save(playerFile)
         } catch (e: IOException) {
@@ -179,45 +187,36 @@ object PlayerDataManager {
             playerData.lastLoginTimestamp = config.getLong("last-login-timestamp", System.currentTimeMillis())
             playerData.currentClassId = config.getString("current-class-id")
 
-            // HP/MP는 일단 불러오고, 최종 보정은 StatManager에서 수행
             playerData.currentHp = config.getDouble("current-hp", playerData.currentHp)
             playerData.currentMp = config.getDouble("current-mp", playerData.currentMp)
 
-            val baseStatsSection = config.getConfigurationSection("base-stats")
-            if (baseStatsSection != null) {
-                for (statKey in baseStatsSection.getKeys(false)) {
-                    try {
-                        val statType = StatType.valueOf(statKey.uppercase())
-                        if (statType.isXpUpgradable) {
-                            playerData.baseStats[statType] = baseStatsSection.getDouble(statKey)
-                        }
-                    } catch (e: IllegalArgumentException) { logger.warning("Unknown stat key '$statKey' in ${uuid}.yml. Ignoring.") }
-                }
+            config.getConfigurationSection("base-stats")?.getKeys(false)?.forEach { statKey ->
+                try {
+                    val statType = StatType.valueOf(statKey.uppercase())
+                    if (statType.isXpUpgradable) {
+                        playerData.baseStats[statType] = config.getDouble("base-stats.$statKey")
+                    }
+                } catch (e: IllegalArgumentException) { logger.warning("Unknown stat key '$statKey' in ${uuid}.yml. Ignoring.") }
             }
 
-            val equipmentSection = config.getConfigurationSection("custom-equipment")
-            if (equipmentSection != null) {
-                EquipmentSlotType.entries.forEach { slotType ->
-                    val slotKey = slotType.name
-                    if (equipmentSection.isConfigurationSection(slotKey)) {
-                        val itemId = equipmentSection.getString("$slotKey.item_id")
-                        val upgradeLevel = equipmentSection.getInt("$slotKey.upgrade_level")
-                        if (itemId != null) {
-                            playerData.customEquipment[slotType] = EquippedItemInfo(itemId, upgradeLevel)
-                        }
-                    } else { playerData.customEquipment[slotType] = null }
-                }
+            config.getConfigurationSection("custom-equipment")?.getKeys(false)?.forEach { slotKey ->
+                try {
+                    val slotType = EquipmentSlotType.valueOf(slotKey.uppercase())
+                    val itemId = config.getString("custom-equipment.$slotKey.item_id")
+                    val upgradeLevel = config.getInt("custom-equipment.$slotKey.upgrade_level")
+                    if (itemId != null) {
+                        playerData.customEquipment[slotType] = EquippedItemInfo(itemId, upgradeLevel)
+                    }
+                } catch (e: IllegalArgumentException) { logger.warning("Unknown equipment slot key '$slotKey' in ${uuid}.yml. Ignoring.") }
             }
 
-            val learnedSkillsSection = config.getConfigurationSection("learned-skills")
-            learnedSkillsSection?.getKeys(false)?.forEach { skillId ->
-                playerData.learnedSkills[skillId] = learnedSkillsSection.getInt(skillId)
+            config.getConfigurationSection("learned-skills")?.getKeys(false)?.forEach { skillId ->
+                playerData.learnedSkills[skillId] = config.getInt("learned-skills.$skillId")
             }
 
-            val equippedActiveSkillsSection = config.getConfigurationSection("equipped-active-skills")
-            equippedActiveSkillsSection?.getKeys(false)?.forEach { slotKey ->
+            config.getConfigurationSection("equipped-active-skills")?.getKeys(false)?.forEach { slotKey ->
                 if (playerData.equippedActiveSkills.containsKey(slotKey)) {
-                    playerData.equippedActiveSkills[slotKey] = equippedActiveSkillsSection.getString(slotKey)
+                    playerData.equippedActiveSkills[slotKey] = config.getString("equipped-active-skills.$slotKey")
                 }
             }
 
@@ -226,15 +225,21 @@ object PlayerDataManager {
                 playerData.equippedPassiveSkills[i] = loadedPassiveSkills.getOrNull(i)
             }
 
-            val skillCooldownsSection = config.getConfigurationSection("skill-cooldowns")
-            skillCooldownsSection?.getKeys(false)?.forEach { skillId ->
-                val endTime = skillCooldownsSection.getLong(skillId)
+            config.getConfigurationSection("skill-cooldowns")?.getKeys(false)?.forEach { skillId ->
+                val endTime = config.getLong("skill-cooldowns.$skillId")
                 if (endTime > System.currentTimeMillis()) {
                     playerData.skillCooldowns[skillId] = endTime
                 }
             }
 
             playerData.learnedRecipes.addAll(config.getStringList("learned-recipes"))
+
+            // 몬스터 도감 데이터 로드
+            val encyclopediaJson = config.getString("monster-encyclopedia", "{}")
+            val type = object : TypeToken<ConcurrentHashMap<String, MonsterEncounterData>>() {}.type
+            val loadedEncyclopedia: ConcurrentHashMap<String, MonsterEncounterData> = gson.fromJson(encyclopediaJson, type)
+            playerData.monsterEncyclopedia.putAll(loadedEncyclopedia)
+
             logger.info("Successfully loaded data for ${playerData.playerName} (${uuid}) from file.")
         } catch (e: Exception) {
             logger.severe("Error loading data file for ${playerNameIfNew} (${uuid}): ${e.message}")

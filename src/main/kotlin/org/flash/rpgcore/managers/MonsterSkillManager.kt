@@ -2,7 +2,7 @@ package org.flash.rpgcore.managers
 
 import org.bukkit.entity.LivingEntity
 import org.flash.rpgcore.monsters.MonsterSkillInfo
-import org.flash.rpgcore.skills.CombatManager
+import org.flash.rpgcore.managers.CombatManager
 import org.flash.rpgcore.skills.SkillEffectExecutor
 import org.flash.rpgcore.skills.TargetSelector
 

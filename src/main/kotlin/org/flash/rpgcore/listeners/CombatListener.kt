@@ -18,9 +18,12 @@ import org.bukkit.event.entity.ProjectileHitEvent
 import org.bukkit.metadata.FixedMetadataValue
 import org.flash.rpgcore.RPGcore
 import org.flash.rpgcore.managers.*
+import org.flash.rpgcore.player.MonsterEncounterData
 import org.flash.rpgcore.skills.SkillEffectExecutor
 import org.flash.rpgcore.utils.XPHelper
 import java.util.UUID
+import kotlin.math.max
+import kotlin.math.min
 
 class CombatListener : Listener {
 
@@ -39,6 +42,48 @@ class CombatListener : Listener {
             event.droppedExp = 0
 
             InfiniteDungeonManager.leave(player, true)
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    fun onEncyclopediaEncounter(event: EntityDamageByEntityEvent) {
+        val damager = event.damager
+        val victim = event.entity
+
+        val player: Player?
+        val monster: LivingEntity?
+
+        if (damager is Player && victim is LivingEntity && EntityManager.getEntityData(victim) != null) {
+            player = damager
+            monster = victim
+        } else if (victim is Player && damager is LivingEntity && EntityManager.getEntityData(damager) != null) {
+            player = victim
+            monster = damager
+        } else {
+            return
+        }
+
+        if (InfiniteDungeonManager.isDungeonMonster(monster.uniqueId)) return
+
+        val monsterData = EntityManager.getEntityData(monster) ?: return
+        val monsterId = monsterData.monsterId
+        val playerData = PlayerDataManager.getPlayerData(player)
+
+        val encounterData = playerData.monsterEncyclopedia.computeIfAbsent(monsterId) { MonsterEncounterData() }
+        encounterData.isDiscovered = true
+
+        // 관찰된 스탯 범위 갱신
+        monsterData.stats.forEach { (statName, statValue) ->
+            // 최소값 갱신
+            val currentMin = encounterData.minStatsObserved[statName]
+            if (currentMin == null || statValue < currentMin) {
+                encounterData.minStatsObserved[statName] = statValue
+            }
+            // 최대값 갱신
+            val currentMax = encounterData.maxStatsObserved[statName]
+            if (currentMax == null || statValue > currentMax) {
+                encounterData.maxStatsObserved[statName] = statValue
+            }
         }
     }
 
@@ -163,6 +208,7 @@ class CombatListener : Listener {
                     }
                 }
             } else {
+                // 필드 몬스터 경험치/보상 및 도감 카운트 처리
                 if (monsterDefinition.xpReward > 0) {
                     XPHelper.addTotalExperience(killer, monsterDefinition.xpReward)
                     killer.sendMessage("§e+${monsterDefinition.xpReward} XP")
@@ -170,6 +216,12 @@ class CombatListener : Listener {
                 monsterDefinition.dropTableId?.let { tableId ->
                     LootManager.processLoot(killer, tableId)
                 }
+
+                // 도감 처치 횟수 증가
+                val playerData = PlayerDataManager.getPlayerData(killer)
+                val encounterData = playerData.monsterEncyclopedia.computeIfAbsent(monsterId) { MonsterEncounterData() }
+                encounterData.killCount++
+                // TODO: 처치 횟수 달성 시 스탯 보너스 지급 로직
             }
 
             if (monsterDefinition.isBoss) {

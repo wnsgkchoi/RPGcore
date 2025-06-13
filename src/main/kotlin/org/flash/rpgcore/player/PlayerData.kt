@@ -31,10 +31,13 @@ data class PlayerData(
     ),
     val equippedPassiveSkills: MutableList<String?> = MutableList(3) { null },
     val skillCooldowns: MutableMap<String, Long> = ConcurrentHashMap(),
-    var lastBasicAttackTime: Long = 0L, // 일반 공격 쿨타임용
+    var lastBasicAttackTime: Long = 0L,
 
     // --- 제작 관련 데이터 ---
     val learnedRecipes: MutableSet<String> = mutableSetOf(),
+
+    // --- 몬스터 도감 데이터 ---
+    val monsterEncyclopedia: MutableMap<String, MonsterEncounterData> = ConcurrentHashMap(),
 
     // --- 클래스 고유 매커니즘 데이터 ---
     var furyStacks: Int = 0,
