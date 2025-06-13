@@ -1,0 +1,29 @@
+# 무한 던전 아레나 'arena_1' 설정 파일
+#
+# player_spawn_location: 플레이어가 던전에 입장했을 때 스폰될 위치
+# monster_spawn_locations: 해당 경기장에서 몬스터가 스폰될 수 있는 위치 목록
+# world는 월드 이름, x, y, z는 좌표입니다.
+#
+# [권장] 안정적인 운영을 위해, 무한 던전 전용 월드를 따로 생성하고
+# 해당 월드의 기본 게임 모드를 '모험 모드(adventure)'로 설정하십시오.
+
+player_spawn_location:
+  world: "infinite_dungeon_world"
+  x: 0.5
+  y: -59.0
+  z: 0.5
+  yaw: 180.0
+  pitch: 0.0
+monster_spawn_locations:
+  - world: "infinite_dungeon_world"
+    x: 10.5
+    y: -59.0
+    z: 10.5
+  - world: "infinite_dungeon_world"
+    x: -9.5
+    y: -59.0
+    z: -9.5
+  - world: "infinite_dungeon_world"
+    x: 0.5
+    y: -59.0
+    z: 15.5
