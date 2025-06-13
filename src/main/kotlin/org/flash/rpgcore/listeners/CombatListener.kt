@@ -13,6 +13,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.entity.EntityShootBowEvent
+import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.entity.ProjectileHitEvent
 import org.bukkit.metadata.FixedMetadataValue
 import org.flash.rpgcore.RPGcore
@@ -28,6 +29,19 @@ class CombatListener : Listener {
         private val gson = Gson()
     }
 
+    @EventHandler
+    fun onPlayerDeathInDungeon(event: PlayerDeathEvent) {
+        val player = event.entity
+        if (InfiniteDungeonManager.isPlayerInDungeon(player)) {
+            event.keepInventory = true
+            event.keepLevel = true
+            event.drops.clear()
+            event.droppedExp = 0
+
+            InfiniteDungeonManager.leave(player, true)
+        }
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun onEntityDamageByEntity(event: EntityDamageByEntityEvent) {
         val victim = event.entity as? LivingEntity ?: return
@@ -37,28 +51,29 @@ class CombatListener : Listener {
                 CombatManager.handleDamage(eventDamager, victim)
             }
             is Arrow -> {
-                val shooter = eventDamager.shooter as? Player ?: return
+                val shooter = eventDamager.shooter as? LivingEntity ?: return
+                if (shooter is Player) {
+                    if (eventDamager.hasMetadata(SkillEffectExecutor.VOLLEY_ARROW_DAMAGE_KEY)) {
+                        event.isCancelled = true
+                        val damage = eventDamager.getMetadata(SkillEffectExecutor.VOLLEY_ARROW_DAMAGE_KEY).firstOrNull()?.asDouble() ?: 0.0
+                        CombatManager.applyFinalDamage(shooter, victim, damage, false, false)
+                        eventDamager.remove()
+                        return
+                    }
 
-                if (eventDamager.hasMetadata(SkillEffectExecutor.VOLLEY_ARROW_DAMAGE_KEY)) {
                     event.isCancelled = true
-                    val damage = eventDamager.getMetadata(SkillEffectExecutor.VOLLEY_ARROW_DAMAGE_KEY).firstOrNull()?.asDouble() ?: 0.0
-                    CombatManager.applyFinalDamage(shooter, victim, damage, false, false)
-                    eventDamager.remove()
-                    return
-                }
-
-                event.isCancelled = true
-                if (StatusEffectManager.hasStatus(shooter, "instant_charge")) {
-                    val skill = SkillManager.getSkill("precision_charging") ?: return
-                    val level = PlayerDataManager.getPlayerData(shooter).getLearnedSkillLevel(skill.internalId)
-                    val params = skill.levelData[level]?.effects?.first()?.parameters ?: return
-                    val maxCharge = params["max_charge_level"]?.toIntOrNull() ?: 5
-                    CombatManager.handleChargedShotDamage(shooter, victim, maxCharge, event.damage)
-                } else if (eventDamager.hasMetadata(BowChargeListener.CHARGE_LEVEL_METADATA)) {
-                    val chargeLevel = eventDamager.getMetadata(BowChargeListener.CHARGE_LEVEL_METADATA).firstOrNull()?.asInt() ?: 0
-                    CombatManager.handleChargedShotDamage(shooter, victim, chargeLevel, event.damage)
-                } else {
-                    CombatManager.handleDamage(shooter, victim)
+                    if (StatusEffectManager.hasStatus(shooter, "instant_charge")) {
+                        val skill = SkillManager.getSkill("precision_charging") ?: return
+                        val level = PlayerDataManager.getPlayerData(shooter).getLearnedSkillLevel(skill.internalId)
+                        val params = skill.levelData[level]?.effects?.first()?.parameters ?: return
+                        val maxCharge = params["max_charge_level"]?.toIntOrNull() ?: 5
+                        CombatManager.handleChargedShotDamage(shooter, victim, maxCharge, event.damage)
+                    } else if (eventDamager.hasMetadata(BowChargeListener.CHARGE_LEVEL_METADATA)) {
+                        val chargeLevel = eventDamager.getMetadata(BowChargeListener.CHARGE_LEVEL_METADATA).firstOrNull()?.asInt() ?: 0
+                        CombatManager.handleChargedShotDamage(shooter, victim, chargeLevel, event.damage)
+                    } else {
+                        CombatManager.handleDamage(shooter, victim)
+                    }
                 }
             }
             is Projectile -> {
@@ -89,7 +104,9 @@ class CombatListener : Listener {
         if (onImpactJson != null) {
             val skillId = projectile.getMetadata(SkillEffectExecutor.PROJECTILE_SKILL_ID_KEY).firstOrNull()?.asString() ?: return
             val casterIdStr = projectile.getMetadata(SkillEffectExecutor.PROJECTILE_CASTER_UUID_KEY).firstOrNull()?.asString() ?: return
-            val caster = Bukkit.getPlayer(UUID.fromString(casterIdStr)) ?: return
+
+            val caster = Bukkit.getEntity(UUID.fromString(casterIdStr)) as? LivingEntity ?: return
+
             val skillLevel = projectile.getMetadata(SkillEffectExecutor.PROJECTILE_SKILL_LEVEL_KEY).firstOrNull()?.asInt() ?: 1
             val skill = SkillManager.getSkill(skillId) ?: return
 
@@ -128,15 +145,36 @@ class CombatListener : Listener {
             event.drops.clear()
             event.droppedExp = 0
 
-            if (monsterDefinition.xpReward > 0) {
-                XPHelper.addTotalExperience(killer, monsterDefinition.xpReward)
-                killer.sendMessage("§e+${monsterDefinition.xpReward} XP")
+            if (InfiniteDungeonManager.isDungeonMonster(victim.uniqueId)) {
+                val session = InfiniteDungeonManager.getSession(killer.uniqueId)
+                if (session != null) {
+                    val wave = session.wave.toDouble()
+                    val xpScale = InfiniteDungeonManager.xpScalingCoeff.first * wave + InfiniteDungeonManager.xpScalingCoeff.second
+                    val finalXp = (monsterDefinition.xpReward * xpScale).toInt()
+                    if (finalXp > 0) {
+                        XPHelper.addTotalExperience(killer, finalXp)
+                        killer.sendMessage("§e+${finalXp} XP")
+                    }
+
+                    if (session.wave > 0 && session.wave % 10 == 0) {
+                        InfiniteDungeonManager.getBossLootTableIdForWave(session.wave)?.let { tableId ->
+                            LootManager.processLoot(killer, tableId)
+                        }
+                    }
+                }
+            } else {
+                if (monsterDefinition.xpReward > 0) {
+                    XPHelper.addTotalExperience(killer, monsterDefinition.xpReward)
+                    killer.sendMessage("§e+${monsterDefinition.xpReward} XP")
+                }
+                monsterDefinition.dropTableId?.let { tableId ->
+                    LootManager.processLoot(killer, tableId)
+                }
             }
 
-            monsterDefinition.dropTableId?.let { tableId ->
-                LootManager.processLoot(killer, tableId)
+            if (monsterDefinition.isBoss) {
+                BossBarManager.removeBoss(victim)
             }
-
             EntityManager.unregisterEntity(victim)
         }
     }

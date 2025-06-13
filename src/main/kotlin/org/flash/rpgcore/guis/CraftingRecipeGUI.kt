@@ -45,10 +45,10 @@ class CraftingRecipeGUI(
     private fun initializeItems() {
         val playerData = PlayerDataManager.getPlayerData(player)
         val allRecipes = CraftingManager.getAllRecipes()
+
         val displayableRecipes = allRecipes.filter { recipe ->
             val outputItemDef = EquipmentManager.getEquipmentDefinition(recipe.outputItemId)
-            val isCorrectCategory = outputItemDef != null && outputItemDef.equipmentType == category
-            isCorrectCategory // 현재는 배운 레시피 필터링 없음
+            outputItemDef != null && outputItemDef.equipmentType == category
         }.sortedBy { it.recipeId }
 
         this.maxPage = if (displayableRecipes.isEmpty()) 0 else (displayableRecipes.size - 1) / ITEMS_PER_PAGE
@@ -59,35 +59,50 @@ class CraftingRecipeGUI(
         for (i in startIndex until endIndex) {
             val recipe = displayableRecipes[i]
             val itemIndex = i - startIndex
-            inventory.setItem(itemIndex, createRecipeItem(recipe))
+            val hasLearned = playerData.learnedRecipes.contains(recipe.recipeId)
+            inventory.setItem(itemIndex, createRecipeItem(recipe, hasLearned))
         }
 
         setupNavigation()
     }
 
-    private fun createRecipeItem(recipe: CraftingRecipe): ItemStack? {
-        val item = EquipmentManager.createEquipmentItemStack(recipe.outputItemId, 0, 1) ?: return null
-        val meta = item.itemMeta ?: return null
-        val lore = meta.lore?.toMutableList() ?: mutableListOf()
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&m--------------------"))
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&e&l[제작 정보]"))
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&6요구 경험치: &e${recipe.xpCost}"))
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&a&l[필요 재료]"))
-        recipe.ingredients.forEach { ingredient ->
-            val ingredientName = when (ingredient.itemType) {
-                IngredientType.VANILLA -> ingredient.itemId.replace("_", " ").lowercase().replaceFirstChar { it.titlecase() }
-                IngredientType.RPGCORE_CUSTOM_MATERIAL -> CraftingManager.getCustomMaterial(ingredient.itemId)?.displayName ?: "${ingredient.itemId} (없음)"
-                IngredientType.RPGCORE_CUSTOM_EQUIPMENT -> EquipmentManager.getEquipmentDefinition(ingredient.itemId)?.displayName ?: "${ingredient.itemId} (없음)"
+    private fun createRecipeItem(recipe: CraftingRecipe, learned: Boolean): ItemStack {
+        if (learned) {
+            val item = EquipmentManager.createEquipmentItemStack(recipe.outputItemId, 0, 1) ?: return ItemStack(Material.BARRIER)
+            val meta = item.itemMeta ?: return item
+            val lore = meta.lore?.toMutableList() ?: mutableListOf()
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&m--------------------"))
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&e&l[제작 정보]"))
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&6요구 경험치: &e${recipe.xpCost}"))
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&a&l[필요 재료]"))
+            recipe.ingredients.forEach { ingredient ->
+                val ingredientName = when (ingredient.itemType) {
+                    IngredientType.VANILLA -> ingredient.itemId.replace("_", " ").lowercase().replaceFirstChar { it.titlecase() }
+                    IngredientType.RPGCORE_CUSTOM_MATERIAL -> CraftingManager.getCustomMaterial(ingredient.itemId)?.displayName ?: "${ingredient.itemId} (없음)"
+                    IngredientType.RPGCORE_CUSTOM_EQUIPMENT -> EquipmentManager.getEquipmentDefinition(ingredient.itemId)?.displayName ?: "${ingredient.itemId} (없음)"
+                }
+                val levelReq = ingredient.requiredUpgradeLevel?.let { " &e(+${it} 이상)" } ?: ""
+                lore.add(ChatColor.translateAlternateColorCodes('&', "&7- $ingredientName &f${ingredient.amount}개$levelReq"))
             }
-            val levelReq = ingredient.requiredUpgradeLevel?.let { " &e(+${it} 이상)" } ?: ""
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&7- $ingredientName &f${ingredient.amount}개$levelReq"))
+            lore.add(" ")
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&a&l우클릭으로 제작"))
+            meta.lore = lore
+            meta.persistentDataContainer.set(RECIPE_ID_KEY, PersistentDataType.STRING, recipe.recipeId)
+            item.itemMeta = meta
+            return item
+        } else {
+            // 배우지 않은 레시피
+            val outputItemDef = EquipmentManager.getEquipmentDefinition(recipe.outputItemId)
+            val item = ItemStack(Material.GRAY_DYE)
+            val meta = item.itemMeta!!
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&7&o${outputItemDef?.displayName ?: "알 수 없는 아이템"} (미습득)"))
+            val lore = mutableListOf<String>()
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&8(레시피를 획득해야 제작할 수 있습니다)"))
+            meta.lore = lore
+            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
+            item.itemMeta = meta
+            return item
         }
-        lore.add(" ")
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&a&l우클릭으로 제작"))
-        meta.lore = lore
-        meta.persistentDataContainer.set(RECIPE_ID_KEY, PersistentDataType.STRING, recipe.recipeId)
-        item.itemMeta = meta
-        return item
     }
 
     private fun setupNavigation() {

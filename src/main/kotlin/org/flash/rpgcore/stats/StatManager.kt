@@ -2,6 +2,7 @@ package org.flash.rpgcore.stats
 
 import org.bukkit.ChatColor
 import org.bukkit.Sound
+import org.bukkit.attribute.Attribute
 import org.bukkit.entity.Player
 import org.flash.rpgcore.RPGcore
 import org.flash.rpgcore.managers.EquipmentManager
@@ -151,21 +152,24 @@ object StatManager {
 
     fun fullyRecalculateAndApplyStats(player: Player) {
         val playerData = PlayerDataManager.getPlayerData(player)
-        logger.info("[StatManager] Recalculating all stats for ${player.name}...")
-        var finalMaxHp = 0.0
-        var finalMaxMp = 0.0
-        StatType.entries.forEach { statType ->
-            val finalValue = getFinalStatValue(player, statType)
-            if (statType == StatType.MAX_HP) finalMaxHp = finalValue
-            if (statType == StatType.MAX_MP) finalMaxMp = finalValue
-        }
+        logger.info("[StatManager] Recalculating and applying all stats for ${player.name}...")
 
-        // 여기서 최종 max 값 기준으로 현재 값을 보정
-        playerData.currentHp = playerData.currentHp.coerceAtMost(finalMaxHp.coerceAtLeast(1.0))
-        playerData.currentMp = playerData.currentMp.coerceAtMost(finalMaxMp.coerceAtLeast(0.0))
+        val finalStats = StatType.entries.associateWith { getFinalStatValue(player, it) }
+        val finalMaxHp = finalStats[StatType.MAX_HP] ?: StatType.MAX_HP.defaultValue
+        val finalMaxMp = finalStats[StatType.MAX_MP] ?: StatType.MAX_MP.defaultValue
+
+        player.getAttribute(Attribute.MAX_HEALTH)?.baseValue = finalMaxHp
+        player.getAttribute(Attribute.ARMOR)?.baseValue = 0.0
+        player.getAttribute(Attribute.ARMOR_TOUGHNESS)?.baseValue = 0.0
+
+        playerData.currentHp = playerData.currentHp.coerceAtMost(finalMaxHp)
+        if (playerData.currentHp <= 0 && finalMaxHp > 0) {
+            playerData.currentHp = 1.0
+        }
+        playerData.currentMp = playerData.currentMp.coerceAtMost(finalMaxMp)
 
         PlayerScoreboardManager.updateScoreboard(player)
-        logger.info("[StatManager] Stat recalculation finished for ${player.name}.")
+        logger.info("[StatManager] Stat recalculation and application finished for ${player.name}.")
     }
 
     private fun statTypeShouldNotBeNegative(statType: StatType): Boolean {

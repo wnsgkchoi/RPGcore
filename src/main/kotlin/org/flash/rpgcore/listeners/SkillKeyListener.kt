@@ -8,6 +8,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerDropItemEvent
 import org.bukkit.event.player.PlayerSwapHandItemsEvent
 import org.bukkit.inventory.ItemStack
+import org.flash.rpgcore.managers.CastingManager
 import org.flash.rpgcore.managers.ClassManager
 import org.flash.rpgcore.managers.PlayerDataManager
 import org.flash.rpgcore.managers.PlayerScoreboardManager
@@ -85,13 +86,21 @@ class SkillKeyListener : Listener {
             return
         }
 
+        if (CastingManager.isCasting(player)) {
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[알림] &f다른 스킬을 이미 시전 중입니다."))
+            return
+        }
+
         playerData.currentMp -= levelData.mpCost
         val cooldownEndTime = System.currentTimeMillis() + (levelData.cooldownTicks * 50)
         playerData.startSkillCooldown(skillId, cooldownEndTime)
 
-        // 스킬 사용 직후 스코어보드 즉시 업데이트
         PlayerScoreboardManager.updateScoreboard(player)
 
-        SkillEffectExecutor.execute(player, skillId)
+        if (levelData.castTimeTicks > 0) {
+            CastingManager.startCasting(player, skill, level)
+        } else {
+            SkillEffectExecutor.execute(player, skillId)
+        }
     }
 }

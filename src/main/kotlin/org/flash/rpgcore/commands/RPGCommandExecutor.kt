@@ -60,12 +60,24 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
 
     private fun handleInfiniteCommand(player: Player, args: Array<out String>) {
         if (args.size < 2) {
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[System] &f/rpg infinite <join|ranking> 형식으로 사용해주세요."))
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[System] &f/rpg infinite <join|leave|ranking> 형식으로 사용해주세요."))
             return
         }
         when (args[1].lowercase()) {
-            "join" -> player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&e[System] &f무한 던전에 입장합니다. (로직 구현 필요)"))
-            "ranking" -> player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&e[System] &f무한 던전 랭킹을 표시합니다. (로직 구현 필요)"))
+            "join" -> InfiniteDungeonManager.join(player)
+            "leave" -> InfiniteDungeonManager.leave(player, false)
+            "ranking" -> {
+                val rankings = InfiniteDungeonManager.getTopRankings(10)
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6--- 무한 던전 랭킹 ---"))
+                if (rankings.isEmpty()) {
+                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&f아직 랭킹 정보가 없습니다."))
+                } else {
+                    rankings.forEachIndexed { index, entry ->
+                        player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&e${index + 1}. &f${entry.playerName} - &bWave ${entry.wave}"))
+                    }
+                }
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&6--------------------"))
+            }
             else -> player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[System] &f알 수 없는 /rpg infinite 하위 명령어입니다."))
         }
     }
@@ -114,14 +126,12 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
                     return
                 }
 
-                // ★★★★★★★★★★★★★★★★★★★★★ 오류 수정 부분 ★★★★★★★★★★★★★★★★★★★★★
                 val givenItem = EquipmentManager.givePlayerEquipment(targetPlayer, equipmentId, level, amount)
                 if (givenItem != null) {
                     sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a[System] &f${targetPlayer.name}에게 ${givenItem.itemMeta?.displayName ?: equipmentId}(Lv.${level}) 아이템 ${amount}개를 지급했습니다."))
                 } else {
                     sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[System] &f아이템 지급에 실패했습니다. 장비 ID, 레벨을 확인하거나 콘솔 로그를 참조하세요."))
                 }
-                // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
             }
             "giverecipe" -> {
                 if (args.size < 3) {
@@ -159,6 +169,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
                 CraftingManager.loadAllCraftingData()
                 MonsterManager.loadMonsters()
                 LootManager.loadLootTables()
+                InfiniteDungeonManager.loadDungeons()
 
                 Bukkit.getOnlinePlayers().forEach { player ->
                     StatManager.fullyRecalculateAndApplyStats(player)
@@ -187,7 +198,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
         }
         if (args.size == 2) {
             when (args[0].lowercase()) {
-                "infinite" -> return listOf("join", "ranking").filter { it.startsWith(args[1], ignoreCase = true) }.sorted()
+                "infinite" -> return listOf("join", "leave", "ranking").filter { it.startsWith(args[1], ignoreCase = true) }.sorted()
                 "trade" -> return Bukkit.getOnlinePlayers().map { it.name }.filter { it.startsWith(args[1], ignoreCase = true) && it != sender.name }.sorted()
                 "giveequip", "giverecipe" -> {
                     if (sender.isOp) {
@@ -200,7 +211,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
             when(args[0].lowercase()){
                 "giveequip" -> {
                     if (sender.isOp) {
-                        // EquipmentManager.getAllEquipmentIds() 같은 함수가 있다면 자동완성 제공 가능
+                        return EquipmentManager.getAllEquipmentIds().filter { it.startsWith(args[2], ignoreCase = true) }.sorted()
                     }
                 }
                 "giverecipe" -> {
@@ -234,7 +245,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
             "class" -> "class"
             "equip" -> "equip"
             "skills" -> "skills"
-            "infinite" -> "infinite <join|ranking>"
+            "infinite" -> "infinite <join|leave|ranking>"
             "trade" -> "trade <player>"
             else -> subCommand
         }
@@ -247,7 +258,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
             "class" -> "클래스 선택 또는 변경창을 엽니다."
             "equip" -> "장비 관리 및 제작 관련 창을 엽니다."
             "skills" -> "스킬 관리창을 엽니다."
-            "infinite" -> "무한 던전 관련 명령어입니다. (구현 예정)"
+            "infinite" -> "무한 던전에 입장, 퇴장하거나 랭킹을 봅니다."
             "trade" -> "다른 플레이어에게 XP 거래를 요청합니다."
             else -> "알 수 없는 명령어입니다."
         }
@@ -256,7 +267,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
     private fun getAdminCommandUsage(subCommand: String): String {
         return when (subCommand.lowercase()) {
             "giveequip" -> "giveequip <player> <item_id> <level> [amount]"
-            "giverecipe" -> "giverecipe <player> <recipe_id>" // 추가
+            "giverecipe" -> "giverecipe <player> <recipe_id>"
             "reload" -> "reload"
             else -> subCommand
         }
@@ -265,7 +276,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
     private fun getAdminCommandDescription(subCommand: String): String {
         return when (subCommand.lowercase()) {
             "giveequip" -> "플레이어에게 커스텀 장비를 지급합니다."
-            "giverecipe" -> "플레이어에게 제작 레시피를 지급합니다." // 추가
+            "giverecipe" -> "플레이어에게 제작 레시피를 지급합니다."
             "reload" -> "플러그인 설정을 리로드합니다."
             else -> "알 수 없는 관리자 명령어입니다."
         }

@@ -31,6 +31,9 @@ object EquipmentManager : IEquipmentManager {
 
     private val equipmentDefinitions: MutableMap<String, EquipmentData> = mutableMapOf()
 
+    // 장비 ID 목록 반환 함수 추가
+    fun getAllEquipmentIds(): List<String> = equipmentDefinitions.keys.toList()
+
     override fun loadEquipmentDefinitions() {
         equipmentDefinitions.clear()
         logger.info("Starting to load equipment definitions...")

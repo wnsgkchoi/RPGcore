@@ -35,7 +35,8 @@ object LootManager {
                         id = it["id"] as String,
                         minAmount = it["min_amount"] as Int,
                         maxAmount = it["max_amount"] as Int,
-                        chance = it["chance"] as Double
+                        chance = it["chance"] as Double,
+                        upgradeLevel = it["upgrade_level"] as? Int
                     )
                 }
                 lootTables[tableId] = LootTableData(tableId, dropsList)
@@ -48,6 +49,16 @@ object LootManager {
 
     fun processLoot(player: Player, tableId: String) {
         val table = lootTables[tableId] ?: return
+
+        // 던전 내 몬스터 처치 시 보상 규칙 적용
+        val victim = player.lastDamageCause?.entity
+        if (victim != null && InfiniteDungeonManager.isDungeonMonster(victim.uniqueId)) {
+            val session = InfiniteDungeonManager.getSession(player.uniqueId)
+            // 보스 웨이브(10의 배수)가 아닐 경우, 아이템 드롭을 처리하지 않고 종료
+            if (session != null && session.wave % 10 != 0) {
+                return
+            }
+        }
 
         table.drops.forEach { dropInfo ->
             if (Random.nextDouble(0.0, 1.0) <= dropInfo.chance) {
@@ -63,7 +74,7 @@ object LootManager {
                         CraftingManager.getCustomMaterialItemStack(dropInfo.id, amount)?.let { player.inventory.addItem(it) }
                     }
                     DropType.RPGCORE_EQUIPMENT -> {
-                        EquipmentManager.givePlayerEquipment(player, dropInfo.id, 0, amount)
+                        EquipmentManager.givePlayerEquipment(player, dropInfo.id, dropInfo.upgradeLevel ?: 0, amount)
                     }
                     DropType.RPGCORE_SKILL_UNLOCK -> {
                         val playerData = PlayerDataManager.getPlayerData(player)
@@ -78,7 +89,9 @@ object LootManager {
                             player.sendMessage("§a[획득] §f새로운 제작법 §e'${dropInfo.id}'§f을 배웠습니다!")
                         }
                     }
-                    else -> {}
+                    DropType.RPGCORE_SKILL_BOOK -> {
+                        // TODO: 스킬북 아이템 지급 로직
+                    }
                 }
             }
         }

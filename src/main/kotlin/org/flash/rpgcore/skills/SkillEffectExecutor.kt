@@ -40,18 +40,15 @@ object SkillEffectExecutor {
 
         val levelData = skillData.levelData[level] ?: return
 
-        val castLocation = caster.location.clone()
-
         levelData.effects.forEach { effect ->
-            val impactLocation = if (effect.targetSelector.uppercase().contains("IMPACT")) castLocation else null
-            val targets = TargetSelector.findTargets(caster, effect, impactLocation)
+            val targets = TargetSelector.findTargets(caster, effect, null)
             targets.forEach { target ->
                 handleSingleEffect(caster, target, effect, skillData, level)
             }
         }
     }
 
-    fun executeEffectsFromProjectile(caster: Player, hitLocation: Location, skillData: RPGSkillData, level: Int, onImpactEffectMaps: List<Map<*, *>>) {
+    fun executeEffectsFromProjectile(caster: LivingEntity, hitLocation: Location, skillData: RPGSkillData, level: Int, onImpactEffectMaps: List<Map<*, *>>) {
         val effects = onImpactEffectMaps.mapNotNull { effectMap ->
             val type = effectMap["type"] as? String ?: return@mapNotNull null
             val targetSelector = effectMap["target_selector"] as? String ?: "SELF"
@@ -64,7 +61,15 @@ object SkillEffectExecutor {
         effects.forEach { effect ->
             val targets = TargetSelector.findTargets(caster, effect, hitLocation)
             targets.forEach { target ->
-                handleSingleEffect(caster, target, effect, skillData, level)
+                if (caster is Player) {
+                    handleSingleEffect(caster, target, effect, skillData, level)
+                } else {
+                    // 몬스터가 시전한 투사체의 효과 처리
+                    when (effect.type.uppercase()) {
+                        "DAMAGE" -> CombatManager.applyMonsterSkillDamage(caster, target, effect)
+                        // 기타 효과...
+                    }
+                }
             }
         }
     }
@@ -91,7 +96,7 @@ object SkillEffectExecutor {
         }
     }
 
-    private fun launchProjectile(caster: Player, effect: SkillEffectData, skillData: RPGSkillData, level: Int) {
+    fun launchProjectile(caster: LivingEntity, effect: SkillEffectData, skillData: RPGSkillData, level: Int) {
         val projectileTypeStr = effect.parameters["projectile_type"]?.uppercase() ?: "ARROW"
         val projectileClass = when(projectileTypeStr) {
             "FIREBALL" -> org.bukkit.entity.Fireball::class.java
@@ -99,7 +104,7 @@ object SkillEffectExecutor {
             else -> Arrow::class.java
         }
 
-        val projectile = caster.launchProjectile(projectileClass, caster.location.direction)
+        val projectile = caster.launchProjectile(projectileClass)
         projectile.setMetadata(PROJECTILE_SKILL_ID_KEY, FixedMetadataValue(plugin, skillData.internalId))
         projectile.setMetadata(PROJECTILE_CASTER_UUID_KEY, FixedMetadataValue(plugin, caster.uniqueId.toString()))
         projectile.setMetadata(PROJECTILE_SKILL_LEVEL_KEY, FixedMetadataValue(plugin, level))
@@ -215,7 +220,7 @@ object SkillEffectExecutor {
                         CombatManager.applySkillDamage(caster, it, SkillEffectData("DAMAGE", "PLACEHOLDER", mapOf("physical_damage_coeff_attack_power_formula" to directHitDamageCoeff.toString(), "knockback_strength" to knockback.toString())))
                         hitEntities.add(it.uniqueId)
                     }
-                    this.cancel() // 충돌 시 돌진 중지
+                    this.cancel()
                 }
                 ticks++
             }

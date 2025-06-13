@@ -74,6 +74,7 @@ class ClassGUIListener : Listener {
 
                     playerData.currentClassId = clickedClassId
 
+                    // 스킬 슬롯 초기화
                     playerData.equippedActiveSkills.replaceAll { _, _ -> null }
                     playerData.equippedPassiveSkills.replaceAll { _ -> null }
 
@@ -96,29 +97,53 @@ class ClassGUIListener : Listener {
 
     private fun grantStarterAndInnateSkills(player: Player, playerData: PlayerData, rpgClass: RPGClass) {
         val skillsToLearn = mutableSetOf<String>()
+        // starterSkills와 innatePassiveSkillIds 모두 배울 스킬 목록에 추가
         rpgClass.starterSkills.values.forEach { skillsToLearn.addAll(it) }
         skillsToLearn.addAll(rpgClass.innatePassiveSkillIds)
 
-        logger.info("[ClassGUIListener DEBUG] Attempting to grant skills to ${player.name} for class ${rpgClass.internalId}: $skillsToLearn")
-
         var newSkillsLearned = false
         skillsToLearn.forEach { skillId ->
-            val skillData = SkillManager.getSkill(skillId) // SkillManager에서 스킬 정보 조회
+            val skillData = SkillManager.getSkill(skillId)
             if (skillData != null) {
-                logger.info("[ClassGUIListener DEBUG] -> Found skill '$skillId'. Granting to player.")
-                val currentLevel = playerData.getLearnedSkillLevel(skillId)
-                if (currentLevel < 1) {
+                if (playerData.getLearnedSkillLevel(skillId) < 1) {
                     playerData.learnSkill(skillId, 1)
                     newSkillsLearned = true
                     logger.info("[ClassGUIListener] Player ${player.name} learned default/innate skill: $skillId (Lvl 1)")
                 }
             } else {
-                // ★★★★★★★ 이 로그가 뜨는지 확인이 중요 ★★★★★★★
-                logger.warning("[ClassGUIListener DEBUG] -> FAILED to find skill '$skillId' in SkillManager. Check if the YAML file exists and has a matching name.")
+                logger.warning("[ClassGUIListener DEBUG] -> FAILED to find skill '$skillId' in SkillManager for class ${rpgClass.internalId}. Check if the YAML file exists and has a matching name.")
             }
         }
         if (newSkillsLearned) {
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a[System] &f새로운 클래스의 기본 능력들을 익혔습니다! &e(/rpg skills 확인)"))
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a[System] &f새로운 클래스의 기본 능력들을 익혔습니다!"))
+        }
+
+        // --- 자동 장착 로직 추가 ---
+        val activeStarters = rpgClass.starterSkills["ACTIVE"] ?: emptyList()
+        val passiveStarters = rpgClass.starterSkills["PASSIVE"] ?: emptyList()
+        var equippedCount = 0
+
+        // 액티브 스킬 자동 장착
+        val activeSlots = listOf("SLOT_Q", "SLOT_F", "SLOT_SHIFT_Q")
+        var activeSlotIndex = 0
+        for (skillId in activeStarters) {
+            if (activeSlotIndex >= activeSlots.size) break
+            playerData.equipActiveSkill(activeSlots[activeSlotIndex], skillId)
+            activeSlotIndex++
+            equippedCount++
+        }
+
+        // 패시브 스킬 자동 장착
+        var passiveSlotIndex = 0
+        for (skillId in passiveStarters) {
+            if (passiveSlotIndex >= 3) break // 최대 패시브 슬롯 3개
+            playerData.equipPassiveSkill(passiveSlotIndex, skillId)
+            passiveSlotIndex++
+            equippedCount++
+        }
+
+        if (equippedCount > 0) {
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a[System] &f기본 스킬이 자동으로 장착되었습니다. &e(/rpg skills 확인)"))
         }
     }
 

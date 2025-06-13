@@ -4,14 +4,15 @@ import org.bukkit.ChatColor
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.attribute.Attribute
+import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.LivingEntity
-import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.inventory.ItemStack
 import org.flash.rpgcore.RPGcore
 import org.flash.rpgcore.monsters.CustomMonsterData
 import org.flash.rpgcore.monsters.MonsterSkillInfo
 import org.flash.rpgcore.monsters.MonsterStatInfo
+import org.flash.rpgcore.monsters.ai.AggroType
 import java.io.File
 import java.util.Random
 
@@ -19,7 +20,7 @@ object MonsterManager {
     private val plugin = RPGcore.instance
     private val logger = plugin.logger
     private val monsterDefinitions = mutableMapOf<String, CustomMonsterData>()
-    private val random = Random() // java.util.Random 사용
+    private val random = Random()
 
     fun loadMonsters() {
         monsterDefinitions.clear()
@@ -40,12 +41,13 @@ object MonsterManager {
                     statsMap[key.uppercase()] = MonsterStatInfo(min, max)
                 }
 
-                val skillsList = config.getMapList("skills").map {
+                val skillsList = config.getMapList("skills").map { skillMap ->
+                    @Suppress("UNCHECKED_CAST")
                     MonsterSkillInfo(
-                        internalId = it["internal_id"] as String,
-                        chance = it["chance"] as Double,
-                        cooldownTicks = it["cooldown_ticks"] as Int,
-                        condition = it["condition"] as? String ?: "ALWAYS"
+                        internalId = skillMap["internal_id"] as String,
+                        chance = skillMap["chance"] as Double,
+                        cooldownTicks = skillMap["cooldown_ticks"] as Int,
+                        condition = skillMap["condition"] as? Map<String, String>
                     )
                 }
 
@@ -63,7 +65,8 @@ object MonsterManager {
                     skills = skillsList,
                     xpReward = config.getInt("xp_reward", 0),
                     dropTableId = config.getString("drop_table_id"),
-                    isBoss = config.getBoolean("is_boss_monster", false)
+                    isBoss = config.getBoolean("is_boss_monster", false),
+                    aggroType = AggroType.fromString(config.getString("aggro_type", "NEAREST")!!)
                 )
                 monsterDefinitions[monsterId] = data
             } catch (e: Exception) {
@@ -95,20 +98,25 @@ object MonsterManager {
 
         val finalStats = mutableMapOf<String, Double>()
         data.stats.forEach { (statName, statInfo) ->
-            finalStats[statName] = getRandomizedStat(statInfo)
+            finalStats[statName.uppercase()] = getRandomizedStat(statInfo)
         }
 
         val maxHp = finalStats["MAX_HP"] ?: 20.0
         entity.getAttribute(Attribute.MAX_HEALTH)?.baseValue = maxHp
         entity.health = maxHp
 
-        val speed = finalStats["MOVEMENT_SPEED"]
+        val speed = finalStats["MOVEMENTSPEED"]
         if (speed != null) {
             entity.getAttribute(Attribute.MOVEMENT_SPEED)?.baseValue = speed
         }
 
         EntityManager.registerEntity(entity, data, finalStats)
         logger.info("Spawned monster ${data.displayName} with ID ${entity.uniqueId}")
+
+        if (data.isBoss) {
+            BossBarManager.addBoss(entity, data)
+        }
+
         return entity
     }
 

@@ -10,7 +10,7 @@ import org.bukkit.entity.Slime
 
 object TargetSelector {
 
-    fun findTargets(caster: Player, effect: SkillEffectData, impactLocation: Location? = null): List<LivingEntity> {
+    fun findTargets(caster: LivingEntity, effect: SkillEffectData, impactLocation: Location? = null): List<LivingEntity> {
         val params = effect.parameters
         return when (effect.targetSelector.uppercase()) {
             "SELF" -> listOf(caster)
@@ -18,7 +18,7 @@ object TargetSelector {
             "SINGLE_ENEMY" -> {
                 val range = params["range"]?.toDoubleOrNull() ?: 10.0
                 val target = caster.getTargetEntity(range.toInt(), false)
-                if (target is LivingEntity && target != caster && isHostile(target)) {
+                if (target is LivingEntity && target != caster && isHostile(target, caster)) {
                     listOf(target)
                 } else {
                     emptyList()
@@ -29,7 +29,7 @@ object TargetSelector {
                 val radius = params["area_radius"]?.toDoubleOrNull() ?: 5.0
                 caster.getNearbyEntities(radius, radius, radius)
                     .filterIsInstance<LivingEntity>()
-                    .filter { it != caster && it.hasLineOfSight(caster) && isHostile(it) }
+                    .filter { it != caster && it.hasLineOfSight(caster) && isHostile(it, caster) }
             }
 
             "AREA_ENEMY_AROUND_IMPACT" -> {
@@ -37,7 +37,7 @@ object TargetSelector {
                 val sourceLocation = impactLocation ?: caster.location
                 sourceLocation.world?.getNearbyEntities(sourceLocation, radius, radius, radius)
                     ?.filterIsInstance<LivingEntity>()
-                    ?.filter { it != caster && isHostile(it) } ?: emptyList()
+                    ?.filter { it != caster && isHostile(it, caster) } ?: emptyList()
             }
 
             "AREA_ENEMY_IN_CONE" -> {
@@ -50,7 +50,7 @@ object TargetSelector {
                 caster.getNearbyEntities(range, range, range)
                     .filterIsInstance<LivingEntity>()
                     .filter { target ->
-                        if (target == caster || !isHostile(target)) return@filter false
+                        if (target == caster || !isHostile(target, caster)) return@filter false
 
                         val targetVector = target.location.toVector().subtract(caster.location.toVector()).normalize()
                         val angle = casterDirection.angle(targetVector)
@@ -69,7 +69,7 @@ object TargetSelector {
                 caster.world.getNearbyEntities(casterLocation, pathLength, pathWidth, pathLength)
                     .filterIsInstance<LivingEntity>()
                     .filter { target ->
-                        if (target == caster || !isHostile(target)) return@filter false
+                        if (target == caster || !isHostile(target, caster)) return@filter false
 
                         val toTarget = target.eyeLocation.toVector().subtract(casterLocation.toVector())
                         if (toTarget.clone().normalize().dot(casterDirection) < 0) return@filter false
@@ -88,7 +88,10 @@ object TargetSelector {
         }
     }
 
-    private fun isHostile(entity: LivingEntity): Boolean {
-        return entity is Monster || entity is Slime || entity is Ghast || entity is Phantom
+    private fun isHostile(entity: LivingEntity, perspective: LivingEntity): Boolean {
+        return when (perspective) {
+            is Player -> entity is Monster || entity is Slime || entity is Ghast || entity is Phantom
+            else -> entity is Player // 몬스터 입장에서는 플레이어가 적대적
+        }
     }
 }
