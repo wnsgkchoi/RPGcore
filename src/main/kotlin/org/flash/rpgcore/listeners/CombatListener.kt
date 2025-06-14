@@ -31,16 +31,14 @@ class CombatListener : Listener {
         private val gson = Gson()
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun onGenericPlayerDamage(event: EntityDamageEvent) {
         val victim = event.entity as? Player ?: return
 
-        // 엔티티에 의한 피해는 onEntityDamageByEntity에서 별도로 처리하므로, 여기서는 환경 피해만 다룹니다.
         if (event is EntityDamageByEntityEvent) {
             return
         }
 
-        // 바닐라 기본 이벤트를 취소하고, 커스텀 데미지 시스템으로 처리합니다.
         event.isCancelled = true
         CombatManager.applyEnvironmentalDamage(victim, event.damage)
     }
@@ -129,6 +127,11 @@ class CombatListener : Listener {
                     } else {
                         CombatManager.handleDamage(shooter, victim)
                     }
+                } else { // 몬스터가 쏜 화살일 경우
+                    if (victim is Player) {
+                        event.isCancelled = true
+                        CombatManager.handleDamage(shooter, victim)
+                    }
                 }
             }
             is Projectile -> {
@@ -191,14 +194,16 @@ class CombatListener : Listener {
     @EventHandler
     fun onEntityDeath(event: EntityDeathEvent) {
         val victim = event.entity
-        val killer = victim.killer ?: return
 
         EntityManager.getEntityData(victim)?.let { customEntityData ->
-            val monsterId = customEntityData.monsterId
-            val monsterDefinition = MonsterManager.getMonsterData(monsterId) ?: return
-
+            RPGcore.instance.logger.info("[Combat] Custom monster ${victim.name} died. Clearing vanilla drops.")
             event.drops.clear()
             event.droppedExp = 0
+
+            val killer = victim.killer ?: return@let
+
+            val monsterId = customEntityData.monsterId
+            val monsterDefinition = MonsterManager.getMonsterData(monsterId) ?: return@let
 
             if (InfiniteDungeonManager.isDungeonMonster(victim.uniqueId)) {
                 val session = InfiniteDungeonManager.getSession(killer.uniqueId)

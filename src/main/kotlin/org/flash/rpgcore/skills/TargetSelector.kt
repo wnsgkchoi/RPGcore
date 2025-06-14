@@ -7,6 +7,7 @@ import org.bukkit.entity.Monster
 import org.bukkit.entity.Phantom
 import org.bukkit.entity.Player
 import org.bukkit.entity.Slime
+import org.flash.rpgcore.managers.EntityManager
 
 object TargetSelector {
 
@@ -90,7 +91,7 @@ object TargetSelector {
 
     private fun isHostile(entity: LivingEntity, perspective: LivingEntity): Boolean {
         return when (perspective) {
-            is Player -> entity is Monster || entity is Slime || entity is Ghast || entity is Phantom
+            is Player -> entity is Monster || entity is Slime || entity is Ghast || entity is Phantom || EntityManager.getEntityData(entity) != null
             else -> entity is Player // 몬스터 입장에서는 플레이어가 적대적
         }
     }

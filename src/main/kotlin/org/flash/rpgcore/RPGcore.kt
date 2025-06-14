@@ -82,39 +82,33 @@ class RPGcore : JavaPlugin() {
             private var tickCounter = 0
             private val TARGETING_RADIUS = 32.0
             private val TARGETING_RADIUS_SQUARED = TARGETING_RADIUS * TARGETING_RADIUS
+            private val ARENA_LEASH_RADIUS_SQUARED = 40.0 * 40.0 // 40칸 이상 벗어나면 복귀
 
             override fun run() {
                 tickCounter++
 
                 // Player-related Ticks
-                for (player in Bukkit.getOnlinePlayers()) {
-                    val playerData = PlayerDataManager.getPlayerData(player)
-                    var needsUpdate = false
+                if (tickCounter % 20 == 0) { // 1초에 한 번
+                    for (player in Bukkit.getOnlinePlayers()) {
+                        val playerData = PlayerDataManager.getPlayerData(player)
+                        var needsUpdate = false
 
-                    // 바닐라 체력 UI 고정 로직 (매 10틱마다)
-                    if (tickCounter % 10 == 0) {
-                        if (player.health < 20.0) {
-                            player.health = 20.0
+                        if (tickCounter % 60 == 0) {
+                            val maxHp = StatManager.getFinalStatValue(player, StatType.MAX_HP)
+                            val hpToRegen = max(1.0, maxHp * 0.01)
+                            if (playerData.currentHp < maxHp) {
+                                playerData.currentHp = min(maxHp, playerData.currentHp + hpToRegen)
+                                needsUpdate = true
+                            }
+
+                            val maxMp = StatManager.getFinalStatValue(player, StatType.MAX_MP)
+                            val mpToRegen = max(1.0, maxMp * 0.02)
+                            if (playerData.currentMp < maxMp) {
+                                playerData.currentMp = min(maxMp, playerData.currentMp + mpToRegen)
+                                needsUpdate = true
+                            }
                         }
-                    }
 
-                    if (tickCounter % 60 == 0) {
-                        val maxHp = StatManager.getFinalStatValue(player, StatType.MAX_HP)
-                        val hpToRegen = max(1.0, maxHp * 0.01)
-                        if (playerData.currentHp < maxHp) {
-                            playerData.currentHp = min(maxHp, playerData.currentHp + hpToRegen)
-                            needsUpdate = true
-                        }
-
-                        val maxMp = StatManager.getFinalStatValue(player, StatType.MAX_MP)
-                        val mpToRegen = max(1.0, maxMp * 0.02)
-                        if (playerData.currentMp < maxMp) {
-                            playerData.currentMp = min(maxMp, playerData.currentMp + mpToRegen)
-                            needsUpdate = true
-                        }
-                    }
-
-                    if (tickCounter % 20 == 0) {
                         if (playerData.currentClassId == "frenzy_dps" && playerData.furyStacks > 0) {
                             val furySkill = SkillManager.getSkill("fury_stack")
                             if (furySkill != null) {
@@ -159,10 +153,10 @@ class RPGcore : JavaPlugin() {
                                 needsUpdate = true
                             }
                         }
-                    }
 
-                    if (needsUpdate) {
-                        PlayerScoreboardManager.updateScoreboard(player)
+                        if (needsUpdate) {
+                            PlayerScoreboardManager.updateScoreboard(player)
+                        }
                     }
                 }
 
@@ -176,9 +170,20 @@ class RPGcore : JavaPlugin() {
 
                         if (InfiniteDungeonManager.isDungeonMonster(monster.uniqueId)) {
                             val session = InfiniteDungeonManager.getSessionByMonster(monster.uniqueId)
-                            if (session != null && !session.player.isDead) {
-                                currentTarget = session.player
-                                entityData.aggroTarget = currentTarget.uniqueId
+                            if (session != null) {
+                                if (!session.player.isDead) {
+                                    currentTarget = session.player
+                                    entityData.aggroTarget = currentTarget.uniqueId
+                                }
+                                // 던전 몬스터 이탈 방지 로직 (목줄)
+                                val arena = InfiniteDungeonManager.getArenaById(session.arenaId)
+                                if (arena != null) {
+                                    if (monster.location.distanceSquared(arena.playerSpawn) > ARENA_LEASH_RADIUS_SQUARED) {
+                                        val respawnPoint = arena.monsterSpawns.random()
+                                        monster.teleport(respawnPoint)
+                                        logger.info("[AI] Monster ${monster.name} (${monster.uniqueId}) strayed too far and was teleported back into its arena.")
+                                    }
+                                }
                             }
                         } else {
                             val monsterDef = MonsterManager.getMonsterData(entityData.monsterId) ?: continue

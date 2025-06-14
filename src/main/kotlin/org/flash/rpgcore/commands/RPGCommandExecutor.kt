@@ -155,7 +155,8 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
                 val playerData = PlayerDataManager.getPlayerData(target)
                 playerData.updateBaseStat(statType, value)
                 StatManager.fullyRecalculateAndApplyStats(target)
-                sender.sendMessage("Set ${statType.name} for ${target.name} to $value. Stats recalculated.")
+                PlayerDataManager.savePlayerData(target, async = true) // 변경사항 즉시 저장
+                sender.sendMessage("Set ${statType.name} for ${target.name} to $value. Stats recalculated and saved.")
             }
             "giveskill" -> {
                 if (args.size < 3) {
@@ -168,15 +169,22 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
                     return
                 }
                 val skillId = args[2]
-                if (SkillManager.getSkill(skillId) == null) {
+                val skillData = SkillManager.getSkill(skillId)
+                if (skillData == null) {
                     sender.sendMessage("Invalid skill ID: $skillId")
                     return
                 }
                 val level = if (args.size >= 4) args[3].toIntOrNull() ?: 1 else 1
 
+                if (level <= 0 || level > skillData.maxLevel) {
+                    sender.sendMessage("Invalid level. Must be between 1 and ${skillData.maxLevel}.")
+                    return
+                }
+
                 val playerData = PlayerDataManager.getPlayerData(target)
                 playerData.learnSkill(skillId, level)
-                sender.sendMessage("Gave skill $skillId (Level $level) to ${target.name}.")
+                PlayerDataManager.savePlayerData(target, async = true) // 변경사항 즉시 저장
+                sender.sendMessage("Gave skill $skillId (Level $level) to ${target.name} and saved data.")
             }
             "give" -> {
                 if (args.size < 3) {
@@ -312,7 +320,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
                 }
                 "setstat" -> {
                     if (sender.isOp) {
-                        return StatType.entries.map { it.name }.filter { it.startsWith(args[2], ignoreCase = true) }.sorted()
+                        return StatType.entries.map { it.name }.filter { it.startsWith(args[2].uppercase(Locale.getDefault())) }.sorted()
                     }
                 }
                 "giveskill" -> {

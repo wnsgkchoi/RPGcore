@@ -268,7 +268,9 @@ object CombatManager {
         val totalDamage = finalPhysicalDamage + finalMagicalDamage
         if (totalDamage <= 0) return
 
-        victim.world.playSound(victim.location, Sound.ENTITY_PLAYER_HURT, 1.0f, 1.0f)
+        if (victim is Player) {
+            victim.world.playSound(victim.location, Sound.ENTITY_PLAYER_HURT, 1.0f, 1.0f)
+        }
 
         if (victim is Player && !isReflection) {
             handleReflection(victim, damager, totalDamage)
@@ -315,6 +317,13 @@ object CombatManager {
             }
 
             if (damager is Player) {
+                // 기본 공격 시 넉백 적용
+                if (magicalDamage == 0.0 && physicalDamage > 0.0 && !isReflection) {
+                    val direction = victim.location.toVector().subtract(damager.location.toVector()).normalize()
+                    direction.y = 0.35
+                    victim.velocity = direction.multiply(0.5)
+                }
+
                 val victimName = ChatColor.stripColor(victim.customName ?: victim.type.name.replace("_", " ").lowercase().replaceFirstChar { it.titlecase() })
                 val hpStr = "§c-${totalDamage.toInt()} §f(${max(0.0, remainingHp).toInt()}/${maxHp.toInt()})"
                 damager.sendActionBar(ChatColor.translateAlternateColorCodes('&', "&e${victimName} ${hpStr} ${if (isCritical) "&l(치명타!)" else ""}"))

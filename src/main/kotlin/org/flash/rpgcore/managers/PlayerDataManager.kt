@@ -3,7 +3,6 @@ package org.flash.rpgcore.managers
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import org.bukkit.Bukkit
-import org.bukkit.Location
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
@@ -138,10 +137,9 @@ object PlayerDataManager {
             config.set("custom-spawn.pitch", it.pitch)
         }
 
+        // 모든 base stat을 저장하도록 수정 (isXpUpgradable 조건 제거)
         playerData.baseStats.forEach { (statType, value) ->
-            if (statType.isXpUpgradable) {
-                config.set("base-stats.${statType.name}", value)
-            }
+            config.set("base-stats.${statType.name}", value)
         }
 
         val equipmentSection = config.createSection("custom-equipment")
@@ -221,12 +219,12 @@ object PlayerDataManager {
                 )
             }
 
+            // `initializeDefaultStats`로 모든 스탯이 기본값으로 초기화된 후,
+            // 파일에 저장된 값으로 덮어쓰므로 로딩 로직은 수정할 필요 없음.
             config.getConfigurationSection("base-stats")?.getKeys(false)?.forEach { statKey ->
                 try {
                     val statType = StatType.valueOf(statKey.uppercase())
-                    if (statType.isXpUpgradable) {
-                        playerData.baseStats[statType] = config.getDouble("base-stats.$statKey")
-                    }
+                    playerData.baseStats[statType] = config.getDouble("base-stats.$statKey")
                 } catch (e: IllegalArgumentException) { logger.warning("Unknown stat key '$statKey' in ${uuid}.yml. Ignoring.") }
             }
 
@@ -278,7 +276,6 @@ object PlayerDataManager {
                 } catch (e: IllegalArgumentException) { logger.warning("Unknown stat key '$statKey' in encyclopedia-stat-bonuses section of ${uuid}.yml. Ignoring.")}
             }
 
-            // 개인 창고 데이터 로드 (오류 수정)
             config.getConfigurationSection("backpack")?.getKeys(false)?.forEach { pageKey ->
                 val page = pageKey.removePrefix("page_").toIntOrNull()
                 if (page != null) {

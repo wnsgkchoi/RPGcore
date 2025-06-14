@@ -5,6 +5,7 @@ import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Sound
 import org.bukkit.entity.Arrow
+import org.bukkit.entity.Fireball
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.metadata.FixedMetadataValue
@@ -14,9 +15,9 @@ import org.flash.rpgcore.RPGcore
 import org.flash.rpgcore.managers.*
 import org.flash.rpgcore.stats.StatManager
 import org.flash.rpgcore.stats.StatType
-import java.util.UUID
-import kotlin.math.min
+import java.util.*
 import kotlin.math.cos
+import kotlin.math.min
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -64,10 +65,8 @@ object SkillEffectExecutor {
                 if (caster is Player) {
                     handleSingleEffect(caster, target, effect, skillData, level)
                 } else {
-                    // 몬스터가 시전한 투사체의 효과 처리
                     when (effect.type.uppercase()) {
                         "DAMAGE" -> CombatManager.applyMonsterSkillDamage(caster, target, effect)
-                        // 기타 효과...
                     }
                 }
             }
@@ -105,6 +104,12 @@ object SkillEffectExecutor {
         }
 
         val projectile = caster.launchProjectile(projectileClass)
+
+        if (projectile is Fireball) {
+            projectile.setIsIncendiary(false)
+            projectile.yield = 0f
+        }
+
         projectile.setMetadata(PROJECTILE_SKILL_ID_KEY, FixedMetadataValue(plugin, skillData.internalId))
         projectile.setMetadata(PROJECTILE_CASTER_UUID_KEY, FixedMetadataValue(plugin, caster.uniqueId.toString()))
         projectile.setMetadata(PROJECTILE_SKILL_LEVEL_KEY, FixedMetadataValue(plugin, level))
@@ -206,7 +211,8 @@ object SkillEffectExecutor {
             var ticks = 0L
             val hitEntities = mutableSetOf<UUID>()
             override fun run() {
-                if (ticks >= duration || caster.isDead || !caster.isOnline || caster.location.clone().add(direction).block.type.isSolid) {
+                // 전방 장애물 감지 로직 제거
+                if (ticks >= duration || caster.isDead || !caster.isOnline) {
                     this.cancel()
                     return
                 }

@@ -22,7 +22,7 @@ object InfiniteDungeonManager {
     private val plugin = RPGcore.instance
     private val logger = plugin.logger
 
-    private data class Arena(val id: String, val playerSpawn: Location, val monsterSpawns: List<Location>)
+    data class Arena(val id: String, val playerSpawn: Location, val monsterSpawns: List<Location>)
     data class RankingEntry(val playerUUID: UUID, val playerName: String, val wave: Int)
 
     private val arenas = mutableListOf<Arena>()
@@ -30,7 +30,6 @@ object InfiniteDungeonManager {
     private val playerCooldowns = ConcurrentHashMap<UUID, Long>()
     private val pendingRespawns = ConcurrentHashMap<UUID, Location>()
 
-    // 오류 해결: 누락되었던 프로퍼티 선언부 복원
     private var reEntryCooldownSeconds = 600L
     private var prepareTimeSeconds = 5L
     private var statScalingCoeff = Triple(0.015, 0.3, 1.0)
@@ -39,6 +38,10 @@ object InfiniteDungeonManager {
     private var bossMonsterPool = listOf<String>()
     private var spawnCountCoeff = Pair(0.5, 2.0)
     private var bossLootTables = mapOf<Int, String>()
+
+    fun getArenaById(arenaId: String): Arena? {
+        return arenas.find { it.id == arenaId }
+    }
 
     fun start() {
         object : BukkitRunnable() {
