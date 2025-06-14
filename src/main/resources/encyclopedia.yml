@@ -1,0 +1,16 @@
+# 몬스터 도감 보상 설정 파일
+# 몬스터를 특정 횟수만큼 처치했을 때 플레이어에게 주어지는 영구 스탯 보너스를 정의합니다.
+#
+# <monster_id>:
+#   kill_goal: (정수) 보상을 받기 위해 필요한 몬스터 처치 횟수
+#   reward_stat_type: (문자열) StatType Enum에 정의된 스탯의 이름 (예: CRITICAL_CHANCE, ATTACK_POWER)
+#   reward_value: (소수) 적용될 보너스 값.
+#     - CRITICAL_CHANCE, COOLDOWN_REDUCTION 등 비율 기반 스탯의 경우: 합연산될 값 (0.01 = +1%p)
+#     - MAX_HP, ATTACK_POWER 등 일반 스탯의 경우: 곱연산될 배율 값 (0.01 = 최종 스탯 1% 증가)
+#
+
+rewards:
+  goblin_warrior:
+    kill_goal: 100
+    reward_stat_type: "CRITICAL_CHANCE"
+    reward_value: 0.005

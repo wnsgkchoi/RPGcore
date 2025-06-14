@@ -1,0 +1,18 @@
+monsterId: "goblin_archer"
+displayName: "&a고블린 궁수"
+vanillaMobType: "SKELETON"
+icon_material: "BOW"
+equipment:
+  main_hand: "BOW"
+stats:
+  MAX_HP: { min: 30, max: 50 }
+  ATTACK_POWER: { min: 10, max: 15 }
+  DEFENSE_POWER: { min: 5, max: 10 }
+  SPELL_POWER: { min: 0, max: 0 }
+  MAGIC_RESISTANCE: { min: 5, max: 5 }
+  MOVEMENTSPEED: { min: 0.25, max: 0.25 }
+skills: []
+xp_reward: 15
+drop_table_id: "goblin_drops"
+is_boss_monster: false
+aggro_type: "FARTHEST"

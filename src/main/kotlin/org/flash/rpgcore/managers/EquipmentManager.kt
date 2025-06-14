@@ -7,6 +7,7 @@ import org.bukkit.NamespacedKey
 import org.bukkit.Sound
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import org.flash.rpgcore.RPGcore
@@ -31,7 +32,6 @@ object EquipmentManager : IEquipmentManager {
 
     private val equipmentDefinitions: MutableMap<String, EquipmentData> = mutableMapOf()
 
-    // 장비 ID 목록 반환 함수 추가
     fun getAllEquipmentIds(): List<String> = equipmentDefinitions.keys.toList()
 
     override fun loadEquipmentDefinitions() {
@@ -128,11 +128,21 @@ object EquipmentManager : IEquipmentManager {
 
     override fun getTotalAdditiveStatBonus(player: Player, statType: StatType): Double {
         var totalBonus = 0.0
+        // 개별 장비 보너스
         player.let { PlayerDataManager.getPlayerData(it) }.customEquipment.values.filterNotNull().forEach { info ->
             getEquipmentDefinition(info.itemInternalId)?.statsPerLevel?.get(info.upgradeLevel)?.additiveStats?.get(statType)?.let { totalBonus += it }
         }
+        // 세트 효과 보너스
         SetBonusManager.getActiveBonuses(player).forEach { setBonus ->
             setBonus.bonusStats.additiveStats[statType]?.let { totalBonus += it }
+        }
+        return totalBonus
+    }
+
+    fun getIndividualAdditiveStatBonus(player: Player, statType: StatType): Double {
+        var totalBonus = 0.0
+        player.let { PlayerDataManager.getPlayerData(it) }.customEquipment.values.filterNotNull().forEach { info ->
+            getEquipmentDefinition(info.itemInternalId)?.statsPerLevel?.get(info.upgradeLevel)?.additiveStats?.get(statType)?.let { totalBonus += it }
         }
         return totalBonus
     }
@@ -148,7 +158,16 @@ object EquipmentManager : IEquipmentManager {
         return totalBonus
     }
 
+    fun getIndividualMultiplicativePercentBonus(player: Player, statType: StatType): Double {
+        var totalBonus = 0.0
+        player.let { PlayerDataManager.getPlayerData(it) }.customEquipment.values.filterNotNull().forEach { info ->
+            getEquipmentDefinition(info.itemInternalId)?.statsPerLevel?.get(info.upgradeLevel)?.multiplicativeStats?.get(statType)?.let { totalBonus += it }
+        }
+        return totalBonus
+    }
+
     override fun getTotalFlatAttackSpeedBonus(player: Player): Double {
+        // 공격 속도는 무기와 세트 효과에서만 가져옴
         var totalBonus = 0.0
         player.let { PlayerDataManager.getPlayerData(it) }.customEquipment.values.filterNotNull().forEach { info ->
             if (getEquipmentDefinition(info.itemInternalId)?.equipmentType == EquipmentSlotType.WEAPON) {
@@ -192,6 +211,7 @@ object EquipmentManager : IEquipmentManager {
         meta.lore = lore
         meta.persistentDataContainer.set(ITEM_ID_KEY, PersistentDataType.STRING, id)
         meta.persistentDataContainer.set(UPGRADE_LEVEL_KEY, PersistentDataType.INTEGER, upgradeLevel)
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
         itemStack.itemMeta = meta
         return itemStack
     }

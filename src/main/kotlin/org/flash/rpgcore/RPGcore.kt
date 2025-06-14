@@ -1,6 +1,7 @@
 package org.flash.rpgcore
 
 import org.bukkit.Bukkit
+import org.bukkit.attribute.Attribute
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
@@ -29,6 +30,7 @@ class RPGcore : JavaPlugin() {
         instance = this
         logger.info("[RPGcore] 플러그인이 활성화되었습니다. (v${description.version})")
 
+        // Manager 초기화
         PlayerDataManager.initializeOnlinePlayers()
         ClassManager.loadClasses()
         EquipmentManager.loadEquipmentDefinitions()
@@ -38,10 +40,15 @@ class RPGcore : JavaPlugin() {
         MonsterManager.loadMonsters()
         LootManager.loadLootTables()
         InfiniteDungeonManager.loadDungeons()
+        DungeonManager.loadDungeons()
+        EncyclopediaManager.loadRewards()
+        ShopManager.loadShopItems()
+        FoodManager.loadFoodEffects()
         StatusEffectManager.start()
         BossBarManager.start()
         InfiniteDungeonManager.start()
 
+        // Listener 등록
         server.pluginManager.registerEvents(PlayerConnectionListener(), this)
         server.pluginManager.registerEvents(StatGUIListener(), this)
         server.pluginManager.registerEvents(ClassGUIListener(), this)
@@ -59,6 +66,12 @@ class RPGcore : JavaPlugin() {
         server.pluginManager.registerEvents(EnchantingListener(), this)
         server.pluginManager.registerEvents(CastingInterruptListener(), this)
         server.pluginManager.registerEvents(DungeonListener(), this)
+        server.pluginManager.registerEvents(EncyclopediaGUIListener(), this)
+        server.pluginManager.registerEvents(ShopGUIListener(), this)
+        server.pluginManager.registerEvents(SpecialItemListener(), this)
+        server.pluginManager.registerEvents(FoodListener(), this)
+        server.pluginManager.registerEvents(BackpackGUIListener(), this)
+        server.pluginManager.registerEvents(TrashGUIListener(), this)
 
         val rpgCommandExecutor = RPGCommandExecutor()
         getCommand("rpg")?.setExecutor(rpgCommandExecutor)
@@ -77,6 +90,13 @@ class RPGcore : JavaPlugin() {
                 for (player in Bukkit.getOnlinePlayers()) {
                     val playerData = PlayerDataManager.getPlayerData(player)
                     var needsUpdate = false
+
+                    // 바닐라 체력 UI 고정 로직 (매 10틱마다)
+                    if (tickCounter % 10 == 0) {
+                        if (player.health < 20.0) {
+                            player.health = 20.0
+                        }
+                    }
 
                     if (tickCounter % 60 == 0) {
                         val maxHp = StatManager.getFinalStatValue(player, StatType.MAX_HP)

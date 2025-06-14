@@ -4,6 +4,7 @@ main: org.flash.rpgcore.RPGcore
 api-version: '1.21'
 author: Flash Choi
 description: Minecraft RPG Core Plugin
+softdepend: [Multiverse-Core]
 
 commands:
   rpg: # 주 명령어 /rpg

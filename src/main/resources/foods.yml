@@ -1,0 +1,18 @@
+# RPGCore+ 음식 효과 재정의 파일
+#
+# <Material>: # 음식 아이템의 Material 이름
+#   hp_restore_flat: (정수, 선택) 고정 HP 회복량
+#   hp_restore_percent_max: (소수, 선택) 최대 HP 비례 회복량 (0.1 = 10%)
+#   mp_restore_flat: (정수, 선택) 고정 MP 회복량
+#   mp_restore_percent_max: (소수, 선택) 최대 MP 비례 회복량 (0.1 = 10%)
+#
+
+APPLE:
+  hp_restore_flat: 20
+BREAD:
+  hp_restore_flat: 40
+COOKED_BEEF:
+  hp_restore_percent_max: 0.2 # 최대 체력의 20% 회복
+GOLDEN_APPLE:
+  hp_restore_percent_max: 0.5 # 최대 체력의 50% 회복
+  mp_restore_percent_max: 0.2 # 최대 마나의 20% 회복

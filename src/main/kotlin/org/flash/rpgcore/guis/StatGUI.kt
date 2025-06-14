@@ -7,13 +7,12 @@ import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder
+import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import org.flash.rpgcore.RPGcore
-import org.flash.rpgcore.managers.EquipmentManager
-import org.flash.rpgcore.managers.PlayerDataManager
-import org.flash.rpgcore.managers.SkillManager
-import org.flash.rpgcore.providers.StubEncyclopediaProvider
+import org.flash.rpgcore.managers.*
+import org.flash.rpgcore.providers.IStatusEffectProvider
 import org.flash.rpgcore.providers.StubStatusEffectProvider
 import org.flash.rpgcore.stats.StatManager
 import org.flash.rpgcore.stats.StatType
@@ -21,7 +20,6 @@ import org.flash.rpgcore.stats.StatType
 class StatGUI(private val player: Player) : InventoryHolder {
 
     private val inventory: Inventory
-    private val plugin: RPGcore = RPGcore.instance
     private val statSlots: MutableMap<StatType, Int> = mutableMapOf()
 
     companion object {
@@ -78,9 +76,10 @@ class StatGUI(private val player: Player) : InventoryHolder {
             StatType.ITEM_DROP_RATE -> Material.DIAMOND
         }
         val item = ItemStack(itemMaterial, 1)
-        val meta = item.itemMeta ?: Bukkit.getItemFactory().getItemMeta(itemMaterial)
+        val meta = item.itemMeta ?: Bukkit.getItemFactory().getItemMeta(itemMaterial)!!
 
         meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&l${statType.displayName}"))
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
 
         val lore = mutableListOf<String>()
         lore.add(ChatColor.translateAlternateColorCodes('&', "&8${getStatDescription(statType)}"))
@@ -93,44 +92,52 @@ class StatGUI(private val player: Player) : InventoryHolder {
         val baseStat = PlayerDataManager.getPlayerData(player).getBaseStat(statType)
         lore.add(ChatColor.translateAlternateColorCodes('&', "&7기본 ${statType.displayName}: &b${formatStatValue(baseStat, statType)}"))
 
-        val equipAddBonus = EquipmentManager.getTotalAdditiveStatBonus(player, statType)
-        val equipMulBonus = EquipmentManager.getTotalMultiplicativePercentBonus(player, statType)
-        if (equipAddBonus != 0.0 || equipMulBonus != 0.0) {
-            val equipBonusStr = formatBonus(equipAddBonus, equipMulBonus, isPercentage)
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&a  + 장비 합계: $equipBonusStr"))
+        // 장비 개별 보너스
+        val equipAdd = EquipmentManager.getIndividualAdditiveStatBonus(player, statType)
+        val equipMul = EquipmentManager.getIndividualMultiplicativePercentBonus(player, statType)
+        if (equipAdd != 0.0 || equipMul != 0.0) {
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&a  + 장비 개별 합계: ${formatBonus(equipAdd, equipMul, isPercentage)}"))
+        }
+
+        // 세트 효과 보너스
+        val setBonus = SetBonusManager.getActiveBonuses(player)
+        val setAdd = setBonus.sumOf { it.bonusStats.additiveStats[statType] ?: 0.0 }
+        val setMul = setBonus.sumOf { it.bonusStats.multiplicativeStats[statType] ?: 0.0 }
+        if (setAdd != 0.0 || setMul != 0.0) {
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&a  + 세트 효과 합계: ${formatBonus(setAdd, setMul, isPercentage)}"))
         }
 
         val skillAddBonus = SkillManager.getTotalAdditiveStatBonus(player, statType)
         val skillMulBonus = SkillManager.getTotalMultiplicativePercentBonus(player, statType)
         if (skillAddBonus != 0.0 || skillMulBonus != 0.0) {
-            val skillBonusStr = formatBonus(skillAddBonus, skillMulBonus, isPercentage)
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&d  + 스킬 합계: $skillBonusStr"))
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&d  + 스킬 합계: ${formatBonus(skillAddBonus, skillMulBonus, isPercentage)}"))
         }
 
-        // 현재 StubProvider들은 0을 반환하지만, 향후 구현을 위해 구조를 미리 잡아둠
-        val statusAddBonus = StubStatusEffectProvider.getTotalAdditiveStatBonus(player, statType)
-        val statusMulBonus = StubStatusEffectProvider.getTotalMultiplicativePercentBonus(player, statType)
+        val statusAddBonus = (StubStatusEffectProvider as IStatusEffectProvider).getTotalAdditiveStatBonus(player, statType)
+        val statusMulBonus = (StubStatusEffectProvider as IStatusEffectProvider).getTotalMultiplicativePercentBonus(player, statType)
         if (statusAddBonus != 0.0 || statusMulBonus != 0.0) {
-            val statusBonusStr = formatBonus(statusAddBonus, statusMulBonus, isPercentage)
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&c  + 상태효과 합계: $statusBonusStr"))
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&c  + 상태효과 합계: ${formatBonus(statusAddBonus, statusMulBonus, isPercentage)}"))
         }
 
-        val encyclopediaAddBonus = StubEncyclopediaProvider.getAdditivePercentageBonus(player, statType)
-        val encyclopediaMulBonus = StubEncyclopediaProvider.getGlobalStatMultiplier(player, statType) - 1.0
-        if (encyclopediaAddBonus != 0.0 || encyclopediaMulBonus != 0.0) {
-            val encBonusStr = formatBonus(encyclopediaAddBonus, encyclopediaMulBonus, isPercentage)
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&6  + 도감 합계: $encBonusStr"))
+        val encyclopediaAddBonus = EncyclopediaManager.getAdditivePercentageBonus(player, statType)
+        val encyclopediaMulBonus = EncyclopediaManager.getGlobalStatMultiplier(player, statType) - 1.0
+        if (encyclopediaAddBonus != 0.0 || encyclopediaMulBonus > 0.0) { // 곱연산은 0보다 클 때만
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&6  + 도감 합계: ${formatBonus(encyclopediaAddBonus, encyclopediaMulBonus, isPercentage)}"))
         }
 
         lore.add(" ")
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&e최종 ${statType.displayName}: &b${formatStatValue(finalStatValue, statType)}"))
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&e최종 ${statType.displayName}: &b&l${formatStatValue(finalStatValue, statType)}"))
         // --- 세부 스탯 정보 끝 ---
 
         if (statType.isXpUpgradable) {
             lore.add(" ")
             val upgradeCost = StatManager.getStatUpgradeCost(player, statType)
-            val valueAfterUpgradeIfSuccess = baseStat + statType.incrementValue
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&7강화 후 기본: &a${formatStatValue(valueAfterUpgradeIfSuccess, statType)}"))
+            val valueAfterUpgrade = baseStat + statType.incrementValue
+            val finalValueAfterUpgrade = StatManager.getFinalStatPreview(player, statType, valueAfterUpgrade)
+
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&7강화 후 기본: &a${formatStatValue(valueAfterUpgrade, statType)}"))
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&7강화 후 최종: &a&l${formatStatValue(finalValueAfterUpgrade, statType)}"))
+
 
             if (upgradeCost == Long.MAX_VALUE) {
                 lore.add(ChatColor.translateAlternateColorCodes('&', "&c최고 레벨입니다."))
@@ -168,8 +175,9 @@ class StatGUI(private val player: Player) : InventoryHolder {
 
     private fun createNamedItem(material: Material, rawName: String, rawLore: List<String> = emptyList()): ItemStack {
         val item = ItemStack(material)
-        val meta = item.itemMeta ?: Bukkit.getItemFactory().getItemMeta(material)
+        val meta = item.itemMeta ?: Bukkit.getItemFactory().getItemMeta(material)!!
         meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', rawName))
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
         if (rawLore.isNotEmpty()) {
             meta.lore = rawLore.map { ChatColor.translateAlternateColorCodes('&', it) }
         }
@@ -189,7 +197,7 @@ class StatGUI(private val player: Player) : InventoryHolder {
             StatType.CRITICAL_CHANCE -> "공격이 치명타로 적중할 확률입니다."
             StatType.COOLDOWN_REDUCTION -> "스킬의 재사용 대기시간을 줄여줍니다."
             StatType.PHYSICAL_LIFESTEAL -> "물리 피해량의 일부만큼 체력을 회복합니다."
-            StatType.SPELL_LIFESTEAL -> "마법 피해량의 일부만큼 체력을 회복합니다."
+            StatType.SPELL_LIFESTEAL -> "주문 피해량의 일부만큼 체력을 회복합니다."
             StatType.XP_GAIN_RATE -> "획득하는 경험치의 양을 증가시킵니다."
             StatType.ITEM_DROP_RATE -> "몬스터가 아이템을 드롭할 확률을 높여줍니다."
         }
@@ -204,16 +212,9 @@ class StatGUI(private val player: Player) : InventoryHolder {
     }
 
     fun refreshDisplay() {
-        var currentSlot = 1
-        StatType.entries.filter { it.isXpUpgradable }.forEach { statType ->
-            if (currentSlot < 9) {
-                inventory.setItem(currentSlot++, createStatItem(statType))
-            }
-        }
-        currentSlot = 19
-        StatType.entries.filter { !it.isXpUpgradable }.forEach { statType ->
-            if (currentSlot < 27) {
-                inventory.setItem(currentSlot++, createStatItem(statType))
+        StatType.entries.forEach { statType ->
+            statSlots[statType]?.let { slot ->
+                inventory.setItem(slot, createStatItem(statType))
             }
         }
     }

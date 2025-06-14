@@ -1,0 +1,19 @@
+monsterId: "goblin_warrior"
+displayName: "&2고블린 전사"
+vanillaMobType: "ZOMBIE"
+icon_material: "IRON_SWORD"
+equipment:
+  main_hand: "IRON_SWORD"
+  chestplate: "LEATHER_CHESTPLATE"
+stats:
+  MAX_HP: { min: 50, max: 70 }
+  ATTACK_POWER: { min: 8, max: 12 }
+  DEFENSE_POWER: { min: 10, max: 15 }
+  SPELL_POWER: { min: 0, max: 0 }
+  MAGIC_RESISTANCE: { min: 5, max: 5 }
+  MOVEMENTSPEED: { min: 0.23, max: 0.25 }
+skills: []
+xp_reward: 15
+drop_table_id: "goblin_drops" # 예시 드롭 테이블
+is_boss_monster: false
+aggro_type: "NEAREST"

@@ -1,0 +1,44 @@
+# XP 상점에서 판매할 아이템 목록
+#
+# - id: (문자열) 상점 내에서 아이템을 식별하는 고유 ID
+#   item_type: (문자열) 아이템 종류 (VANILLA, RPGCORE_CUSTOM_MATERIAL, SPECIAL)
+#   item_id: (문자열) Material 이름, 커스텀 재료 ID, 또는 특수 아이템 ID (예: return_scroll)
+#   display_name: (문자열) GUI에 표시될 이름
+#   lore: (문자열 리스트) GUI에 표시될 설명
+#   custom_model_data: (정수, 선택) 커스텀 모델 데이터
+#   xp_cost: (정수) 구매에 필요한 XP
+#   amount: (정수) 한 번 구매 시 지급되는 수량
+#
+items:
+  - id: "buy_golden_apple"
+    item_type: "VANILLA"
+    item_id: "GOLDEN_APPLE"
+    display_name: "&6황금 사과"
+    lore:
+      - "&7먹으면 특별한 효과를 얻을 수 있는"
+      - "&7귀한 사과입니다."
+    xp_cost: 50000
+    amount: 1
+
+  - id: "buy_dragon_scale"
+    item_type: "RPGCORE_CUSTOM_MATERIAL"
+    item_id: "dragon_scale" # 예시 커스텀 재료 ID
+    display_name: "&c용의 비늘"
+    lore:
+      - "&7전설적인 용의 단단한 비늘입니다."
+      - "&7강력한 장비를 제작하는 데 사용됩니다."
+    xp_cost: 100000
+    amount: 1
+
+  - id: "buy_return_scroll"
+    item_type: "SPECIAL"
+    item_id: "return_scroll"
+    display_name: "&b귀환 주문서"
+    lore:
+      - "&7사용 시 '/rpg setspawn'으로 지정한"
+      - "&7개인 스폰 지점으로 즉시 이동합니다."
+      - ""
+      - "&c(소모성 아이템)"
+    custom_model_data: 1
+    xp_cost: 25000
+    amount: 1

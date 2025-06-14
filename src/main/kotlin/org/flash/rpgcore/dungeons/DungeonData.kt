@@ -1,4 +1,8 @@
 package org.flash.rpgcore.dungeons
 
-class DungeonData {
-}
+data class DungeonData(
+    val id: String,
+    val displayName: String,
+    val iconMaterial: String,
+    val monsterIds: List<String>
+)

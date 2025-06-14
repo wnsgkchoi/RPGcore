@@ -1,15 +1,29 @@
 package org.flash.rpgcore.player
 
+import org.bukkit.inventory.ItemStack
 import org.flash.rpgcore.equipment.EquipmentSlotType
 import org.flash.rpgcore.equipment.EquippedItemInfo
 import org.flash.rpgcore.stats.StatType
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
+data class CustomSpawnLocation(
+    val worldName: String,
+    val x: Double,
+    val y: Double,
+    val z: Double,
+    val yaw: Float,
+    val pitch: Float
+)
+
 data class PlayerData(
     val playerUUID: UUID,
     var playerName: String,
     var lastLoginTimestamp: Long = System.currentTimeMillis(),
+
+    // --- 편의 기능 데이터 ---
+    var customSpawnLocation: CustomSpawnLocation? = null,
+    val backpack: MutableMap<Int, Array<ItemStack?>> = ConcurrentHashMap(),
 
     // --- 스탯 관련 데이터 ---
     val baseStats: MutableMap<StatType, Double> = mutableMapOf(),
@@ -38,6 +52,9 @@ data class PlayerData(
 
     // --- 몬스터 도감 데이터 ---
     val monsterEncyclopedia: MutableMap<String, MonsterEncounterData> = ConcurrentHashMap(),
+    val encyclopediaStatBonuses: MutableMap<StatType, Double> = ConcurrentHashMap(),
+    val claimedEncyclopediaRewards: MutableSet<String> = ConcurrentHashMap.newKeySet(),
+
 
     // --- 클래스 고유 매커니즘 데이터 ---
     var furyStacks: Int = 0,
@@ -55,10 +72,9 @@ data class PlayerData(
     }
 
     fun initializeDefaultStats() {
+        // 모든 스탯 타입에 대해 기본값을 baseStats 맵에 추가
         StatType.entries.forEach { statType ->
-            if (statType.isXpUpgradable) {
-                baseStats[statType] = statType.defaultValue
-            }
+            baseStats[statType] = statType.defaultValue
         }
         currentHp = baseStats[StatType.MAX_HP] ?: StatType.MAX_HP.defaultValue
         currentMp = baseStats[StatType.MAX_MP] ?: StatType.MAX_MP.defaultValue
@@ -80,11 +96,11 @@ data class PlayerData(
     }
 
     fun getBaseStat(statType: StatType): Double {
-        return if (statType.isXpUpgradable) baseStats[statType] ?: statType.defaultValue else statType.defaultValue
+        return baseStats[statType] ?: statType.defaultValue
     }
 
     fun updateBaseStat(statType: StatType, newValue: Double) {
-        if (!statType.isXpUpgradable) return
+        // 이제 모든 스탯의 기본값을 수정할 수 있음 (단, XP강화는 isXpUpgradable로 별도 체크)
         baseStats[statType] = newValue
         if (statType == StatType.MAX_HP) currentHp = currentHp.coerceAtMost(newValue)
         if (statType == StatType.MAX_MP) currentMp = currentMp.coerceAtMost(newValue)

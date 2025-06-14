@@ -9,6 +9,8 @@ import org.flash.rpgcore.RPGcore
 import org.flash.rpgcore.loots.DropItemInfo
 import org.flash.rpgcore.loots.DropType
 import org.flash.rpgcore.loots.LootTableData
+import org.flash.rpgcore.stats.StatManager
+import org.flash.rpgcore.stats.StatType
 import java.io.File
 import kotlin.random.Random
 
@@ -50,18 +52,11 @@ object LootManager {
     fun processLoot(player: Player, tableId: String) {
         val table = lootTables[tableId] ?: return
 
-        // 던전 내 몬스터 처치 시 보상 규칙 적용
-        val victim = player.lastDamageCause?.entity
-        if (victim != null && InfiniteDungeonManager.isDungeonMonster(victim.uniqueId)) {
-            val session = InfiniteDungeonManager.getSession(player.uniqueId)
-            // 보스 웨이브(10의 배수)가 아닐 경우, 아이템 드롭을 처리하지 않고 종료
-            if (session != null && session.wave % 10 != 0) {
-                return
-            }
-        }
+        val itemDropRate = StatManager.getFinalStatValue(player, StatType.ITEM_DROP_RATE)
 
         table.drops.forEach { dropInfo ->
-            if (Random.nextDouble(0.0, 1.0) <= dropInfo.chance) {
+            val finalChance = dropInfo.chance * (1.0 + itemDropRate)
+            if (Random.nextDouble(0.0, 1.0) <= finalChance) {
                 val amount = if (dropInfo.minAmount >= dropInfo.maxAmount) dropInfo.minAmount else Random.nextInt(dropInfo.minAmount, dropInfo.maxAmount + 1)
                 if (amount <= 0) return@forEach
 

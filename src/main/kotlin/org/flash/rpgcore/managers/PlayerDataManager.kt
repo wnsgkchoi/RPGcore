@@ -2,17 +2,21 @@ package org.flash.rpgcore.managers
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import org.bukkit.Bukkit
+import org.bukkit.Location
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
 import org.flash.rpgcore.RPGcore
 import org.flash.rpgcore.equipment.EquipmentSlotType
 import org.flash.rpgcore.equipment.EquippedItemInfo
+import org.flash.rpgcore.player.CustomSpawnLocation
 import org.flash.rpgcore.player.MonsterEncounterData
 import org.flash.rpgcore.player.PlayerData
 import org.flash.rpgcore.stats.StatType
 import java.io.File
 import java.io.IOException
-import java.util.UUID
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 object PlayerDataManager {
@@ -125,6 +129,15 @@ object PlayerDataManager {
         config.set("current-class-id", playerData.currentClassId)
         config.set("learned-recipes", playerData.learnedRecipes.toList())
 
+        playerData.customSpawnLocation?.let {
+            config.set("custom-spawn.world", it.worldName)
+            config.set("custom-spawn.x", it.x)
+            config.set("custom-spawn.y", it.y)
+            config.set("custom-spawn.z", it.z)
+            config.set("custom-spawn.yaw", it.yaw)
+            config.set("custom-spawn.pitch", it.pitch)
+        }
+
         playerData.baseStats.forEach { (statType, value) ->
             if (statType.isXpUpgradable) {
                 config.set("base-stats.${statType.name}", value)
@@ -160,9 +173,16 @@ object PlayerDataManager {
             }
         }
 
-        // 몬스터 도감 데이터 저장
         val encyclopediaJson = gson.toJson(playerData.monsterEncyclopedia)
         config.set("monster-encyclopedia", encyclopediaJson)
+        config.set("encyclopedia-stat-bonuses", playerData.encyclopediaStatBonuses.mapKeys { it.key.name })
+        config.set("claimed-encyclopedia-rewards", playerData.claimedEncyclopediaRewards.toList())
+
+        val backpackSection = config.createSection("backpack")
+        playerData.backpack.forEach { (page, items) ->
+            val serializedItems = items.map { it?.serialize() }
+            backpackSection.set("page_$page", serializedItems)
+        }
 
         try {
             config.save(playerFile)
@@ -189,6 +209,17 @@ object PlayerDataManager {
 
             playerData.currentHp = config.getDouble("current-hp", playerData.currentHp)
             playerData.currentMp = config.getDouble("current-mp", playerData.currentMp)
+
+            if (config.isConfigurationSection("custom-spawn")) {
+                playerData.customSpawnLocation = CustomSpawnLocation(
+                    worldName = config.getString("custom-spawn.world")!!,
+                    x = config.getDouble("custom-spawn.x"),
+                    y = config.getDouble("custom-spawn.y"),
+                    z = config.getDouble("custom-spawn.z"),
+                    yaw = config.getDouble("custom-spawn.yaw").toFloat(),
+                    pitch = config.getDouble("custom-spawn.pitch").toFloat()
+                )
+            }
 
             config.getConfigurationSection("base-stats")?.getKeys(false)?.forEach { statKey ->
                 try {
@@ -234,11 +265,33 @@ object PlayerDataManager {
 
             playerData.learnedRecipes.addAll(config.getStringList("learned-recipes"))
 
-            // 몬스터 도감 데이터 로드
             val encyclopediaJson = config.getString("monster-encyclopedia", "{}")
             val type = object : TypeToken<ConcurrentHashMap<String, MonsterEncounterData>>() {}.type
             val loadedEncyclopedia: ConcurrentHashMap<String, MonsterEncounterData> = gson.fromJson(encyclopediaJson, type)
             playerData.monsterEncyclopedia.putAll(loadedEncyclopedia)
+            config.getStringList("claimed-encyclopedia-rewards").forEach { playerData.claimedEncyclopediaRewards.add(it) }
+            config.getConfigurationSection("encyclopedia-stat-bonuses")?.getKeys(false)?.forEach { statKey ->
+                try {
+                    val statType = StatType.valueOf(statKey.uppercase())
+                    val value = config.getDouble("encyclopedia-stat-bonuses.$statKey")
+                    playerData.encyclopediaStatBonuses[statType] = value
+                } catch (e: IllegalArgumentException) { logger.warning("Unknown stat key '$statKey' in encyclopedia-stat-bonuses section of ${uuid}.yml. Ignoring.")}
+            }
+
+            // 개인 창고 데이터 로드 (오류 수정)
+            config.getConfigurationSection("backpack")?.getKeys(false)?.forEach { pageKey ->
+                val page = pageKey.removePrefix("page_").toIntOrNull()
+                if (page != null) {
+                    @Suppress("UNCHECKED_CAST")
+                    val rawMapList = config.getList("backpack.$pageKey") as? List<Map<String, Any>?>
+                    if (rawMapList != null) {
+                        val items = Array<ItemStack?>(45) { index ->
+                            rawMapList.getOrNull(index)?.let { ItemStack.deserialize(it) }
+                        }
+                        playerData.backpack[page] = items
+                    }
+                }
+            }
 
             logger.info("Successfully loaded data for ${playerData.playerName} (${uuid}) from file.")
         } catch (e: Exception) {

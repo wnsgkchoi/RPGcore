@@ -11,6 +11,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityDamageByEntityEvent
+import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.entity.EntityShootBowEvent
 import org.bukkit.event.entity.PlayerDeathEvent
@@ -21,15 +22,27 @@ import org.flash.rpgcore.managers.*
 import org.flash.rpgcore.player.MonsterEncounterData
 import org.flash.rpgcore.skills.SkillEffectExecutor
 import org.flash.rpgcore.utils.XPHelper
-import java.util.UUID
-import kotlin.math.max
-import kotlin.math.min
+import java.util.*
 
 class CombatListener : Listener {
 
     companion object {
         val EXPLOSIVE_ARROW_METADATA = "rpgcore_explosive_arrow_effects"
         private val gson = Gson()
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    fun onGenericPlayerDamage(event: EntityDamageEvent) {
+        val victim = event.entity as? Player ?: return
+
+        // 엔티티에 의한 피해는 onEntityDamageByEntity에서 별도로 처리하므로, 여기서는 환경 피해만 다룹니다.
+        if (event is EntityDamageByEntityEvent) {
+            return
+        }
+
+        // 바닐라 기본 이벤트를 취소하고, 커스텀 데미지 시스템으로 처리합니다.
+        event.isCancelled = true
+        CombatManager.applyEnvironmentalDamage(victim, event.damage)
     }
 
     @EventHandler
@@ -72,14 +85,11 @@ class CombatListener : Listener {
         val encounterData = playerData.monsterEncyclopedia.computeIfAbsent(monsterId) { MonsterEncounterData() }
         encounterData.isDiscovered = true
 
-        // 관찰된 스탯 범위 갱신
         monsterData.stats.forEach { (statName, statValue) ->
-            // 최소값 갱신
             val currentMin = encounterData.minStatsObserved[statName]
             if (currentMin == null || statValue < currentMin) {
                 encounterData.minStatsObserved[statName] = statValue
             }
-            // 최대값 갱신
             val currentMax = encounterData.maxStatsObserved[statName]
             if (currentMax == null || statValue > currentMax) {
                 encounterData.maxStatsObserved[statName] = statValue
@@ -101,7 +111,7 @@ class CombatListener : Listener {
                     if (eventDamager.hasMetadata(SkillEffectExecutor.VOLLEY_ARROW_DAMAGE_KEY)) {
                         event.isCancelled = true
                         val damage = eventDamager.getMetadata(SkillEffectExecutor.VOLLEY_ARROW_DAMAGE_KEY).firstOrNull()?.asDouble() ?: 0.0
-                        CombatManager.applyFinalDamage(shooter, victim, damage, false, false)
+                        CombatManager.applyFinalDamage(shooter, victim, damage, 0.0, false, false)
                         eventDamager.remove()
                         return
                     }
@@ -208,7 +218,6 @@ class CombatListener : Listener {
                     }
                 }
             } else {
-                // 필드 몬스터 경험치/보상 및 도감 카운트 처리
                 if (monsterDefinition.xpReward > 0) {
                     XPHelper.addTotalExperience(killer, monsterDefinition.xpReward)
                     killer.sendMessage("§e+${monsterDefinition.xpReward} XP")
@@ -217,11 +226,10 @@ class CombatListener : Listener {
                     LootManager.processLoot(killer, tableId)
                 }
 
-                // 도감 처치 횟수 증가
                 val playerData = PlayerDataManager.getPlayerData(killer)
                 val encounterData = playerData.monsterEncyclopedia.computeIfAbsent(monsterId) { MonsterEncounterData() }
                 encounterData.killCount++
-                // TODO: 처치 횟수 달성 시 스탯 보너스 지급 로직
+                EncyclopediaManager.checkAndApplyKillCountReward(killer, monsterId)
             }
 
             if (monsterDefinition.isBoss) {

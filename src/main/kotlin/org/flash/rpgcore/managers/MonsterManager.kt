@@ -27,7 +27,9 @@ object MonsterManager {
         val monstersDir = File(plugin.dataFolder, "monsters")
         if (!monstersDir.exists()) {
             monstersDir.mkdirs()
-            return
+            // 예시 몬스터 파일 생성
+            plugin.saveResource("monsters/goblin_warrior.yml", false)
+            plugin.saveResource("monsters/goblin_archer.yml", false)
         }
 
         monstersDir.listFiles { _, name -> name.endsWith(".yml") }?.forEach { file ->
@@ -60,6 +62,7 @@ object MonsterManager {
                     monsterId = monsterId,
                     displayName = config.getString("display_name", monsterId)!!,
                     vanillaMobType = EntityType.valueOf(config.getString("vanilla_mob_type", "ZOMBIE")!!.uppercase()),
+                    iconMaterial = config.getString("icon_material", "ZOMBIE_HEAD")!!.uppercase(), // icon_material 로드
                     equipment = equipmentMap,
                     stats = statsMap,
                     skills = skillsList,

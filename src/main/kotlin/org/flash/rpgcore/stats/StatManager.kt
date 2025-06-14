@@ -5,15 +5,11 @@ import org.bukkit.Sound
 import org.bukkit.attribute.Attribute
 import org.bukkit.entity.Player
 import org.flash.rpgcore.RPGcore
-import org.flash.rpgcore.managers.EquipmentManager
-import org.flash.rpgcore.managers.PlayerDataManager
-import org.flash.rpgcore.managers.PlayerScoreboardManager
-import org.flash.rpgcore.managers.SkillManager
+import org.flash.rpgcore.managers.*
 import org.flash.rpgcore.providers.IEncyclopediaProvider
 import org.flash.rpgcore.providers.IEquipmentProvider
 import org.flash.rpgcore.providers.ISkillStatProvider
 import org.flash.rpgcore.providers.IStatusEffectProvider
-import org.flash.rpgcore.providers.StubEncyclopediaProvider
 import org.flash.rpgcore.providers.StubStatusEffectProvider
 import org.flash.rpgcore.utils.IXPHelper
 import org.flash.rpgcore.utils.XPHelper
@@ -26,15 +22,14 @@ object StatManager {
 
     private val equipmentProvider: IEquipmentProvider = EquipmentManager
     private val statusEffectProvider: IStatusEffectProvider = StubStatusEffectProvider
-    private val encyclopediaProvider: IEncyclopediaProvider = StubEncyclopediaProvider
+    private val encyclopediaProvider: IEncyclopediaProvider = EncyclopediaManager
     private val skillStatProvider: ISkillStatProvider = SkillManager
     private val xpHelper: IXPHelper = XPHelper
 
-    fun getFinalStatValue(player: Player, statType: StatType): Double {
+    fun getFinalStatPreview(player: Player, statType: StatType, newBaseValue: Double): Double {
         val playerData = PlayerDataManager.getPlayerData(player)
-        val basePlayerUpgradedStat = playerData.getBaseStat(statType)
 
-        var additiveSum = basePlayerUpgradedStat
+        var additiveSum = newBaseValue
         additiveSum += equipmentProvider.getTotalAdditiveStatBonus(player, statType)
         additiveSum += statusEffectProvider.getTotalAdditiveStatBonus(player, statType)
         additiveSum += skillStatProvider.getTotalAdditiveStatBonus(player, statType)
@@ -42,7 +37,6 @@ object StatManager {
         return when (statType) {
             StatType.ATTACK_SPEED -> {
                 var totalAttackSpeedStatValue = additiveSum
-
                 if (playerData.currentClassId == "frenzy_dps") {
                     val furySkill = SkillManager.getSkill("fury_stack")
                     if (furySkill != null) {
@@ -55,7 +49,6 @@ object StatManager {
                         }
                     }
                 }
-
                 max(0.1, totalAttackSpeedStatValue)
             }
             StatType.CRITICAL_CHANCE, StatType.COOLDOWN_REDUCTION,
@@ -109,6 +102,12 @@ object StatManager {
         }
     }
 
+    fun getFinalStatValue(player: Player, statType: StatType): Double {
+        val playerData = PlayerDataManager.getPlayerData(player)
+        val basePlayerUpgradedStat = playerData.getBaseStat(statType)
+        return getFinalStatPreview(player, statType, basePlayerUpgradedStat)
+    }
+
     fun getStatUpgradeCost(player: Player, statType: StatType): Long {
         if (!statType.isXpUpgradable) return Long.MAX_VALUE
         val playerData = PlayerDataManager.getPlayerData(player)
@@ -154,14 +153,12 @@ object StatManager {
         val playerData = PlayerDataManager.getPlayerData(player)
         logger.info("[StatManager] Recalculating and applying all stats for ${player.name}...")
 
-        val finalStats = StatType.entries.associateWith { getFinalStatValue(player, it) }
-        val finalMaxHp = finalStats[StatType.MAX_HP] ?: StatType.MAX_HP.defaultValue
-        val finalMaxMp = finalStats[StatType.MAX_MP] ?: StatType.MAX_MP.defaultValue
-
-        player.getAttribute(Attribute.MAX_HEALTH)?.baseValue = finalMaxHp
+        player.getAttribute(Attribute.MAX_HEALTH)?.baseValue = 20.0
         player.getAttribute(Attribute.ARMOR)?.baseValue = 0.0
         player.getAttribute(Attribute.ARMOR_TOUGHNESS)?.baseValue = 0.0
 
+        val finalMaxHp = getFinalStatValue(player, StatType.MAX_HP)
+        val finalMaxMp = getFinalStatValue(player, StatType.MAX_MP)
         playerData.currentHp = playerData.currentHp.coerceAtMost(finalMaxHp)
         if (playerData.currentHp <= 0 && finalMaxHp > 0) {
             playerData.currentHp = 1.0

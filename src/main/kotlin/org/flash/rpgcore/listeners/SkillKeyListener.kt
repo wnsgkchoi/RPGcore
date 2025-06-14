@@ -8,12 +8,11 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerDropItemEvent
 import org.bukkit.event.player.PlayerSwapHandItemsEvent
 import org.bukkit.inventory.ItemStack
-import org.flash.rpgcore.managers.CastingManager
-import org.flash.rpgcore.managers.ClassManager
-import org.flash.rpgcore.managers.PlayerDataManager
-import org.flash.rpgcore.managers.PlayerScoreboardManager
-import org.flash.rpgcore.managers.SkillManager
+import org.flash.rpgcore.managers.*
 import org.flash.rpgcore.skills.SkillEffectExecutor
+import org.flash.rpgcore.stats.StatManager
+import org.flash.rpgcore.stats.StatType
+import kotlin.math.max
 
 class SkillKeyListener : Listener {
 
@@ -92,7 +91,11 @@ class SkillKeyListener : Listener {
         }
 
         playerData.currentMp -= levelData.mpCost
-        val cooldownEndTime = System.currentTimeMillis() + (levelData.cooldownTicks * 50)
+
+        // 쿨타임 감소 스탯 적용
+        val cooldownReduction = StatManager.getFinalStatValue(player, StatType.COOLDOWN_REDUCTION)
+        val finalCooldownTicks = (levelData.cooldownTicks * (1.0 - cooldownReduction)).toLong()
+        val cooldownEndTime = System.currentTimeMillis() + (finalCooldownTicks * 50)
         playerData.startSkillCooldown(skillId, cooldownEndTime)
 
         PlayerScoreboardManager.updateScoreboard(player)

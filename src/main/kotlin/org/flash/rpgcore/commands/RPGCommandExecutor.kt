@@ -8,20 +8,22 @@ import org.bukkit.command.CommandSender
 import org.bukkit.command.TabCompleter
 import org.bukkit.entity.Player
 import org.flash.rpgcore.RPGcore
-import org.flash.rpgcore.guis.ClassGUI
-import org.flash.rpgcore.guis.EquipmentGUI
-import org.flash.rpgcore.guis.SkillManagementGUI
-import org.flash.rpgcore.guis.StatGUI
+import org.flash.rpgcore.guis.*
 import org.flash.rpgcore.managers.*
+import org.flash.rpgcore.player.CustomSpawnLocation
 import org.flash.rpgcore.stats.StatManager
+import org.flash.rpgcore.stats.StatType
+import org.flash.rpgcore.utils.XPHelper
+import java.util.*
 
 class RPGCommandExecutor : CommandExecutor, TabCompleter {
 
     private val plugin = RPGcore.instance
     private val logger = plugin.logger
 
-    private val baseSubCommands = listOf("help", "stats", "class", "equip", "skills", "infinite", "trade")
-    private val adminSubCommands = listOf("giveequip", "giverecipe", "reload")
+    private val baseSubCommands = listOf("help", "stats", "class", "equip", "skills", "infinite", "trade", "encyclopedia", "shop", "setspawn", "backpack", "trash")
+    private val adminSubCommands = listOf("giveequip", "giverecipe", "reload", "give", "setstat", "giveskill")
+    private val SETSPAWN_CHANGE_COST = 50000L
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (args.isEmpty() || args[0].equals("help", ignoreCase = true)) {
@@ -43,6 +45,11 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
                 "class" -> ClassGUI(player).open()
                 "equip" -> EquipmentGUI(player).open()
                 "skills" -> SkillManagementGUI(player).open()
+                "encyclopedia" -> EncyclopediaDungeonGUI(player).open()
+                "shop" -> ShopGUI(player).open()
+                "backpack" -> BackpackGUI(player).open()
+                "trash" -> TrashGUI().open(player)
+                "setspawn" -> handleSetSpawn(player)
                 "infinite" -> handleInfiniteCommand(player, args)
                 "trade" -> handleTradeCommand(player, args)
             }
@@ -56,6 +63,24 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
             sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[System] &f알 수 없는 하위 명령어입니다. /rpg help 를 참고하세요."))
         }
         return true
+    }
+
+    private fun handleSetSpawn(player: Player) {
+        val playerData = PlayerDataManager.getPlayerData(player)
+        val loc = player.location
+        val newSpawnData = CustomSpawnLocation(loc.world.name, loc.x, loc.y, loc.z, loc.yaw, loc.pitch)
+
+        if (playerData.customSpawnLocation == null) {
+            playerData.customSpawnLocation = newSpawnData
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a[System] &f현재 위치가 개인 귀환 지점으로 최초 설정되었습니다."))
+        } else {
+            if (XPHelper.removeTotalExperience(player, SETSPAWN_CHANGE_COST.toInt())) {
+                playerData.customSpawnLocation = newSpawnData
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a[System] &f개인 귀환 지점을 변경했습니다. (&eXP ${SETSPAWN_CHANGE_COST} &a소모)"))
+            } else {
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[System] &f귀환 지점 변경에 필요한 XP가 부족합니다. (필요: &e${SETSPAWN_CHANGE_COST}&c)"))
+            }
+        }
     }
 
     private fun handleInfiniteCommand(player: Player, args: Array<out String>) {
@@ -105,6 +130,73 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
 
     private fun handleAdminCommand(sender: CommandSender, subCommand: String, args: Array<out String>) {
         when (subCommand) {
+            "setstat" -> {
+                if (args.size < 4) {
+                    sender.sendMessage("Usage: /rpg setstat <player> <stat_type> <value>")
+                    return
+                }
+                val target = Bukkit.getPlayer(args[1])
+                if (target == null) {
+                    sender.sendMessage("Player not found.")
+                    return
+                }
+                val statType = try {
+                    StatType.valueOf(args[2].uppercase(Locale.getDefault()))
+                } catch (e: IllegalArgumentException) {
+                    sender.sendMessage("Invalid stat type. Valid types: ${StatType.entries.joinToString { it.name }}")
+                    return
+                }
+                val value = args[3].toDoubleOrNull()
+                if (value == null) {
+                    sender.sendMessage("Value must be a number.")
+                    return
+                }
+
+                val playerData = PlayerDataManager.getPlayerData(target)
+                playerData.updateBaseStat(statType, value)
+                StatManager.fullyRecalculateAndApplyStats(target)
+                sender.sendMessage("Set ${statType.name} for ${target.name} to $value. Stats recalculated.")
+            }
+            "giveskill" -> {
+                if (args.size < 3) {
+                    sender.sendMessage("Usage: /rpg giveskill <player> <skill_id> [level]")
+                    return
+                }
+                val target = Bukkit.getPlayer(args[1])
+                if (target == null) {
+                    sender.sendMessage("Player not found.")
+                    return
+                }
+                val skillId = args[2]
+                if (SkillManager.getSkill(skillId) == null) {
+                    sender.sendMessage("Invalid skill ID: $skillId")
+                    return
+                }
+                val level = if (args.size >= 4) args[3].toIntOrNull() ?: 1 else 1
+
+                val playerData = PlayerDataManager.getPlayerData(target)
+                playerData.learnSkill(skillId, level)
+                sender.sendMessage("Gave skill $skillId (Level $level) to ${target.name}.")
+            }
+            "give" -> {
+                if (args.size < 3) {
+                    sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[System] 사용법: /rpg give <플레이어> <item_id>"))
+                    return
+                }
+                val targetPlayer = Bukkit.getPlayer(args[1])
+                if(targetPlayer == null) {
+                    sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[System] 플레이어 '${args[1]}'을(를) 찾을 수 없습니다."))
+                    return
+                }
+                val specialItemId = args[2].lowercase()
+                val item = ShopManager.createSpecialItem(specialItemId, 1)
+                if (item == null) {
+                    sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[System] 알 수 없는 아이템 ID 입니다: $specialItemId (사용 가능: backpack, return_scroll)"))
+                    return
+                }
+                targetPlayer.inventory.addItem(item)
+                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a[System] &f${targetPlayer.name}에게 ${item.itemMeta?.displayName} &a아이템을 지급했습니다."))
+            }
             "giveequip" -> {
                 if (args.size < 4) {
                     sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[System] 사용법: /rpg giveequip <플레이어명> <장비ID> <레벨> [수량]"))
@@ -170,6 +262,10 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
                 MonsterManager.loadMonsters()
                 LootManager.loadLootTables()
                 InfiniteDungeonManager.loadDungeons()
+                DungeonManager.loadDungeons()
+                EncyclopediaManager.loadRewards()
+                ShopManager.loadShopItems()
+                FoodManager.loadFoodEffects()
 
                 Bukkit.getOnlinePlayers().forEach { player ->
                     StatManager.fullyRecalculateAndApplyStats(player)
@@ -200,7 +296,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
             when (args[0].lowercase()) {
                 "infinite" -> return listOf("join", "leave", "ranking").filter { it.startsWith(args[1], ignoreCase = true) }.sorted()
                 "trade" -> return Bukkit.getOnlinePlayers().map { it.name }.filter { it.startsWith(args[1], ignoreCase = true) && it != sender.name }.sorted()
-                "giveequip", "giverecipe" -> {
+                "give", "giveequip", "giverecipe", "setstat", "giveskill" -> {
                     if (sender.isOp) {
                         return Bukkit.getOnlinePlayers().map { it.name }.filter { it.startsWith(args[1], ignoreCase = true) }.sorted()
                     }
@@ -209,6 +305,21 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
         }
         if (args.size == 3) {
             when(args[0].lowercase()){
+                "give" -> {
+                    if(sender.isOp) {
+                        return listOf("backpack", "return_scroll").filter { it.startsWith(args[2], ignoreCase = true) }.sorted()
+                    }
+                }
+                "setstat" -> {
+                    if (sender.isOp) {
+                        return StatType.entries.map { it.name }.filter { it.startsWith(args[2], ignoreCase = true) }.sorted()
+                    }
+                }
+                "giveskill" -> {
+                    if (sender.isOp) {
+                        return SkillManager.getAllLoadedSkills().map { it.internalId }.filter { it.startsWith(args[2], ignoreCase = true) }.sorted()
+                    }
+                }
                 "giveequip" -> {
                     if (sender.isOp) {
                         return EquipmentManager.getAllEquipmentIds().filter { it.startsWith(args[2], ignoreCase = true) }.sorted()
@@ -245,8 +356,13 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
             "class" -> "class"
             "equip" -> "equip"
             "skills" -> "skills"
+            "encyclopedia" -> "encyclopedia"
             "infinite" -> "infinite <join|leave|ranking>"
             "trade" -> "trade <player>"
+            "shop" -> "shop"
+            "setspawn" -> "setspawn"
+            "backpack" -> "backpack"
+            "trash" -> "trash"
             else -> subCommand
         }
     }
@@ -258,14 +374,22 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
             "class" -> "클래스 선택 또는 변경창을 엽니다."
             "equip" -> "장비 관리 및 제작 관련 창을 엽니다."
             "skills" -> "스킬 관리창을 엽니다."
+            "encyclopedia" -> "몬스터 도감을 엽니다."
             "infinite" -> "무한 던전에 입장, 퇴장하거나 랭킹을 봅니다."
             "trade" -> "다른 플레이어에게 XP 거래를 요청합니다."
+            "shop" -> "XP 상점을 엽니다."
+            "setspawn" -> "개인 귀환 지점을 설정합니다. (변경 시 XP 소모)"
+            "backpack" -> "개인 창고를 엽니다."
+            "trash" -> "아이템 파기용 쓰레기통을 엽니다."
             else -> "알 수 없는 명령어입니다."
         }
     }
 
     private fun getAdminCommandUsage(subCommand: String): String {
         return when (subCommand.lowercase()) {
+            "give" -> "give <player> <item_id>"
+            "setstat" -> "setstat <player> <stat> <value>"
+            "giveskill" -> "giveskill <player> <skill_id> [level]"
             "giveequip" -> "giveequip <player> <item_id> <level> [amount]"
             "giverecipe" -> "giverecipe <player> <recipe_id>"
             "reload" -> "reload"
@@ -275,6 +399,9 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
 
     private fun getAdminCommandDescription(subCommand: String): String {
         return when (subCommand.lowercase()) {
+            "give" -> "플레이어에게 특수 아이템을 지급합니다. (backpack, return_scroll)"
+            "setstat" -> "플레이어의 기본 스탯을 설정합니다."
+            "giveskill" -> "플레이어에게 스킬을 강제로 습득시킵니다."
             "giveequip" -> "플레이어에게 커스텀 장비를 지급합니다."
             "giverecipe" -> "플레이어에게 제작 레시피를 지급합니다."
             "reload" -> "플러그인 설정을 리로드합니다."

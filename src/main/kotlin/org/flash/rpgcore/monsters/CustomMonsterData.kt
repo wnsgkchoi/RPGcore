@@ -14,6 +14,7 @@ data class CustomMonsterData(
     val monsterId: String,
     val displayName: String,
     val vanillaMobType: EntityType,
+    val iconMaterial: String, // 아이콘을 위한 필드 추가
     val equipment: Map<String, String>,
     val stats: Map<String, MonsterStatInfo>,
     val skills: List<MonsterSkillInfo>,

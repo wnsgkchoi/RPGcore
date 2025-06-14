@@ -1,0 +1,12 @@
+# 던전의 고유 ID는 파일명(확장자 제외)과 동일해야 합니다. (예: goblin_forest.yml -> id: goblin_forest)
+#
+# display_name: (문자열) GUI에 표시될 던전의 이름. ChatColor 코드(&) 사용 가능.
+# icon_material: (문자열) GUI에 표시될 던전 아이콘의 마인크래프트 아이템 ID. (예: GRASS_BLOCK, STONE)
+# monsters: (문자열 리스트) 이 던전에 출현하는 몬스터의 ID 목록.
+#
+display_name: "&2고블린 숲"
+icon_material: "GRASS_BLOCK"
+monsters:
+  - "goblin_warrior"
+  - "goblin_archer"
+  # - "orc_chieftain"

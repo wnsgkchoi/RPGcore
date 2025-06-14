@@ -3,15 +3,17 @@ package org.flash.rpgcore.managers
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.Location
+import org.bukkit.attribute.Attribute
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
+import org.bukkit.event.player.PlayerRespawnEvent
 import org.bukkit.scheduler.BukkitRunnable
 import org.flash.rpgcore.RPGcore
 import org.flash.rpgcore.dungeons.DungeonSession
 import org.flash.rpgcore.dungeons.DungeonState
 import java.io.File
-import java.util.UUID
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.max
 
@@ -26,10 +28,12 @@ object InfiniteDungeonManager {
     private val arenas = mutableListOf<Arena>()
     private val activeSessions = ConcurrentHashMap<UUID, DungeonSession>()
     private val playerCooldowns = ConcurrentHashMap<UUID, Long>()
+    private val pendingRespawns = ConcurrentHashMap<UUID, Location>()
 
+    // 오류 해결: 누락되었던 프로퍼티 선언부 복원
     private var reEntryCooldownSeconds = 600L
     private var prepareTimeSeconds = 5L
-    private var statScalingCoeff = Triple(0.005, 0.1, 1.0)
+    private var statScalingCoeff = Triple(0.015, 0.3, 1.0)
     var xpScalingCoeff = Pair(0.2, 1.0)
     private var normalMonsterPool = mapOf<String, List<String>>()
     private var bossMonsterPool = listOf<String>()
@@ -62,44 +66,37 @@ object InfiniteDungeonManager {
         val configFile = File(dungeonDir, "infinite_dungeon.yml")
         if (!configFile.exists()) {
             plugin.saveResource("dungeons/infinite_dungeon.yml", false)
-            // JAR 내부 리소스 경로와 실제 파일 경로를 맞추기 위한 로직
-            val resourceFile = File(plugin.dataFolder, "dungeons/infinite_dungeon.yml")
-            if (resourceFile.exists() && resourceFile.parentFile.name == "dungeons") {
-                resourceFile.renameTo(configFile)
-                resourceFile.parentFile.delete() // dungeons/infinite_dungeon 폴더는 삭제
-            }
         }
 
         val config = YamlConfiguration.loadConfiguration(configFile)
-        val path = "infinite_dungeon"
 
-        reEntryCooldownSeconds = config.getLong("$path.re_entry_cooldown_seconds", 600L)
-        prepareTimeSeconds = config.getLong("$path.prepare_time_seconds", 5L)
+        reEntryCooldownSeconds = config.getLong("re_entry_cooldown_seconds", 600L)
+        prepareTimeSeconds = config.getLong("prepare_time_seconds", 5L)
 
         statScalingCoeff = Triple(
-            config.getDouble("$path.stat_scaling.a", 0.005),
-            config.getDouble("$path.stat_scaling.b", 0.1),
-            config.getDouble("$path.stat_scaling.c", 1.0)
+            config.getDouble("stat_scaling.a", 0.015),
+            config.getDouble("stat_scaling.b", 0.3),
+            config.getDouble("stat_scaling.c", 1.0)
         )
         xpScalingCoeff = Pair(
-            config.getDouble("$path.xp_scaling.a", 0.2),
-            config.getDouble("$path.xp_scaling.b", 1.0)
+            config.getDouble("xp_scaling.a", 0.2),
+            config.getDouble("xp_scaling.b", 1.0)
         )
         spawnCountCoeff = Pair(
-            config.getDouble("$path.wave_settings.spawn_count.a", 0.5),
-            config.getDouble("$path.wave_settings.spawn_count.b", 2.0)
+            config.getDouble("wave_settings.spawn_count.a", 0.5),
+            config.getDouble("wave_settings.spawn_count.b", 2.0)
         )
 
-        normalMonsterPool = config.getConfigurationSection("$path.wave_settings.normal_monster_pool")
+        normalMonsterPool = config.getConfigurationSection("wave_settings.normal_monster_pool")
             ?.getValues(false)?.mapValues { it.value as? List<String> ?: emptyList() } ?: emptyMap()
-        bossMonsterPool = config.getStringList("$path.wave_settings.boss_monster_pool")
+        bossMonsterPool = config.getStringList("wave_settings.boss_monster_pool")
 
-        bossLootTables = config.getConfigurationSection("$path.boss_loot_tables")
-            ?.getKeys(false)?.associate { it.toInt() to config.getString("$path.boss_loot_tables.$it")!! } ?: emptyMap()
+        bossLootTables = config.getConfigurationSection("boss_loot_tables")
+            ?.getKeys(false)?.associate { it.toInt() to config.getString("boss_loot_tables.$it")!! } ?: emptyMap()
 
-        config.getConfigurationSection("$path.arenas")?.getKeys(false)?.forEach { key ->
-            val arenaPath = "$path.arenas.$key"
-            val playerSpawnLoc = locationFromConfig("$arenaPath.player_spawn_location", config)
+        config.getConfigurationSection("arenas")?.getKeys(false)?.forEach { key ->
+            val arenaPath = "arenas.$key"
+            val playerSpawnLoc = locationFromConfig(arenaPath, "player_spawn_location", config)
             val monsterSpawnLocs = config.getMapList("$arenaPath.monster_spawn_locations").mapNotNull { locationFromConfigMap(it) }
             if (playerSpawnLoc != null && monsterSpawnLocs.isNotEmpty()) {
                 arenas.add(Arena(key, playerSpawnLoc, monsterSpawnLocs))
@@ -110,16 +107,16 @@ object InfiniteDungeonManager {
         logger.info("[InfiniteDungeonManager] Loaded ${arenas.size} infinite dungeon arenas.")
     }
 
-    private fun locationFromConfig(path: String, config: YamlConfiguration): Location? {
-        val worldName = config.getString("$path.world") ?: return null
+    private fun locationFromConfig(path: String, key: String, config: YamlConfiguration): Location? {
+        val worldName = config.getString("$path.$key.world") ?: return null
         val world = Bukkit.getWorld(worldName) ?: return null
         return Location(
             world,
-            config.getDouble("$path.x"),
-            config.getDouble("$path.y"),
-            config.getDouble("$path.z"),
-            config.getDouble("$path.yaw", 0.0).toFloat(),
-            config.getDouble("$path.pitch", 0.0).toFloat()
+            config.getDouble("$path.$key.x"),
+            config.getDouble("$path.$key.y"),
+            config.getDouble("$path.$key.z"),
+            config.getDouble("$path.$key.yaw", 0.0).toFloat(),
+            config.getDouble("$path.$key.pitch", 0.0).toFloat()
         )
     }
 
@@ -135,8 +132,11 @@ object InfiniteDungeonManager {
     }
 
     fun join(player: Player) {
+        logger.info("[InfiniteDungeon] Join attempt by ${player.name}.")
+
         if (activeSessions.containsKey(player.uniqueId)) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[던전] &f이미 던전에 참여 중입니다."))
+            logger.warning("[InfiniteDungeon] Join failed for ${player.name}: Player is already in an active session.")
             return
         }
 
@@ -144,6 +144,7 @@ object InfiniteDungeonManager {
         if (cooldown != null && System.currentTimeMillis() < cooldown) {
             val remaining = (cooldown - System.currentTimeMillis()) / 1000
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[던전] &f재입장 대기시간이 &e${remaining}초 &f남았습니다."))
+            logger.warning("[InfiniteDungeon] Join failed for ${player.name}: Player is on re-entry cooldown for $remaining more seconds.")
             return
         }
 
@@ -152,9 +153,13 @@ object InfiniteDungeonManager {
 
         if (availableArena == null) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[던전] &f입장 가능한 경기장이 없습니다. 잠시 후 다시 시도해주세요."))
+            logger.info("[InfiniteDungeon] Total arenas loaded: ${arenas.size}.")
+            logger.info("[InfiniteDungeon] Occupied arena IDs: ${occupiedArenas.joinToString(", ", "[", "]")}.")
+            logger.warning("[InfiniteDungeon] Join failed for ${player.name}: No available arenas found.")
             return
         }
 
+        logger.info("[InfiniteDungeon] Join successful for ${player.name}. Assigning to arena '${availableArena.id}'.")
         val session = DungeonSession(player, availableArena.id, player.location)
         activeSessions[player.uniqueId] = session
 
@@ -170,10 +175,18 @@ object InfiniteDungeonManager {
 
         object : BukkitRunnable() {
             override fun run() {
-                if (!activeSessions.containsValue(session)) return
+                if (!activeSessions.containsValue(session)) {
+                    logger.warning("[InfiniteDungeon] Could not start wave ${session.wave} for ${session.player.name}: Session was terminated during preparation time.")
+                    return
+                }
                 session.state = DungeonState.WAVE_IN_PROGRESS
                 session.player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[던전] &fWave ${session.wave} 시작!"))
-                val arena = arenas.find { it.id == session.arenaId } ?: return
+                val arena = arenas.find { it.id == session.arenaId }
+                if (arena == null) {
+                    logger.severe("[InfiniteDungeon] CRITICAL: Could not find arena '${session.arenaId}' for an active session. Leaving player ${session.player.name}.")
+                    leave(session.player, true)
+                    return
+                }
                 spawnMonstersForWave(session, arena)
             }
         }.runTaskLater(plugin, prepareTimeSeconds * 20L)
@@ -194,6 +207,8 @@ object InfiniteDungeonManager {
                 normalMonsterPool[role]?.randomOrNull()?.let { monstersToSpawn.add(it) }
             }
         }
+
+        logger.info("[InfiniteDungeon] Spawning for Wave ${wave} in arena ${arena.id}: ${monstersToSpawn.joinToString()}")
 
         monstersToSpawn.forEach { monsterId ->
             val spawnLocation = arena.monsterSpawns.random()
@@ -221,7 +236,7 @@ object InfiniteDungeonManager {
         val newMaxHp = newStats["MAX_HP"]!!
         entityData.maxHp = newMaxHp
         entityData.currentHp = newMaxHp
-        monster.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH)?.baseValue = newMaxHp
+        monster.getAttribute(Attribute.MAX_HEALTH)?.baseValue = newMaxHp
         monster.health = newMaxHp
 
         if (BossBarManager.isBoss(monster.uniqueId)) {
@@ -239,15 +254,26 @@ object InfiniteDungeonManager {
         val finalWave = if (session.monsterUUIDs.isEmpty() && session.wave > 0) session.wave else session.wave - 1
         updateRanking(player, finalWave)
 
-        player.teleport(session.originalLocation)
-
         if (isDeath) {
+            pendingRespawns[player.uniqueId] = session.originalLocation
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[던전] &f던전 공략에 실패했습니다. (최종 기록: Wave $finalWave)"))
             val cooldownEndTime = System.currentTimeMillis() + reEntryCooldownSeconds * 1000
             playerCooldowns[player.uniqueId] = cooldownEndTime
         } else {
+            player.teleport(session.originalLocation)
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&e[던전] &f던전에서 퇴장했습니다. (최종 기록: Wave $finalWave)"))
         }
+        logger.info("[InfiniteDungeon] Player ${player.name} left the dungeon. Final wave: $finalWave. Death: $isDeath.")
+    }
+
+    fun handleRespawn(event: PlayerRespawnEvent): Boolean {
+        val player = event.player
+        pendingRespawns.remove(player.uniqueId)?.let {
+            event.respawnLocation = it
+            logger.info("[InfiniteDungeon] Player ${player.name} is respawning to their original location after dungeon death.")
+            return true
+        }
+        return false
     }
 
     private fun updateRanking(player: Player, wave: Int) {
