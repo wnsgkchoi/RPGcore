@@ -154,6 +154,19 @@ class RPGcore : JavaPlugin() {
                             }
                         }
 
+                        // 스킬 충전 쿨타임 관리 로직
+                        playerData.skillChargeCooldowns.keys.toList().forEach { skillId ->
+                            if (!playerData.isOnChargeCooldown(skillId)) {
+                                val skill = SkillManager.getSkill(skillId)
+                                if (skill?.maxCharges != null) {
+                                    playerData.skillCharges[skillId] = skill.maxCharges
+                                    playerData.skillChargeCooldowns.remove(skillId)
+                                    player.sendMessage("§b[${skill.displayName}] §f모든 횟수가 충전되었습니다!")
+                                    needsUpdate = true
+                                }
+                            }
+                        }
+
                         if (needsUpdate) {
                             PlayerScoreboardManager.updateScoreboard(player)
                         }

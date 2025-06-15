@@ -64,22 +64,23 @@ object TargetSelector {
                 val pathLength = params["path_length"]?.toDoubleOrNull() ?: 7.0
                 val pathWidth = params["path_width"]?.toDoubleOrNull() ?: 2.0
 
-                val casterLocation = caster.eyeLocation
-                val casterDirection = caster.location.direction.normalize()
+                val startPoint = caster.location.clone()
+                val direction = caster.location.direction.clone().apply { y = 0.0 }.normalize()
 
-                caster.world.getNearbyEntities(casterLocation, pathLength, pathWidth, pathLength)
+                val searchRadius = pathLength / 2.0
+                val midPoint = startPoint.clone().add(direction.clone().multiply(searchRadius))
+
+                midPoint.world.getNearbyEntities(midPoint, searchRadius + pathWidth, 5.0, searchRadius + pathWidth)
                     .filterIsInstance<LivingEntity>()
                     .filter { target ->
                         if (target == caster || !isHostile(target, caster)) return@filter false
 
-                        val toTarget = target.eyeLocation.toVector().subtract(casterLocation.toVector())
-                        if (toTarget.clone().normalize().dot(casterDirection) < 0) return@filter false
+                        val targetVector = target.location.toVector().subtract(startPoint.toVector())
+                        val dotProduct = targetVector.dot(direction)
+                        if (dotProduct < 0 || dotProduct > pathLength) return@filter false
 
-                        val projectionLength = toTarget.dot(casterDirection)
-                        if (projectionLength > pathLength) return@filter false
-
-                        val projectionVector = casterDirection.clone().multiply(projectionLength)
-                        val perpendicularDistance = toTarget.subtract(projectionVector).length()
+                        val projectionVector = direction.clone().multiply(dotProduct)
+                        val perpendicularDistance = targetVector.subtract(projectionVector).length()
 
                         perpendicularDistance <= pathWidth / 2.0
                     }
@@ -92,7 +93,7 @@ object TargetSelector {
     private fun isHostile(entity: LivingEntity, perspective: LivingEntity): Boolean {
         return when (perspective) {
             is Player -> entity is Monster || entity is Slime || entity is Ghast || entity is Phantom || EntityManager.getEntityData(entity) != null
-            else -> entity is Player // 몬스터 입장에서는 플레이어가 적대적
+            else -> entity is Player
         }
     }
 }

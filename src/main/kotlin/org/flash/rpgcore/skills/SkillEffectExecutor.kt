@@ -2,6 +2,7 @@ package org.flash.rpgcore.skills
 
 import com.google.gson.Gson
 import org.bukkit.Bukkit
+import org.bukkit.ChatColor
 import org.bukkit.Location
 import org.bukkit.Sound
 import org.bukkit.entity.Arrow
@@ -10,7 +11,6 @@ import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.metadata.FixedMetadataValue
 import org.bukkit.scheduler.BukkitRunnable
-import org.bukkit.util.Vector
 import org.flash.rpgcore.RPGcore
 import org.flash.rpgcore.managers.*
 import org.flash.rpgcore.stats.StatManager
@@ -40,6 +40,33 @@ object SkillEffectExecutor {
         if (level == 0) return
 
         val levelData = skillData.levelData[level] ?: return
+
+        // 스킬별 특별 핸들러
+        when (skillId) {
+            "wind_slash" -> {
+                applyWindSlash(caster, skillData, level)
+                return
+            }
+            "backstep" -> {
+                applyBackstep(caster, skillData, level)
+                return
+            }
+        }
+
+        if (skillData.behavior.equals("TOGGLE", ignoreCase = true)) {
+            val statusEffectData = levelData.effects.firstOrNull { it.type == "APPLY_CUSTOM_STATUS" }
+            if (statusEffectData != null) {
+                val statusId = statusEffectData.parameters["status_id"] ?: skillData.internalId
+                if (StatusEffectManager.hasStatus(caster, statusId)) {
+                    StatusEffectManager.removeStatus(caster, statusId)
+                    caster.sendActionBar(ChatColor.translateAlternateColorCodes('&', "&e${skillData.displayName} &f효과가 &c비활성화&f되었습니다."))
+                } else {
+                    handleSingleEffect(caster, caster, statusEffectData, skillData, level)
+                    caster.sendActionBar(ChatColor.translateAlternateColorCodes('&', "&e${skillData.displayName} &f효과가 &a활성화&f되었습니다."))
+                }
+            }
+            return
+        }
 
         levelData.effects.forEach { effect ->
             val targets = TargetSelector.findTargets(caster, effect, null)
@@ -85,7 +112,6 @@ object SkillEffectExecutor {
 
             "TAUNT" -> applyTaunt(caster, target)
             "SHIELD_CHARGE" -> if (target == caster) applyShieldCharge(caster, effect)
-            "WIND_SLASH" -> if (target == caster) applyWindSlash(caster, effect, skillData, level)
             "APPLY_LAST_STAND" -> if (target == caster) applyLastStand(caster, effect)
             "ON_TAKE_DAMAGE_BUFF" -> {}
             "RANDOM_ARROW_VOLLEY" -> if (target == caster) applyRandomArrowVolley(caster, effect, skillData, level)
@@ -144,14 +170,17 @@ object SkillEffectExecutor {
     private fun applyTeleport(caster: Player, effect: SkillEffectData) {
         val distance = effect.parameters["distance"]?.toDoubleOrNull() ?: 5.0
         val direction = caster.location.direction.normalize()
-        val newLocation = caster.location.add(direction.multiply(distance))
+        if (distance < 0) {
+            direction.multiply(-1)
+        }
+        val newLocation = caster.location.add(direction.multiply(Math.abs(distance)))
         caster.teleport(newLocation)
         caster.playSound(caster.location, Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.2f)
     }
 
     private fun applyCustomStatus(caster: Player, target: LivingEntity, effect: SkillEffectData) {
         val statusId = effect.parameters["status_id"] ?: return
-        val duration = effect.parameters["duration_ticks"]?.toIntOrNull() ?: 0
+        val duration = effect.parameters["duration_ticks"]?.toIntOrNull() ?: -1
         StatusEffectManager.applyStatus(caster, target, statusId, duration, effect.parameters)
     }
 
@@ -162,32 +191,56 @@ object SkillEffectExecutor {
         }
     }
 
-    private fun applyWindSlash(caster: Player, effect: SkillEffectData, skillData: RPGSkillData, level: Int) {
-        val damageEffect = skillData.levelData[level]!!.effects.find { it.type.uppercase() == "DAMAGE" } ?: return
+    private fun applyWindSlash(caster: Player, skillData: RPGSkillData, level: Int) {
+        val damageEffect = skillData.levelData[level]?.effects?.find { it.type == "DAMAGE" } ?: return
+        val soundEffect = skillData.levelData[level]?.effects?.find { it.type == "PLAY_SOUND" }
+
         val distance = damageEffect.parameters["path_length"]?.toDoubleOrNull() ?: 6.0
-        val speed = 1.0 // 블록/틱
+        val speed = 1.5
         val duration = (distance / speed).toLong()
-        val direction = caster.location.direction.normalize().multiply(speed)
+        val direction = caster.location.direction.clone().apply { y = 0.0 }.normalize()
+
+        val targets = TargetSelector.findTargets(caster, damageEffect, null)
+        targets.forEach { target ->
+            CombatManager.applySkillDamage(caster, target, damageEffect)
+        }
+
+        soundEffect?.let { EffectPlayer.playSound(caster.location, it) }
 
         object : BukkitRunnable() {
             var ticks = 0L
-            val hitEntities = mutableSetOf<UUID>()
             override fun run() {
                 if (ticks >= duration || caster.isDead || !caster.isOnline) {
                     this.cancel()
                     return
                 }
-                caster.velocity = direction
-                val targets = TargetSelector.findTargets(caster, damageEffect)
-                targets.forEach { target ->
-                    if (!hitEntities.contains(target.uniqueId)) {
-                        CombatManager.applySkillDamage(caster, target, damageEffect)
-                        hitEntities.add(target.uniqueId)
-                    }
+
+                val nextPos = caster.location.clone().add(direction.clone().multiply(speed))
+                if (!nextPos.block.isPassable || !nextPos.clone().add(0.0, 1.0, 0.0).block.isPassable) {
+                    this.cancel()
+                    return
                 }
+
+                caster.velocity = direction.clone().multiply(speed)
                 ticks++
             }
         }.runTaskTimer(plugin, 0L, 1L)
+    }
+
+    private fun applyBackstep(caster: Player, skillData: RPGSkillData, level: Int) {
+        val teleportEffect = skillData.levelData[level]?.effects?.find { it.type == "TELEPORT_FORWARD" } ?: return
+        val damageEffect = skillData.levelData[level]?.effects?.find { it.type == "DAMAGE" } ?: return
+        val soundEffect = skillData.levelData[level]?.effects?.find { it.type == "PLAY_SOUND" } ?: return
+
+        val originalLocation = caster.location.clone()
+
+        applyTeleport(caster, teleportEffect)
+
+        val targets = TargetSelector.findTargets(caster, damageEffect, originalLocation)
+        targets.forEach { target ->
+            CombatManager.applySkillDamage(caster, target, damageEffect)
+        }
+        EffectPlayer.playSound(originalLocation, soundEffect)
     }
 
     private fun applyShieldCharge(caster: Player, effect: SkillEffectData) {
@@ -211,7 +264,6 @@ object SkillEffectExecutor {
             var ticks = 0L
             val hitEntities = mutableSetOf<UUID>()
             override fun run() {
-                // 전방 장애물 감지 로직 제거
                 if (ticks >= duration || caster.isDead || !caster.isOnline) {
                     this.cancel()
                     return

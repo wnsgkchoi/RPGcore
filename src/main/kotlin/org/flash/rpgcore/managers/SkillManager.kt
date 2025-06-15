@@ -72,6 +72,7 @@ object SkillManager : ISkillStatProvider {
             val interruptOnMove = skillConfig.getBoolean("interrupt_on_move", true)
 
             val maxLevel = skillConfig.getInt("max_level", 1).coerceAtLeast(1)
+            val maxCharges = if (skillConfig.contains("max_charges")) skillConfig.getInt("max_charges") else null
 
             val levelDataMap = mutableMapOf<Int, SkillLevelData>()
             val levelDataSection = skillConfig.getConfigurationSection("level_data")
@@ -114,7 +115,7 @@ object SkillManager : ISkillStatProvider {
                 description = description, iconMaterial = iconMaterial, customModelData = customModelData,
                 skillType = skillType, behavior = behavior, element = element,
                 isInterruptibleByDamage = isInterruptibleByDamage, interruptOnMove = interruptOnMove,
-                maxLevel = maxLevel, levelData = levelDataMap, upgradeCostPerLevel = upgradeCostMap,
+                maxLevel = maxLevel, maxCharges = maxCharges, levelData = levelDataMap, upgradeCostPerLevel = upgradeCostMap,
                 classRestrictions = classRestrictions
             )
 

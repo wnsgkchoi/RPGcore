@@ -45,6 +45,8 @@ data class PlayerData(
     ),
     val equippedPassiveSkills: MutableList<String?> = MutableList(3) { null },
     val skillCooldowns: MutableMap<String, Long> = ConcurrentHashMap(),
+    val skillCharges: MutableMap<String, Int> = ConcurrentHashMap(),
+    val skillChargeCooldowns: MutableMap<String, Long> = ConcurrentHashMap(),
     var lastBasicAttackTime: Long = 0L,
 
     // --- 제작 관련 데이터 ---
@@ -72,7 +74,6 @@ data class PlayerData(
     }
 
     fun initializeDefaultStats() {
-        // 모든 스탯 타입에 대해 기본값을 baseStats 맵에 추가
         StatType.entries.forEach { statType ->
             baseStats[statType] = statType.defaultValue
         }
@@ -100,7 +101,6 @@ data class PlayerData(
     }
 
     fun updateBaseStat(statType: StatType, newValue: Double) {
-        // 이제 모든 스탯의 기본값을 수정할 수 있음 (단, XP강화는 isXpUpgradable로 별도 체크)
         baseStats[statType] = newValue
         if (statType == StatType.MAX_HP) currentHp = currentHp.coerceAtMost(newValue)
         if (statType == StatType.MAX_MP) currentMp = currentMp.coerceAtMost(newValue)
@@ -130,4 +130,16 @@ data class PlayerData(
     fun startSkillCooldown(skillId: String, cooldownEndTimeMillis: Long) { skillCooldowns[skillId] = cooldownEndTimeMillis }
     fun getRemainingCooldownMillis(skillId: String): Long = (skillCooldowns[skillId] ?: 0L).let { if (it > System.currentTimeMillis()) it - System.currentTimeMillis() else 0L }
     fun isOnCooldown(skillId: String): Boolean = getRemainingCooldownMillis(skillId) > 0
+
+    fun getSkillCharges(skillId: String, maxCharges: Int): Int = skillCharges.getOrPut(skillId) { maxCharges }
+    fun useSkillCharge(skillId: String): Int {
+        val currentCharges = skillCharges.getOrDefault(skillId, 0)
+        if (currentCharges > 0) {
+            skillCharges[skillId] = currentCharges - 1
+        }
+        return skillCharges.getOrDefault(skillId, 0)
+    }
+    fun startChargeCooldown(skillId: String, cooldownEndTimeMillis: Long) { skillChargeCooldowns[skillId] = cooldownEndTimeMillis }
+    fun getRemainingChargeCooldownMillis(skillId: String): Long = (skillChargeCooldowns[skillId] ?: 0L).let { if (it > System.currentTimeMillis()) it - System.currentTimeMillis() else 0L }
+    fun isOnChargeCooldown(skillId: String): Boolean = getRemainingChargeCooldownMillis(skillId) > 0
 }

@@ -24,20 +24,17 @@ object PlayerScoreboardManager {
             objective.displayName = BOARD_TITLE
         }
 
-        // 기존 스코어 클리어
         board.entries.forEach { board.resetScores(it) }
 
         val playerData = PlayerDataManager.getPlayerData(player)
-        var score = 15 // 스코어보드 최상단부터 시작
+        var score = 15
 
-        // 라인 업데이트
         updateLine(board, objective, "xp", score--, "§eXP: §f${XPHelper.getTotalExperience(player)}")
         val maxHp = StatManager.getFinalStatValue(player, StatType.MAX_HP).toInt()
         updateLine(board, objective, "hp", score--, "§cHP: §f${playerData.currentHp.toInt()} / $maxHp")
         val maxMp = StatManager.getFinalStatValue(player, StatType.MAX_MP).toInt()
         updateLine(board, objective, "mp", score--, "§9MP: §f${playerData.currentMp.toInt()} / $maxMp")
 
-        // 직업 스택 표시
         val stackText = when (playerData.currentClassId) {
             "frenzy_dps" -> "§6전투 열기: §f${playerData.furyStacks}"
             "gale_striker" -> "§b질풍노도: §f${playerData.galeRushStacks}"
@@ -47,10 +44,8 @@ object PlayerScoreboardManager {
             updateLine(board, objective, "stack", score--, stackText)
         }
 
-        // 빈 줄 추가
         updateLine(board, objective, "blank1", score--, " ")
 
-        // 스킬 정보 표시
         score = updateSkillLines(board, objective, "Q", "SLOT_Q", playerData, score)
         score = updateSkillLines(board, objective, "F", "SLOT_F", playerData, score)
         updateSkillLines(board, objective, "Shift+Q", "SLOT_SHIFT_Q", playerData, score)
@@ -58,7 +53,7 @@ object PlayerScoreboardManager {
 
     private fun updateLine(board: Scoreboard, objective: Objective, teamName: String, score: Int, text: String) {
         val team = board.getTeam(teamName) ?: board.registerNewTeam(teamName)
-        val entry = ChatColor.values()[score].toString() // 각 라인별 고유 엔트리 생성
+        val entry = ChatColor.values()[score].toString()
 
         if (!team.hasEntry(entry)) {
             team.addEntry(entry)
@@ -79,15 +74,35 @@ object PlayerScoreboardManager {
         } else {
             val skillData = SkillManager.getSkill(skillId)
             val currentLevel = playerData.getLearnedSkillLevel(skillId)
+
             if (skillData == null || currentLevel == 0) {
                 skillName = "§c(정보 없음)"
                 skillStatus = "§8- 오류"
             } else {
                 skillName = skillData.displayName
-                skillStatus = when {
-                    playerData.isOnCooldown(skillId) -> "§c- 재사용 대기"
-                    playerData.currentMp < (skillData.levelData[currentLevel]?.mpCost ?: Int.MAX_VALUE) -> "§9- MP 부족"
-                    else -> "§a- 사용 가능"
+                val mpCost = skillData.levelData[currentLevel]?.mpCost ?: Int.MAX_VALUE
+
+                // 1. MP 부족을 최우선으로 체크
+                if (playerData.currentMp < mpCost) {
+                    skillStatus = "§9- MP 부족"
+                } else {
+                    val maxCharges = skillData.maxCharges
+                    // 2. 충전식 스킬인지 확인
+                    if (maxCharges != null && maxCharges > 0) {
+                        val currentCharges = playerData.getSkillCharges(skillId, maxCharges)
+                        skillStatus = if (currentCharges > 0) {
+                            "§a- 사용 가능 (§e${currentCharges}/${maxCharges}§a)"
+                        } else {
+                            val remaining = playerData.getRemainingChargeCooldownMillis(skillId) / 1000.0
+                            "§c- 재충전 중 (${String.format("%.1f", remaining)}s)"
+                        }
+                    } else { // 3. 일반 쿨타임 스킬
+                        skillStatus = if (playerData.isOnCooldown(skillId)) {
+                            "§c- 재사용 대기"
+                        } else {
+                            "§a- 사용 가능"
+                        }
+                    }
                 }
             }
         }

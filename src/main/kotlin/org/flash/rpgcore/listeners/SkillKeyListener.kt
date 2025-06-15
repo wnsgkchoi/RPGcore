@@ -8,15 +8,17 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerDropItemEvent
 import org.bukkit.event.player.PlayerSwapHandItemsEvent
 import org.bukkit.inventory.ItemStack
+import org.flash.rpgcore.RPGcore
 import org.flash.rpgcore.managers.*
 import org.flash.rpgcore.skills.SkillEffectExecutor
 import org.flash.rpgcore.stats.StatManager
 import org.flash.rpgcore.stats.StatType
-import kotlin.math.max
 
 class SkillKeyListener : Listener {
 
-    private fun isWeaponValid(player: Player, itemStack: ItemStack): Boolean {
+    private val plugin = RPGcore.instance
+
+    private fun isWeaponValid(player: Player): Boolean {
         val playerData = PlayerDataManager.getPlayerData(player)
         val playerClass = playerData.currentClassId?.let { ClassManager.getClass(it) } ?: return false
 
@@ -24,15 +26,26 @@ class SkillKeyListener : Listener {
             return true
         }
 
-        if (itemStack.type == Material.AIR || !playerClass.allowedMainHandMaterials.contains(itemStack.type.name)) {
+        val mainHandItem = player.inventory.itemInMainHand
+        if (mainHandItem.type == Material.AIR || !playerClass.allowedMainHandMaterials.contains(mainHandItem.type.name)) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[알림] &f현재 클래스는 이 무기로 스킬을 사용할 수 없습니다."))
             return false
         }
         return true
     }
 
-    private fun isWeaponValid(player: Player): Boolean {
-        return isWeaponValid(player, player.inventory.itemInMainHand)
+    private fun isWeaponValidForDrop(player: Player, droppedItem: ItemStack): Boolean {
+        val playerData = PlayerDataManager.getPlayerData(player)
+        val playerClass = playerData.currentClassId?.let { ClassManager.getClass(it) } ?: return false
+
+        if (playerClass.allowedMainHandMaterials.isEmpty()) {
+            return true
+        }
+
+        if (!playerClass.allowedMainHandMaterials.contains(droppedItem.type.name)) {
+            return false
+        }
+        return true
     }
 
     @EventHandler
@@ -40,12 +53,8 @@ class SkillKeyListener : Listener {
         val player = event.player
         val playerData = PlayerDataManager.getPlayerData(player)
         val skillId = playerData.equippedActiveSkills["SLOT_F"] ?: return
-
-        if (!isWeaponValid(player)) {
-            return
-        }
-
         event.isCancelled = true
+        if (!isWeaponValid(player)) return
         executeSkillIfPossible(player, skillId)
     }
 
@@ -53,57 +62,70 @@ class SkillKeyListener : Listener {
     fun onPlayerDropItem(event: PlayerDropItemEvent) {
         val player = event.player
         val playerData = PlayerDataManager.getPlayerData(player)
-
         val skillId = if (player.isSneaking) {
             playerData.equippedActiveSkills["SLOT_SHIFT_Q"]
         } else {
             playerData.equippedActiveSkills["SLOT_Q"]
         } ?: return
 
-        if (!isWeaponValid(player, event.itemDrop.itemStack)) {
-            return
+        if (isWeaponValidForDrop(player, event.itemDrop.itemStack)) {
+            event.isCancelled = true
+            executeSkillIfPossible(player, skillId)
         }
-
-        event.isCancelled = true
-        executeSkillIfPossible(player, skillId)
     }
 
     private fun executeSkillIfPossible(player: Player, skillId: String) {
         val playerData = PlayerDataManager.getPlayerData(player)
         val skill = SkillManager.getSkill(skillId) ?: return
         val level = playerData.getLearnedSkillLevel(skillId)
+        if (level == 0) return
         val levelData = skill.levelData[level] ?: return
-
-        if (playerData.isOnCooldown(skillId)) {
-            val remaining = playerData.getRemainingCooldownMillis(skillId) / 1000.0
-            player.sendMessage("§c아직 쿨타임입니다. (${String.format("%.1f", remaining)}초)")
-            return
-        }
 
         if (playerData.currentMp < levelData.mpCost) {
             player.sendMessage("§bMP가 부족합니다.")
             return
         }
-
         if (CastingManager.isCasting(player)) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[알림] &f다른 스킬을 이미 시전 중입니다."))
             return
         }
 
-        playerData.currentMp -= levelData.mpCost
+        val maxCharges = skill.maxCharges
+        if (maxCharges != null && maxCharges > 0) {
+            val currentCharges = playerData.getSkillCharges(skillId, maxCharges)
+            if (currentCharges > 0) {
+                playerData.useSkillCharge(skillId)
+                playerData.currentMp -= levelData.mpCost
 
-        // 쿨타임 감소 스탯 적용
-        val cooldownReduction = StatManager.getFinalStatValue(player, StatType.COOLDOWN_REDUCTION)
-        val finalCooldownTicks = (levelData.cooldownTicks * (1.0 - cooldownReduction)).toLong()
-        val cooldownEndTime = System.currentTimeMillis() + (finalCooldownTicks * 50)
-        playerData.startSkillCooldown(skillId, cooldownEndTime)
+                if (levelData.castTimeTicks > 0) CastingManager.startCasting(player, skill, level) else SkillEffectExecutor.execute(player, skillId)
 
-        PlayerScoreboardManager.updateScoreboard(player)
-
-        if (levelData.castTimeTicks > 0) {
-            CastingManager.startCasting(player, skill, level)
+                if (playerData.getSkillCharges(skillId, maxCharges) == 0) {
+                    val cooldownReduction = StatManager.getFinalStatValue(player, StatType.COOLDOWN_REDUCTION)
+                    val finalCooldownTicks = (levelData.cooldownTicks * (1.0 - cooldownReduction)).toLong()
+                    playerData.startChargeCooldown(skillId, System.currentTimeMillis() + finalCooldownTicks * 50)
+                }
+            } else {
+                if (playerData.isOnChargeCooldown(skillId)) {
+                    val remaining = playerData.getRemainingChargeCooldownMillis(skillId) / 1000.0
+                    player.sendMessage("§c재충전 중입니다. (${String.format("%.1f", remaining)}초)")
+                } else {
+                    player.sendMessage("§c스킬을 사용할 수 없습니다 (횟수 부족).")
+                }
+            }
         } else {
-            SkillEffectExecutor.execute(player, skillId)
+            if (playerData.isOnCooldown(skillId)) {
+                val remaining = playerData.getRemainingCooldownMillis(skillId) / 1000.0
+                player.sendMessage("§c아직 쿨타임입니다. (${String.format("%.1f", remaining)}초)")
+                return
+            }
+            playerData.currentMp -= levelData.mpCost
+
+            val cooldownReduction = StatManager.getFinalStatValue(player, StatType.COOLDOWN_REDUCTION)
+            val finalCooldownTicks = (levelData.cooldownTicks * (1.0 - cooldownReduction)).toLong()
+            playerData.startSkillCooldown(skillId, System.currentTimeMillis() + finalCooldownTicks * 50)
+
+            if (levelData.castTimeTicks > 0) CastingManager.startCasting(player, skill, level) else SkillEffectExecutor.execute(player, skillId)
         }
+        PlayerScoreboardManager.updateScoreboard(player)
     }
 }
