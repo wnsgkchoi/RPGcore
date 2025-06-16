@@ -91,9 +91,13 @@ object SkillManager : ISkillStatProvider {
                         currentLevelSection.getMapList("effects")?.forEach { effectMap ->
                             val type = effectMap["type"] as? String ?: "UNKNOWN_EFFECT"
                             val targetSelector = effectMap["target_selector"] as? String ?: "SELF"
-                            val parameters = (effectMap["parameters"] as? Map<*, *>)
-                                ?.mapNotNull { (k, v) -> (k as? String)?.let { key -> v?.toString()?.let { value -> key to value } } }
-                                ?.toMap() ?: emptyMap()
+
+                            // --- 수정된 부분 ---
+                            // value를 .toString()으로 변환하지 않고, 원본 타입(Any)을 그대로 유지
+                            @Suppress("UNCHECKED_CAST")
+                            val parameters = (effectMap["parameters"] as? Map<String, Any>) ?: emptyMap()
+                            // --- 수정 끝 ---
+
                             effectsList.add(SkillEffectData(type, targetSelector, parameters))
                         }
                         levelDataMap[level] = SkillLevelData(level, mpCost, cooldownTicks, castTimeTicks, durationTicks, maxChannelTicks, effectsList)
@@ -181,7 +185,7 @@ object SkillManager : ISkillStatProvider {
             if (skillData?.skillType == "PASSIVE") {
                 skillData.levelData[level]?.effects?.forEach { effect ->
                     if (effect.type == "APPLY_ATTRIBUTE_MODIFIER" && effect.parameters["attribute_id"] == statType.name && effect.parameters["operation"] == "ADD_NUMBER") {
-                        totalBonus += effect.parameters["amount_formula"]?.toDoubleOrNull() ?: 0.0
+                        totalBonus += (effect.parameters["amount_formula"] as? Number)?.toDouble() ?: 0.0
                     }
                 }
             }
@@ -197,7 +201,7 @@ object SkillManager : ISkillStatProvider {
             if (skillData?.skillType == "PASSIVE") {
                 skillData.levelData[level]?.effects?.forEach { effect ->
                     if (effect.type == "APPLY_ATTRIBUTE_MODIFIER" && effect.parameters["attribute_id"] == statType.name && effect.parameters["operation"] == "ADD_PERCENT") {
-                        totalBonus += effect.parameters["amount_formula"]?.toDoubleOrNull() ?: 0.0
+                        totalBonus += (effect.parameters["amount_formula"] as? Number)?.toDouble() ?: 0.0
                     }
                 }
             }

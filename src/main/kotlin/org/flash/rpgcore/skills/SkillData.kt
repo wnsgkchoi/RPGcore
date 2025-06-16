@@ -2,7 +2,8 @@ package org.flash.rpgcore.skills
 
 import org.bukkit.Material
 
-typealias SkillEffectParameters = Map<String, String>
+// SkillEffectParameters의 타입을 Map<String, Any>로 변경하여 모든 데이터 타입을 수용
+typealias SkillEffectParameters = Map<String, Any>
 
 data class SkillEffectData(
     val type: String,

@@ -13,7 +13,9 @@ import org.flash.rpgcore.classes.RPGClass
 import org.flash.rpgcore.guis.ClassGUI
 import org.flash.rpgcore.managers.ClassManager
 import org.flash.rpgcore.managers.PlayerDataManager
+import org.flash.rpgcore.managers.PlayerScoreboardManager
 import org.flash.rpgcore.managers.SkillManager
+import org.flash.rpgcore.stats.StatManager
 import org.flash.rpgcore.player.PlayerData
 import org.flash.rpgcore.utils.XPHelper
 
@@ -45,7 +47,7 @@ class ClassGUIListener : Listener {
         val selectedClassInfo = ClassManager.getClass(clickedClassId)
         if (selectedClassInfo == null) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[System] 알 수 없는 클래스입니다. 관리자에게 문의하세요."))
-            logger.warning("[ClassGUIListener] ${player.name}이(가) 알 수 없는 클래스 ID '${clickedClassId}'를 클릭했습니다.")
+            logger.warning("[ClassGUIListener] ${player.name} clicked an unknown class ID: '${clickedClassId}'")
             return
         }
         val selectedClassName = selectedClassInfo.displayName
@@ -57,15 +59,20 @@ class ClassGUIListener : Listener {
             return
         }
 
+        // 최초 클래스 선택
         if (currentClassId == null) {
             playerData.currentClassId = clickedClassId
             grantStarterAndInnateSkills(player, playerData, selectedClassInfo)
+
+            // 스탯 재계산 및 UI 업데이트
+            StatManager.fullyRecalculateAndApplyStats(player)
+            PlayerScoreboardManager.updateScoreboard(player)
             PlayerDataManager.savePlayerData(player, async = true)
 
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&e[System] ${selectedClassName}&e 클래스를 선택했습니다!"))
             player.playSound(player.location, Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.2f)
             player.closeInventory()
-        } else {
+        } else { // 클래스 변경
             val currentXP = XPHelper.getTotalExperience(player)
             if (currentXP >= classChangeCost) {
                 if (XPHelper.removeTotalExperience(player, classChangeCost.toInt())) {
@@ -79,6 +86,10 @@ class ClassGUIListener : Listener {
                     playerData.equippedPassiveSkills.replaceAll { _ -> null }
 
                     grantStarterAndInnateSkills(player, playerData, selectedClassInfo)
+
+                    // 스탯 재계산 및 UI 업데이트
+                    StatManager.fullyRecalculateAndApplyStats(player)
+                    PlayerScoreboardManager.updateScoreboard(player)
                     PlayerDataManager.savePlayerData(player, async = true)
 
                     player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&e[System] &f${formattedOldClassName} &e에서 ${selectedClassName}&e 클래스로 변경했습니다! (&cXP ${classChangeCost} &e소모)"))
@@ -97,7 +108,6 @@ class ClassGUIListener : Listener {
 
     private fun grantStarterAndInnateSkills(player: Player, playerData: PlayerData, rpgClass: RPGClass) {
         val skillsToLearn = mutableSetOf<String>()
-        // starterSkills와 innatePassiveSkillIds 모두 배울 스킬 목록에 추가
         rpgClass.starterSkills.values.forEach { skillsToLearn.addAll(it) }
         skillsToLearn.addAll(rpgClass.innatePassiveSkillIds)
 
@@ -118,28 +128,24 @@ class ClassGUIListener : Listener {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a[System] &f새로운 클래스의 기본 능력들을 익혔습니다!"))
         }
 
-        // --- 자동 장착 로직 추가 ---
+        // 자동 장착 로직
         val activeStarters = rpgClass.starterSkills["ACTIVE"] ?: emptyList()
         val passiveStarters = rpgClass.starterSkills["PASSIVE"] ?: emptyList()
         var equippedCount = 0
 
-        // 액티브 스킬 자동 장착
         val activeSlots = listOf("SLOT_Q", "SLOT_F", "SLOT_SHIFT_Q")
-        var activeSlotIndex = 0
-        for (skillId in activeStarters) {
-            if (activeSlotIndex >= activeSlots.size) break
-            playerData.equipActiveSkill(activeSlots[activeSlotIndex], skillId)
-            activeSlotIndex++
-            equippedCount++
+        activeStarters.forEachIndexed { index, skillId ->
+            if (index < activeSlots.size) {
+                playerData.equipActiveSkill(activeSlots[index], skillId)
+                equippedCount++
+            }
         }
 
-        // 패시브 스킬 자동 장착
-        var passiveSlotIndex = 0
-        for (skillId in passiveStarters) {
-            if (passiveSlotIndex >= 3) break // 최대 패시브 슬롯 3개
-            playerData.equipPassiveSkill(passiveSlotIndex, skillId)
-            passiveSlotIndex++
-            equippedCount++
+        passiveStarters.forEachIndexed { index, skillId ->
+            if (index < 3) { // 최대 패시브 슬롯 3개
+                playerData.equipPassiveSkill(index, skillId)
+                equippedCount++
+            }
         }
 
         if (equippedCount > 0) {

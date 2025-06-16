@@ -30,7 +30,6 @@ class RPGcore : JavaPlugin() {
         instance = this
         logger.info("[RPGcore] 플러그인이 활성화되었습니다. (v${description.version})")
 
-        // Manager 초기화
         PlayerDataManager.initializeOnlinePlayers()
         ClassManager.loadClasses()
         EquipmentManager.loadEquipmentDefinitions()
@@ -48,7 +47,6 @@ class RPGcore : JavaPlugin() {
         BossBarManager.start()
         InfiniteDungeonManager.start()
 
-        // Listener 등록
         server.pluginManager.registerEvents(PlayerConnectionListener(), this)
         server.pluginManager.registerEvents(StatGUIListener(), this)
         server.pluginManager.registerEvents(ClassGUIListener(), this)
@@ -82,13 +80,12 @@ class RPGcore : JavaPlugin() {
             private var tickCounter = 0
             private val TARGETING_RADIUS = 32.0
             private val TARGETING_RADIUS_SQUARED = TARGETING_RADIUS * TARGETING_RADIUS
-            private val ARENA_LEASH_RADIUS_SQUARED = 40.0 * 40.0 // 40칸 이상 벗어나면 복귀
+            private val ARENA_LEASH_RADIUS_SQUARED = 40.0 * 40.0
 
             override fun run() {
                 tickCounter++
 
-                // Player-related Ticks
-                if (tickCounter % 20 == 0) { // 1초에 한 번
+                if (tickCounter % 20 == 0) {
                     for (player in Bukkit.getOnlinePlayers()) {
                         val playerData = PlayerDataManager.getPlayerData(player)
                         var needsUpdate = false
@@ -114,7 +111,7 @@ class RPGcore : JavaPlugin() {
                             if (furySkill != null) {
                                 val level = playerData.getLearnedSkillLevel(furySkill.internalId)
                                 val params = furySkill.levelData[level]?.effects?.find { it.type == "MANAGE_FURY_STACK" }?.parameters
-                                val expireMillis = (params?.get("stack_expire_ticks")?.toLongOrNull() ?: 60L) * 50L
+                                val expireMillis = (params?.get("stack_expire_ticks")?.toString()?.toLongOrNull() ?: 60L) * 50L
                                 if (System.currentTimeMillis() - playerData.lastFuryActionTime > expireMillis) {
                                     playerData.furyStacks--
                                     needsUpdate = true
@@ -126,7 +123,7 @@ class RPGcore : JavaPlugin() {
                             SkillManager.getSkill("gale_rush")?.let { skill ->
                                 val level = playerData.getLearnedSkillLevel(skill.internalId)
                                 val params = skill.levelData[level]?.effects?.find { it.type == "MANAGE_GALE_RUSH_STACK" }?.parameters
-                                val expireTicks = params?.get("stack_expire_ticks")?.toLongOrNull() ?: 60L
+                                val expireTicks = params?.get("stack_expire_ticks")?.toString()?.toLongOrNull() ?: 60L
                                 if (System.currentTimeMillis() - playerData.lastGaleRushActionTime > expireTicks * 50L) {
                                     playerData.galeRushStacks = 0
                                     needsUpdate = true
@@ -136,7 +133,7 @@ class RPGcore : JavaPlugin() {
 
                         if (StatusEffectManager.hasStatus(player, "explosive_arrow_mode")) {
                             val effect = StatusEffectManager.getActiveStatus(player, "explosive_arrow_mode")
-                            val mpDrain = effect?.parameters?.get("mp_drain_per_second")?.toDoubleOrNull() ?: 0.0
+                            val mpDrain = effect?.parameters?.get("mp_drain_per_second")?.toString()?.toDoubleOrNull() ?: 0.0
                             if (mpDrain > 0 && playerData.currentMp >= mpDrain) {
                                 playerData.currentMp -= mpDrain
                                 needsUpdate = true
@@ -154,7 +151,6 @@ class RPGcore : JavaPlugin() {
                             }
                         }
 
-                        // 스킬 충전 쿨타임 관리 로직
                         playerData.skillChargeCooldowns.keys.toList().forEach { skillId ->
                             if (!playerData.isOnChargeCooldown(skillId)) {
                                 val skill = SkillManager.getSkill(skillId)
@@ -173,7 +169,6 @@ class RPGcore : JavaPlugin() {
                     }
                 }
 
-                // Monster AI Tick (every second)
                 if (tickCounter % 20 == 0) {
                     for (entityData in EntityManager.getAllEntityData()) {
                         val monster = server.getEntity(entityData.entityUUID) as? LivingEntity ?: continue
@@ -188,7 +183,6 @@ class RPGcore : JavaPlugin() {
                                     currentTarget = session.player
                                     entityData.aggroTarget = currentTarget.uniqueId
                                 }
-                                // 던전 몬스터 이탈 방지 로직 (목줄)
                                 val arena = InfiniteDungeonManager.getArenaById(session.arenaId)
                                 if (arena != null) {
                                     if (monster.location.distanceSquared(arena.playerSpawn) > ARENA_LEASH_RADIUS_SQUARED) {
@@ -249,17 +243,16 @@ class RPGcore : JavaPlugin() {
 
                 if (Random.nextDouble() > skillInfo.chance) return false
 
-                val condition = skillInfo.condition
-                if (condition == null || condition.isEmpty()) return true
+                val condition = skillInfo.condition ?: return true
 
-                when (condition["type"]?.uppercase()) {
+                return when (condition["type"]?.toString()?.uppercase()) {
                     "HP_BELOW" -> {
-                        val value = condition["value"]?.toDoubleOrNull() ?: return false
+                        val value = condition["value"]?.toString()?.toDoubleOrNull() ?: return false
                         val hpRatio = entityData.currentHp / entityData.maxHp
-                        return if (value < 1.0) hpRatio <= value else entityData.currentHp <= value
+                        if (value < 1.0) hpRatio <= value else entityData.currentHp <= value
                     }
+                    else -> true
                 }
-                return true
             }
 
         }.runTaskTimer(this, 100L, 1L)

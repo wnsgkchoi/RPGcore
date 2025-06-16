@@ -2,12 +2,13 @@ package org.flash.rpgcore.utils
 
 import org.bukkit.ChatColor
 import org.flash.rpgcore.skills.RPGSkillData
+import kotlin.text.toIntOrNull
 
 object SkillLoreHelper {
 
     fun generateLore(skillData: RPGSkillData, level: Int): List<String> {
         val lore = mutableListOf<String>()
-        val levelData = skillData.levelData.getOrElse(level) { return listOf("${ChatColor.RED}레벨 정보 없음") }
+        val levelData = skillData.levelData[level] ?: return listOf("${ChatColor.RED}레벨 정보 없음")
 
         lore.add("${ChatColor.AQUA}[${if (skillData.skillType == "ACTIVE") "액티브" else "패시브"}] &8${skillData.behavior} ${if (skillData.element != null) "/ ${skillData.element}" else ""}".let { ChatColor.translateAlternateColorCodes('&', it) })
         lore.add(" ")
@@ -22,7 +23,7 @@ object SkillLoreHelper {
 
     fun generateUpgradeLore(skillData: RPGSkillData, nextLevel: Int): List<String> {
         val lore = mutableListOf<String>()
-        val levelData = skillData.levelData.getOrElse(nextLevel) { return listOf("${ChatColor.RED}다음 레벨 정보 없음") }
+        val levelData = skillData.levelData[nextLevel] ?: return listOf("${ChatColor.RED}다음 레벨 정보 없음")
 
         lore.add("${ChatColor.AQUA}[${if (skillData.skillType == "ACTIVE") "액티브" else "패시브"}] &8${skillData.behavior} ${if (skillData.element != null) "/ ${skillData.element}" else ""}".let { ChatColor.translateAlternateColorCodes('&', it) })
         lore.add(" ")
@@ -37,10 +38,9 @@ object SkillLoreHelper {
     private fun wrapText(text: String, maxLineLength: Int = 40): List<String> {
         val words = text.split(" ")
         val lines = mutableListOf<String>()
-        var currentLine = StringBuilder("&7") // 기본 색상으로 시작
+        var currentLine = StringBuilder("&7")
 
         words.forEach { word ->
-            // 색상 코드를 제거한 순수 텍스트 길이로 계산
             if (ChatColor.stripColor(currentLine.toString())!!.length + ChatColor.stripColor(word)!!.length + 1 > maxLineLength && currentLine.toString() != "&7") {
                 lines.add(currentLine.toString().trim())
                 currentLine = StringBuilder("&7$word ")
@@ -55,79 +55,143 @@ object SkillLoreHelper {
     }
 
     private fun generateDynamicDescription(skillData: RPGSkillData, level: Int): List<String> {
-        val descriptionLines = mutableListOf<String>()
-        val effect = skillData.levelData[level]?.effects?.firstOrNull() ?: return skillData.description
-        val params = effect.parameters
+        val levelSpecificData = skillData.levelData[level] ?: return skillData.description.map { ChatColor.translateAlternateColorCodes('&', it) }
 
         val desc = when (skillData.internalId) {
             // 광전사
-            "fury_stack" -> "&7전투 시 '전투 열기'를 얻어 스택 당 공격력이 &c${params["attack_power_per_stack"]}%&7, 10스택 당 공격속도가 &c${params["attack_speed_per_10_stack"]}&7 증가합니다. (최대 &e${params["max_stack"]}&7 스택)"
+            "fury_stack" -> {
+                val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
+                "&7전투 시 '전투 열기'를 얻어 스택 당 공격력이 &c${params["attack_power_per_stack"]}%&7, 10스택 당 공격속도가 &c${params["attack_speed_per_10_stack"]}&7 증가합니다. (최대 &e${params["max_stack"]}&7 스택) 전투 열기는 &c${params["stack_expire_ticks"]?.toString()?.toIntOrNull()?.div(20)}초&7 후에 사라집니다."
+            }
             "rage_whirlwind" -> {
-                val p = skillData.levelData[level]!!.effects.find { it.type == "DAMAGE" }!!.parameters
-                "&7자신 주변 &e${p["area_radius"]}칸 &7내의 적에게 공격력의 &c${(p["physical_damage_coeff_attack_power_formula"]!!.toDouble() * 100).toInt()}% &7피해를 주고 &e${p["knockback_strength"]}&7만큼 밀쳐냅니다."
+                val p = levelSpecificData.effects.find { it.type == "DAMAGE" }?.parameters ?: return skillData.description
+                "&7자신 주변 &e${p["area_radius"]}칸 &7내의 적에게 공격력의 &c${(p["physical_damage_coeff_attack_power_formula"]?.toString()?.toDoubleOrNull()?.times(100)?.toInt()) ?: 0}% &7피해를 주고 &e${p["knockback_strength"]}&7만큼 밀쳐냅니다."
             }
             "last_stand" -> {
-                "&7최대 체력의 &c${(params["hp_cost_percent"]!!.toDouble() * 100).toInt()}%&7를 소모하여, 다음 기본 공격의 피해를 &c(공격력 * ${params["damage_multiplier"]}) + 소모한 체력&7으로 변경합니다."
+                val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
+                "&7최대 체력의 &c${(params["hp_cost_percent"]?.toString()?.toDoubleOrNull()?.times(100)?.toInt()) ?: 0}%&7를 소모하여, 다음 기본 공격의 피해를 &c(공격력 * ${params["damage_multiplier"]}+ 소모한 체력)&7으로 변경합니다."
             }
-            "bloody_smell" -> "&7피격 시, &e${params["buff_duration_ticks"]!!.toInt() / 20}초&7 안에 가하는 다음 공격의 최종 데미지가 &c${params["damage_multiplier_on_next_hit"]}배&7 증가합니다."
+            "bloody_smell" -> {
+                val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
+                "&7피격 시, &e${(params["buff_duration_ticks"]?.toString()?.toIntOrNull() ?: 0) / 20}초&7 안에 가하는 다음 공격의 최종 데미지가 &c${params["damage_multiplier_on_next_hit"]}배&7 증가합니다."
+            }
 
             // 철마수
-            "reflection_aura" -> "&7받은 피해의 &c${(params["base_reflect_ratio"]!!.toDouble() * 100).toInt()}%&7와 주문력의 &c${(params["spell_power_reflect_coeff"]!!.toDouble() * 100).toInt()}%&7를 합산하여 적에게 되돌려줍니다."
-            "taunt" -> "&7자신 주변 &e${params["area_radius"]}칸&7 내의 모든 적을 도발하여 자신을 공격하게 합니다."
-            "shield_charge" -> "&7전방 &e${params["dash_distance"]}칸&7을 돌진하며, 직접 부딪힌 적에게 공격력의 &c${(params["direct_hit_damage_coeff_attack_power_formula"]!!.toDouble() * 100).toInt()}% &7피해를, 멈춘 위치 주변 &e${params["impact_aoe_radius"]}칸&7에 공격력의 &c${(params["impact_aoe_damage_coeff_attack_power_formula"]!!.toDouble() * 100).toInt()}%&7 광역 피해를 줍니다."
-            "mode_switching" -> "&7토글 시, 피격 무적시간이 사라지는 대신 모든 반사 데미지가 &c${params["reflection_damage_multiplier"]}배&7 증가합니다."
+            "reflection_aura" -> {
+                val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
+                "&7받은 피해의 &c${(params["base_reflect_ratio"]?.toString()?.toDoubleOrNull()?.times(100)?.toInt()) ?: 0}%&7와 주문력의 &c${(params["spell_power_reflect_coeff"]?.toString()?.toDoubleOrNull()?.times(100)?.toInt()) ?: 0}%&7를 합산하여 적에게 되돌려줍니다."
+            }
+            "taunt" -> {
+                val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
+                "&7자신 주변 &e${params["area_radius"]}칸&7 내의 모든 적을 도발하여 자신을 공격하게 합니다."
+            }
+            "shield_charge" -> {
+                val p = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
+                "&7전방 &e${p["dash_distance"]}칸&7을 돌진하며, 직접 부딪힌 적에게 공격력의 &c${(p["direct_hit_damage_coeff_attack_power_formula"]?.toString()?.toDoubleOrNull()?.times(100)?.toInt()) ?: 0}% &7피해를, 멈춘 위치 주변 &e${p["impact_aoe_radius"]}칸&7에 공격력의 &c${(p["impact_aoe_damage_coeff_attack_power_formula"]?.toString()?.toDoubleOrNull()?.times(100)?.toInt()) ?: 0}%&7 광역 피해를 줍니다."
+            }
+            "mode_switching" -> {
+                val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
+                "&7토글 시, 피격 무적시간이 사라지는 대신 모든 반사 데미지가 &c${params["reflection_damage_multiplier"]}배&7 증가합니다. 다시 토글하여 원래 상태로 돌아올 수 있습니다."
+            }
 
             // 질풍검객
             "gale_rush" -> {
-                val p = skillData.levelData[level]!!.effects.find {it.type == "MANAGE_GALE_RUSH_STACK"}!!.parameters
-                "&7스킬 적중 시 스택(최대 &e${p["max_stack"]}스택)을 쌓는다. 하나의 스택마다 치명타 공격이 &e${p["bonus_armor_pen_percent_per_stack"]}% &7만큼 추가로 방어력을 무시하며, 치명타의 최종 데미지가 &e${p["bonus_crit_multiplier_per_stack"]}%&7 만큼 증가한다. 추가로 스킬의 쿨타임이 1스택 당 &e${p["cdr_per_stack_percent"]}% &7만큼 감소한다. 스택은 스킬을 사용하지 않으면 &e${p["stack_expire_ticks"]!!.toInt()/20}초 &7후에 사라진다."
+                val p = levelSpecificData.effects.find {it.type == "MANAGE_GALE_RUSH_STACK"}?.parameters ?: return skillData.description
+                "&7스킬 적중 시 스택(최대 &e${p["max_stack"]}스택)을 쌓는다. 하나의 스택마다 치명타 공격이 &e${p["bonus_armor_pen_percent_per_stack"]}% &7만큼 추가로 방어력을 무시하며, 치명타의 최종 데미지가 &e${p["bonus_crit_multiplier_per_stack"]}%&7 만큼 증가한다. 추가로 스킬의 쿨타임이 1스택 당 &e${p["cdr_per_stack_percent"]}% &7만큼 감소한다. 스택은 스킬을 사용하지 않으면 &e${(p["stack_expire_ticks"]?.toString()?.toIntOrNull() ?: 0)/20}초 &7후에 사라진다."
             }
             "wind_slash" -> {
-                val p = skillData.levelData[level]!!.effects.find { it.type == "DAMAGE" }!!.parameters
-                "&7전방 &e${p["path_length"]}칸&7을 빠르게 이동하며 경로 상의 적에게 공격력의 &c${(p["physical_damage_coeff_attack_power_formula"]!!.toDouble() * 100).toInt()}%&7 피해를 줍니다."
+                val p = levelSpecificData.effects.find { it.type == "DAMAGE" }?.parameters ?: return skillData.description
+                "&7전방 &e${p["path_length"]}칸&7을 빠르게 이동하며 경로 상의 적에게 공격력의 &c${(p["physical_damage_coeff_attack_power_formula"]?.toString()?.toDoubleOrNull()?.times(100)?.toInt()) ?: 0}%&7 피해를 줍니다."
             }
             "backstep" -> {
-                val p = skillData.levelData[level]!!.effects.find { it.type == "DAMAGE" }!!.parameters
-                "&7뒤로 &e${params["distance"]!!.replace("-", "")}칸&7 물러나며, 원래 있던 위치 주변 &e${p["area_radius"]}칸&7에 공격력의 &c${(p["physical_damage_coeff_attack_power_formula"]!!.toDouble() * 100).toInt()}%&7 피해를 줍니다."
+                val p = levelSpecificData.effects.find { it.type == "DAMAGE" }?.parameters ?: return skillData.description
+                "&7뒤로 &e${p["distance"]?.toString()?.replace("-", "")}칸&7 물러나며, 원래 있던 위치 주변 &e${p["area_radius"]}칸&7에 공격력의 &c${(p["physical_damage_coeff_attack_power_formula"]?.toString()?.toDoubleOrNull()?.times(100)?.toInt()) ?: 0}%&7 피해를 줍니다."
             }
-            "windflow" -> "&7자신의 추가 이동 속도에 비례하여 모든 최종 데미지가 증가합니다. &7(계수: &e${params["damage_multiplier_per_speed_point"]}&7)"
+            "windflow" -> {
+                val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
+                "&7자신의 이동 속도 * &e${params["damage_multiplier_per_speed_point"]}&7만큼 모든 최종 데미지가 증가합니다."
+            }
 
             // 명사수
-            "arrow_spree" -> "&7자신 주변 &e${params["radius"]}칸&7 내에, 공격력의 &c${(params["damage_coeff_attack_power_formula"]!!.toDouble() * 100).toInt()}%&7 피해를 주는 무중력 화살 &e${params["arrow_count"]}발&7을 무작위로 발사합니다."
-            "instant_charge" -> "&e${params["duration_ticks"]!!.toInt() / 20}초&7 동안 모든 화살이 '정밀 차징 샷'의 최대 단계 효과를 받습니다."
+            "precision_charging" -> { // --- 수정된 부분 ---
+                val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
+                @Suppress("UNCHECKED_CAST")
+                val chargeEffects = params["charge_level_effects"] as? Map<String, Map<String, Any>> ?: return skillData.description
+                val maxChargeLevel = params["max_charge_level"]?.toString()?.toIntOrNull() ?: 5
+
+                val damageMultipliers = (1..maxChargeLevel).joinToString(" &7/&c ") { level ->
+                    chargeEffects[level.toString()]?.get("damage_multiplier")?.toString() ?: "1.0"
+                }
+                val pierceLevels = (1..maxChargeLevel).joinToString(" &7/&b ") { level ->
+                    chargeEffects[level.toString()]?.get("pierce_level")?.toString() ?: "0"
+                }
+                val critChanceBonuses = (1..maxChargeLevel).joinToString(" &7/&e ") { level ->
+                    val bonus = chargeEffects[level.toString()]?.get("crit_chance_bonus")?.toString()?.toDoubleOrNull() ?: 0.0
+                    "${(bonus * 100).toInt()}%"
+                }
+
+                "&7활을 당겨 차징 단계에 따라 화살을 강화합니다.\n" +
+                "&7&o(100% 초과 치명타 확률은 추가 피해로 전환됩니다.)\n \n" +
+                "&6[단계별 강화 효과 (1-${maxChargeLevel}단계)]\n" +
+                "&7 - 최종 피해량 배율: &c${damageMultipliers}\n" +
+                "&7 - 관통 레벨: &b${pierceLevels}\n" +
+                "&7 - 치명타 확률 보너스: &e+${critChanceBonuses}"
+            }
+            "arrow_spree" -> {
+                val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
+                "&7자신 주변 &e${params["radius"]}칸&7 내에, 공격력의 &c${(params["damage_coeff_attack_power_formula"]?.toString()?.toDoubleOrNull()?.times(100)?.toInt()) ?: 0}%&7 피해를 주는 무중력 화살 &e${params["arrow_count"]}발&7을 무작위로 발사합니다."
+            }
+            "instant_charge" -> {
+                val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
+                "&e${(params["duration_ticks"]?.toString()?.toIntOrNull() ?: 0) / 20}초&7 동안 모든 화살이 '정밀 차징 샷'의 최대 단계 효과를 받습니다."
+            }
             "explosive_arrow" -> {
-                val impactEffect = (params["on_impact_effects"] as List<Map<*, *>>).first()
-                val impactParams = impactEffect["parameters"] as Map<*, *>
-                "&7토글 시 초당 &bMP ${params["mp_drain_per_second"]}&7을 소모하며, 모든 화살이 탄착 지점 &e${impactParams["area_radius"]}칸&7에 주문력의 &c${(impactParams["magical_damage_coeff_spell_power_formula"]!!.toString().toDouble() * 100).toInt()}%&7 광역 피해를 줍니다."
+                val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
+                @Suppress("UNCHECKED_CAST")
+                val impactEffectList = params["on_impact_effects"] as? List<Map<*, *>>
+                val impactParams = impactEffectList?.firstOrNull()?.get("parameters") as? Map<*, *>
+                "&7토글 시 초당 &bMP ${params["mp_drain_per_second"]}&7을 소모하며, 모든 화살이 탄착 지점 &e${impactParams?.get("area_radius")}칸&7에 주문력의 &c${(impactParams?.get("magical_damage_coeff_spell_power_formula")?.toString()?.toDoubleOrNull()?.times(100)?.toInt()) ?: 0}%&7 광역 피해를 줍니다."
             }
 
             // 원소술사
-            "fireball" -> {
-                val damageEffect = skillData.levelData[level]!!.effects.find { it.type == "DAMAGE" } ?: effect
-                val damageParams = damageEffect.parameters
-                val radius = damageParams["area_radius"]
-                val damageCoeff = (damageParams["magical_damage_coeff_spell_power_formula"]!!.toDouble() * 100).toInt()
-                val status = skillData.element ?: "알 수 없는"
-                "&7전방으로 화염탄을 발사한다. 탄착 지점 주변 &e${radius}칸 &7내의 적에게 주문력의 &c${damageCoeff}%&7 피해를 주고 '&e${status}&7' 스택을 부여합니다."
+            "burning_stack_mastery" -> {
+                val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
+                "&7주변 &c${params["check_radius"]}칸&7 안의 버닝 스택을 가진 적의 수 * &e${params["final_damage_increase_per_stack_percent"]}%&7 만큼 최종 데미지가 증가합니다."
             }
-            "iceball" -> {
-                val damageEffect = skillData.levelData[level]!!.effects.find { it.type == "DAMAGE" } ?: effect
-                val damageParams = damageEffect.parameters
-                val radius = damageParams["area_radius"]
-                val damageCoeff = (damageParams["magical_damage_coeff_spell_power_formula"]!!.toDouble() * 100).toInt()
+            "freezing_stack_mastery" -> {
+                val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
+                "&7프리징 스택을 가진 적의 이동 속도가 &e${params["move_speed_reduction_percent"]}%&7 감소합니다."
+            }
+            "paralyzing_stack_mastery" -> {
+                val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
+                "&7패럴라이징 스택을 가진 적의 공격의 최종 데미지가 &e${params["target_damage_reduction_percent"]}%&7 감소합니다."
+            }
+            "elemental_explosion" -> {
+                val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
+                "&7버닝, 프리징, 패럴라이징 스택을 모두 가진 적의 스택을 모두 제거한 뒤, 해당 적의 주변 &e${params["explosion_radius"]}칸&7 내의 모든 적에게 주문력의 &c${(params["explosion_damage_coeff_spell_power"]?.toString()?.toDoubleOrNull()?.times(100)?.toInt()) ?: 0}%&7 피해를 줍니다."
+            }
+            "fireball", "iceball" -> {
+                val projectileEffect = levelSpecificData.effects.find { it.type == "PROJECTILE" }
+                @Suppress("UNCHECKED_CAST")
+                val onImpactEffects = projectileEffect?.parameters?.get("on_impact_effects") as? List<Map<String, Any>>
+                val damageEffect = onImpactEffects?.find { it["type"] == "DAMAGE" }
+                val p = damageEffect?.get("parameters") as? Map<String, Any> ?: return skillData.description
+
+                val radius = p["area_radius"]
+                val damageCoeff = (p["magical_damage_coeff_spell_power_formula"]?.toString()?.toDoubleOrNull()?.times(100)?.toInt()) ?: 0
                 val status = skillData.element ?: "알 수 없는"
-                "&7전방으로 빙결탄을 발사한다. 탄착 지점 주변 &e${radius}칸 &7내의 적에게 주문력의 &c${damageCoeff}%&7 피해를 주고 '&e${status}&7' 스택을 부여합니다."
+                val projectileName = if (skillData.internalId == "fireball") "화염탄" else "빙백탄"
+                
+                "&7전방으로 ${projectileName}을(를) 발사합니다. 탄착 지점 주변 &e${radius}칸 &7내의 적에게 주문력의 &c${damageCoeff}%&7 피해를 주고 '&e${status}&7' 스택을 부여합니다."
             }
             "lightning_strike" -> {
-                val damageEffect = skillData.levelData[level]!!.effects.find { it.type == "DAMAGE" } ?: effect
-                val damageParams = damageEffect.parameters
-                val radius = damageParams["area_radius"]
-                val damageCoeff = (damageParams["magical_damage_coeff_spell_power_formula"]!!.toDouble() * 100).toInt()
+                val p = levelSpecificData.effects.find { it.type == "DAMAGE" }?.parameters ?: return skillData.description
+                val radius = p["area_radius"]
+                val damageCoeff = (p["magical_damage_coeff_spell_power_formula"]?.toString()?.toDoubleOrNull()?.times(100)?.toInt()) ?: 0
                 val status = skillData.element ?: "알 수 없는"
-                "&7자신의 주변에 전격을 흩날린다. 시전 지점 주변 &e${radius}칸 &7내의 적에게 주문력의 &c${damageCoeff}%&7 피해를 주고 '&e${status}&7' 스택을 부여합니다."
+                "&7자신 주위에 전기를 방출하여 주변 &e${radius}칸 &7내의 적에게 주문력의 &c${damageCoeff}%&7 피해를 주고 '&e${status}&7' 스택을 부여합니다."
             }
-
-            else -> return skillData.description
+            else -> return skillData.description.map { ChatColor.translateAlternateColorCodes('&', it) }
         }
         return wrapText(ChatColor.translateAlternateColorCodes('&', desc))
     }

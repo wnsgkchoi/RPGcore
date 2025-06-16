@@ -11,6 +11,7 @@ import org.flash.rpgcore.RPGcore
 import org.flash.rpgcore.guis.SkillLibraryGUI
 import org.flash.rpgcore.guis.SkillManagementGUI
 import org.flash.rpgcore.managers.PlayerDataManager
+import org.flash.rpgcore.managers.PlayerScoreboardManager
 
 class SkillLibraryGUIListener : Listener {
 
@@ -67,6 +68,10 @@ class SkillLibraryGUIListener : Listener {
                         playerData.equipPassiveSkill(slotIndex, skillId)
                     }
                 }
+
+                // --- 수정된 부분 ---
+                PlayerScoreboardManager.updateScoreboard(player) // 스코어보드 즉시 갱신
+                // --- 수정 끝 ---
 
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a[System] &f스킬을 장착했습니다."))
                 player.playSound(player.location, Sound.UI_STONECUTTER_TAKE_RESULT, 1.0f, 1.2f)

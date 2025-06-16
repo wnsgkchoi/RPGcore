@@ -19,7 +19,6 @@ object MonsterSkillManager {
         entityData.skillCooldowns[skillInfo.internalId] = cooldownEndTime
 
         levelData.effects.forEach { effect ->
-            // 범용으로 바뀐 TargetSelector를 사용하여 몬스터의 스킬 타겟을 찾음
             val targets = TargetSelector.findTargets(monster, effect, target.location)
 
             targets.forEach { finalTarget ->
@@ -30,17 +29,15 @@ object MonsterSkillManager {
                     }
                     "TELEPORT_FORWARD" -> {
                         if (finalTarget == monster) {
-                            val distance = effect.parameters["distance"]?.toDoubleOrNull() ?: 5.0
+                            val distance = effect.parameters["distance"]?.toString()?.toDoubleOrNull() ?: 5.0
                             val direction = monster.location.direction.normalize()
                             val newLocation = monster.location.add(direction.multiply(distance))
                             monster.teleport(newLocation)
                         }
                     }
                     "PROJECTILE" -> {
-                        // 범용으로 바뀐 launchProjectile 호출
                         SkillEffectExecutor.launchProjectile(monster, effect, skill, level)
                     }
-                    // TODO: 몬스터가 사용할 다른 스킬 효과들(e.g., APPLY_CUSTOM_STATUS) 처리
                 }
             }
         }

@@ -23,7 +23,7 @@ data class PlayerData(
 
     // --- 편의 기능 데이터 ---
     var customSpawnLocation: CustomSpawnLocation? = null,
-    val backpack: MutableMap<Int, Array<ItemStack?>> = ConcurrentHashMap(),
+    val backpack: MutableMap<Int, Array<ItemStack?>> = ConcurrentHashMap(), // 백팩은 다중 접근 가능성 있으므로 유지
 
     // --- 스탯 관련 데이터 ---
     val baseStats: MutableMap<StatType, Double> = mutableMapOf(),
@@ -38,14 +38,10 @@ data class PlayerData(
 
     // --- 스킬 관련 데이터 ---
     val learnedSkills: MutableMap<String, Int> = mutableMapOf(),
-    val equippedActiveSkills: MutableMap<String, String?> = mutableMapOf(
-        "SLOT_Q" to null,
-        "SLOT_F" to null,
-        "SLOT_SHIFT_Q" to null
-    ),
-    val equippedPassiveSkills: MutableList<String?> = MutableList(3) { null },
+    val equippedActiveSkills: MutableMap<String, String?> = mutableMapOf(),
+    val equippedPassiveSkills: MutableList<String?> = mutableListOf(null, null, null), // null로 3칸을 미리 초기화
     val skillCooldowns: MutableMap<String, Long> = ConcurrentHashMap(),
-    val skillCharges: MutableMap<String, Int> = ConcurrentHashMap(),
+    val skillCharges: MutableMap<String, Int> = mutableMapOf(),
     val skillChargeCooldowns: MutableMap<String, Long> = ConcurrentHashMap(),
     var lastBasicAttackTime: Long = 0L,
 
@@ -54,7 +50,7 @@ data class PlayerData(
 
     // --- 몬스터 도감 데이터 ---
     val monsterEncyclopedia: MutableMap<String, MonsterEncounterData> = ConcurrentHashMap(),
-    val encyclopediaStatBonuses: MutableMap<StatType, Double> = ConcurrentHashMap(),
+    val encyclopediaStatBonuses: MutableMap<StatType, Double> = mutableMapOf(),
     val claimedEncyclopediaRewards: MutableSet<String> = ConcurrentHashMap.newKeySet(),
 
 
@@ -67,33 +63,20 @@ data class PlayerData(
     var isChargingBow: Boolean = false
 ) {
 
-    init {
-        initializeDefaultStats()
-        initializeDefaultEquipment()
-        initializeDefaultSkills()
-    }
-
-    fun initializeDefaultStats() {
+    fun initializeForNewPlayer() {
         StatType.entries.forEach { statType ->
             baseStats[statType] = statType.defaultValue
         }
         currentHp = baseStats[StatType.MAX_HP] ?: StatType.MAX_HP.defaultValue
         currentMp = baseStats[StatType.MAX_MP] ?: StatType.MAX_MP.defaultValue
-    }
 
-    private fun initializeDefaultEquipment() {
         EquipmentSlotType.entries.forEach { customEquipment[it] = null }
-    }
 
-    private fun initializeDefaultSkills() {
-        learnedSkills.clear()
         equippedActiveSkills["SLOT_Q"] = null
         equippedActiveSkills["SLOT_F"] = null
         equippedActiveSkills["SLOT_SHIFT_Q"] = null
-        for (i in 0 until equippedPassiveSkills.size) {
-            equippedPassiveSkills[i] = null
-        }
-        skillCooldowns.clear()
+
+        // 생성자에서 이미 3개의 null로 초기화되었으므로 별도 처리 필요 없음
     }
 
     fun getBaseStat(statType: StatType): Double {
@@ -111,22 +94,27 @@ data class PlayerData(
     fun updateSkillLevel(skillId: String, newLevel: Int) { if (learnedSkills.containsKey(skillId)) learnedSkills[skillId] = newLevel }
 
     fun equipActiveSkill(slotKey: String, skillId: String?) {
-        if (skillId != null) equippedActiveSkills.entries.find { it.value == skillId }?.let { equippedActiveSkills[it.key] = null }
+        if (skillId != null && equippedActiveSkills.containsValue(skillId)) {
+            equippedActiveSkills.entries.find { it.value == skillId }?.key?.let {
+                equippedActiveSkills[it] = null
+            }
+        }
         equippedActiveSkills[slotKey] = skillId
     }
 
     fun equipPassiveSkill(index: Int, skillId: String?) {
-        if (index !in equippedPassiveSkills.indices) return
-        if (skillId != null) {
-            for (i in equippedPassiveSkills.indices) {
-                if (equippedPassiveSkills[i] == skillId && i != index) equippedPassiveSkills[i] = null
+        if (index !in 0..2) return
+        if (skillId != null && equippedPassiveSkills.contains(skillId)) {
+            val otherIndex = equippedPassiveSkills.indexOf(skillId)
+            if (otherIndex != -1) {
+                equippedPassiveSkills[otherIndex] = null
             }
         }
         equippedPassiveSkills[index] = skillId
     }
 
     fun getEquippedActiveSkill(slotKey: String): String? = equippedActiveSkills[slotKey]
-    fun getEquippedPassiveSkill(index: Int): String? = if (index in equippedPassiveSkills.indices) equippedPassiveSkills[index] else null
+    fun getEquippedPassiveSkill(index: Int): String? = if (index in 0..2) equippedPassiveSkills[index] else null
     fun startSkillCooldown(skillId: String, cooldownEndTimeMillis: Long) { skillCooldowns[skillId] = cooldownEndTimeMillis }
     fun getRemainingCooldownMillis(skillId: String): Long = (skillCooldowns[skillId] ?: 0L).let { if (it > System.currentTimeMillis()) it - System.currentTimeMillis() else 0L }
     fun isOnCooldown(skillId: String): Boolean = getRemainingCooldownMillis(skillId) > 0

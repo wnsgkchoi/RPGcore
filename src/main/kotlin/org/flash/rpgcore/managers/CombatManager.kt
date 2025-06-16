@@ -72,8 +72,8 @@ object CombatManager {
 
         if (damager is Player && StatusEffectManager.hasStatus(damager, "last_stand_buff")) {
             val buff = StatusEffectManager.getActiveStatus(damager, "last_stand_buff")!!
-            val consumedHp = buff.parameters["consumed_hp"]?.toDoubleOrNull() ?: 0.0
-            val damageMultiplier = buff.parameters["damage_multiplier"]?.toDoubleOrNull() ?: 1.0
+            val consumedHp = buff.parameters["consumed_hp"]?.toString()?.toDoubleOrNull() ?: 0.0
+            val damageMultiplier = buff.parameters["damage_multiplier"]?.toString()?.toDoubleOrNull() ?: 1.0
             val attackerAtk = StatManager.getFinalStatValue(damager, StatType.ATTACK_POWER)
             val specialDamage = (attackerAtk * damageMultiplier) + consumedHp
             StatusEffectManager.removeStatus(damager, "last_stand_buff")
@@ -118,8 +118,8 @@ object CombatManager {
                 SkillManager.getSkill("gale_rush")?.let { skill ->
                     val level = playerData.getLearnedSkillLevel(skill.internalId)
                     skill.levelData[level]?.effects?.find { it.type == "MANAGE_GALE_RUSH_STACK" }?.let { effect ->
-                        val bonusArmorPen = effect.parameters["bonus_armor_pen_percent_per_stack"]?.toDoubleOrNull() ?: 0.0
-                        val bonusCritMult = effect.parameters["bonus_crit_multiplier_per_stack"]?.toDoubleOrNull() ?: 0.0
+                        val bonusArmorPen = effect.parameters["bonus_armor_pen_percent_per_stack"]?.toString()?.toDoubleOrNull() ?: 0.0
+                        val bonusCritMult = effect.parameters["bonus_crit_multiplier_per_stack"]?.toString()?.toDoubleOrNull() ?: 0.0
                         val totalArmorPen = 0.5 + (playerData.galeRushStacks * bonusArmorPen / 100.0)
                         victimDefense *= (1.0 - totalArmorPen)
                         victimMagicResist *= (1.0 - totalArmorPen)
@@ -132,8 +132,8 @@ object CombatManager {
             }
         }
 
-        val physCoeff = params["physical_damage_coeff_attack_power_formula"]?.toDoubleOrNull() ?: 0.0
-        val magCoeff = params["magical_damage_coeff_spell_power_formula"]?.toDoubleOrNull() ?: 0.0
+        val physCoeff = params["physical_damage_coeff_attack_power_formula"]?.toString()?.toDoubleOrNull() ?: 0.0
+        val magCoeff = params["magical_damage_coeff_spell_power_formula"]?.toString()?.toDoubleOrNull() ?: 0.0
         var physicalDamage = (attackerAtk * physCoeff) * 100 / (100 + victimDefense)
         var magicalDamage = (attackerSpellPower * magCoeff) * 100 / (100 + victimMagicResist)
 
@@ -160,8 +160,8 @@ object CombatManager {
         val victimDefense = if (target is Player) StatManager.getFinalStatValue(target, StatType.DEFENSE_POWER) else EntityManager.getEntityData(target)?.stats?.get("DEFENSE_POWER") ?: 0.0
         val victimMagicResist = if (target is Player) StatManager.getFinalStatValue(target, StatType.MAGIC_RESISTANCE) else EntityManager.getEntityData(target)?.stats?.get("MAGIC_RESISTANCE") ?: 0.0
 
-        val physCoeff = params["physical_damage_coeff_attack_power_formula"]?.toDoubleOrNull() ?: 0.0
-        val magCoeff = params["magical_damage_coeff_spell_power_formula"]?.toDoubleOrNull() ?: 0.0
+        val physCoeff = params["physical_damage_coeff_attack_power_formula"]?.toString()?.toDoubleOrNull() ?: 0.0
+        val magCoeff = params["magical_damage_coeff_spell_power_formula"]?.toString()?.toDoubleOrNull() ?: 0.0
 
         val physicalDamage = (attackerAtk * physCoeff) * 100 / (100 + victimDefense)
         val magicalDamage = (attackerSpellPower * magCoeff) * 100 / (100 + victimMagicResist)
@@ -170,7 +170,7 @@ object CombatManager {
     }
 
     fun applySkillKnockback(caster: LivingEntity, target: LivingEntity, effectData: SkillEffectData) {
-        val knockbackStrength = effectData.parameters["knockback_strength"]?.toDoubleOrNull()
+        val knockbackStrength = effectData.parameters["knockback_strength"]?.toString()?.toDoubleOrNull()
         if (knockbackStrength != null && knockbackStrength != 0.0) {
             val direction = target.location.toVector().subtract(caster.location.toVector()).normalize()
             direction.y = 0.4
@@ -206,7 +206,7 @@ object CombatManager {
 
             if (StatusEffectManager.hasStatus(damager, "bloody_smell_buff")) {
                 val buff = StatusEffectManager.getActiveStatus(damager, "bloody_smell_buff")!!
-                damageMultiplier *= buff.parameters["damage_multiplier_on_next_hit"]?.toDoubleOrNull() ?: 1.0
+                damageMultiplier *= buff.parameters["damage_multiplier_on_next_hit"]?.toString()?.toDoubleOrNull() ?: 1.0
                 StatusEffectManager.removeStatus(damager, "bloody_smell_buff")
                 damager.sendMessage("§c[피의 냄새] 다음 공격이 강화됩니다!")
             }
@@ -220,7 +220,7 @@ object CombatManager {
                     val skillData = SkillManager.getSkill("windflow")!!
                     val level = playerData.getLearnedSkillLevel("windflow")
                     val params = skillData.levelData[level]!!.effects.first().parameters
-                    val damageMultiplierCoeff = params["damage_multiplier_per_speed_point"]?.toDoubleOrNull() ?: 0.0
+                    val damageMultiplierCoeff = params["damage_multiplier_per_speed_point"]?.toString()?.toDoubleOrNull() ?: 0.0
                     damageMultiplier *= (1.0 + (bonusSpeed * damageMultiplierCoeff * 10))
                 }
             }
@@ -231,8 +231,8 @@ object CombatManager {
                     val level = playerData.getLearnedSkillLevel(masterySkill.internalId)
                     val params = masterySkill.levelData[level]?.effects?.find { it.type == "BURNING_STACK_MASTERY" }?.parameters
                     if (params != null) {
-                        val radius = params["check_radius"]?.toDoubleOrNull() ?: 10.0
-                        val increasePerStack = params["final_damage_increase_per_stack_percent"]?.toDoubleOrNull() ?: 2.0
+                        val radius = params["check_radius"]?.toString()?.toDoubleOrNull() ?: 10.0
+                        val increasePerStack = params["final_damage_increase_per_stack_percent"]?.toString()?.toDoubleOrNull() ?: 2.0
                         val burningEnemies = damager.getNearbyEntities(radius, radius, radius).filterIsInstance<LivingEntity>().count { StatusEffectManager.hasStatus(it, "BURNING") }
                         damageMultiplier *= (1.0 + (burningEnemies * increasePerStack / 100.0))
                     }
@@ -256,7 +256,7 @@ object CombatManager {
                     if (masterySkill != null) {
                         val level = PlayerDataManager.getPlayerData(caster).getLearnedSkillLevel(masterySkill.internalId)
                         val params = masterySkill.levelData[level]?.effects?.find { it.type == "PARALYZING_STACK_MASTERY" }?.parameters
-                        val reduction = params?.get("target_damage_reduction_percent")?.toDoubleOrNull() ?: 10.0
+                        val reduction = params?.get("target_damage_reduction_percent")?.toString()?.toDoubleOrNull() ?: 10.0
                         val reductionMultiplier = 1.0 - (reduction / 100.0)
                         finalPhysicalDamage *= reductionMultiplier
                         finalMagicalDamage *= reductionMultiplier
@@ -279,12 +279,15 @@ object CombatManager {
         if (victim is Player) {
             val victimData = PlayerDataManager.getPlayerData(victim)
             if (victimData.currentClassId == "frenzy_dps") { handleFuryStackChange(victim) }
-            val skillLevel = victimData.getLearnedSkillLevel("bloody_smell")
-            if (skillLevel > 0) {
-                val skill = SkillManager.getSkill("bloody_smell")!!
-                val effect = skill.levelData[skillLevel]!!.effects.first()
-                val buffParams = effect.parameters + mapOf("status_id" to "bloody_smell_buff")
-                StatusEffectManager.applyStatus(victim, victim, "bloody_smell_buff", buffParams["buff_duration_ticks"]?.toInt() ?: 100, buffParams)
+
+            if (victimData.currentClassId == "frenzy_dps") {
+                val skillLevel = victimData.getLearnedSkillLevel("bloody_smell")
+                if (skillLevel > 0) {
+                    val skill = SkillManager.getSkill("bloody_smell")!!
+                    val effect = skill.levelData[skillLevel]!!.effects.first()
+                    val buffParams = effect.parameters + mapOf("status_id" to "bloody_smell_buff")
+                    StatusEffectManager.applyStatus(victim, victim, "bloody_smell_buff", buffParams["buff_duration_ticks"]?.toString()?.toIntOrNull() ?: 100, buffParams)
+                }
             }
         }
 
@@ -317,7 +320,6 @@ object CombatManager {
             }
 
             if (damager is Player) {
-                // 기본 공격 시 넉백 적용
                 if (magicalDamage == 0.0 && physicalDamage > 0.0 && !isReflection) {
                     val direction = victim.location.toVector().subtract(damager.location.toVector()).normalize()
                     direction.y = 0.35
@@ -343,13 +345,13 @@ object CombatManager {
         val skillData = SkillManager.getSkill("reflection_aura") ?: return
         val effect = skillData.levelData[reflectionSkillLevel]?.effects?.find { it.type == "REFLECTION_AURA" } ?: return
         val victimSpellPower = StatManager.getFinalStatValue(victim, StatType.SPELL_POWER)
-        val baseRatio = effect.parameters["base_reflect_ratio"]?.toDoubleOrNull() ?: 0.0
-        val spCoeff = effect.parameters["spell_power_reflect_coeff"]?.toDoubleOrNull() ?: 0.0
+        val baseRatio = effect.parameters["base_reflect_ratio"]?.toString()?.toDoubleOrNull() ?: 0.0
+        val spCoeff = effect.parameters["spell_power_reflect_coeff"]?.toString()?.toDoubleOrNull() ?: 0.0
         var reflectionDamage = (incomingDamage * baseRatio) + (victimSpellPower * spCoeff)
 
         if (StatusEffectManager.hasStatus(victim, "offensive_stance")) {
             val modeEffect = StatusEffectManager.getActiveStatus(victim, "offensive_stance")
-            val multiplier = modeEffect?.parameters?.get("reflection_damage_multiplier")?.toDoubleOrNull() ?: 1.0
+            val multiplier = modeEffect?.parameters?.get("reflection_damage_multiplier")?.toString()?.toDoubleOrNull() ?: 1.0
             reflectionDamage *= multiplier
         }
 
@@ -366,7 +368,7 @@ object CombatManager {
         if (level <= 0) return
         val effectData = furySkill.levelData[level]?.effects?.find { it.type == "MANAGE_FURY_STACK" } ?: return
         val params = effectData.parameters
-        val maxStack = try { (params["max_stack"] as? String)?.toInt() ?: 50 } catch (e: Exception) { 50 }
+        val maxStack = try { params["max_stack"].toString().toInt() } catch (e: Exception) { 50 }
         if (playerData.furyStacks < maxStack) {
             playerData.furyStacks++
             PlayerScoreboardManager.updateScoreboard(player)
@@ -380,7 +382,7 @@ object CombatManager {
         val level = playerData.getLearnedSkillLevel(skill.internalId)
         if (level <= 0) return
         val params = skill.levelData[level]?.effects?.find { it.type == "MANAGE_GALE_RUSH_STACK" }?.parameters ?: return
-        val maxStack = params["max_stack"]?.toIntOrNull() ?: 25
+        val maxStack = params["max_stack"]?.toString()?.toIntOrNull() ?: 25
         if (playerData.galeRushStacks < maxStack) {
             playerData.galeRushStacks++
         }
@@ -395,16 +397,16 @@ object CombatManager {
         val skillParams = skill.levelData[skillLevel]?.effects?.first()?.parameters ?: return
 
         @Suppress("UNCHECKED_CAST")
-        val chargeLevelEffects = skillParams["charge_level_effects"] as? Map<String, Map<String, String>>
+        val chargeLevelEffects = skillParams["charge_level_effects"] as? Map<String, Map<String, Any>>
         val currentChargeEffect = chargeLevelEffects?.get(chargeLevel.toString())
         if (currentChargeEffect == null) {
             handleDamage(caster, target)
             return
         }
 
-        val damageMultiplier = currentChargeEffect["damage_multiplier"]?.toDoubleOrNull() ?: 1.0
-        val critChanceBonus = currentChargeEffect["crit_chance_bonus"]?.toDoubleOrNull() ?: 0.0
-        val critConversionRatio = currentChargeEffect["crit_damage_conversion_ratio"]?.toDoubleOrNull() ?: 0.0
+        val damageMultiplier = currentChargeEffect["damage_multiplier"]?.toString()?.toDoubleOrNull() ?: 1.0
+        val critChanceBonus = currentChargeEffect["crit_chance_bonus"]?.toString()?.toDoubleOrNull() ?: 0.0
+        val critConversionRatio = currentChargeEffect["crit_damage_conversion_ratio"]?.toString()?.toDoubleOrNull() ?: 0.0
         val attackerAtk = StatManager.getFinalStatValue(caster, StatType.ATTACK_POWER)
         val baseCritChance = StatManager.getFinalStatValue(caster, StatType.CRITICAL_CHANCE)
         val totalCritChance = baseCritChance + critChanceBonus
@@ -429,11 +431,22 @@ object CombatManager {
         val skill = SkillManager.getSkill("elemental_explosion") ?: return
         val level = PlayerDataManager.getPlayerData(caster).getLearnedSkillLevel(skill.internalId)
         val effect = skill.levelData[level]?.effects?.find { it.type == "ELEMENTAL_EXPLOSION" } ?: return
-        val radius = effect.parameters["explosion_radius"]?.toDoubleOrNull() ?: 3.0
+        val explosionParams = effect.parameters
+
+        // --- 수정된 부분 ---
+        // 폭발 데미지 계수를 올바른 키로 찾아서 데미지 계산용 파라미터 맵을 새로 만듭니다.
+        val damageParams = mutableMapOf<String, Any>()
+        explosionParams["explosion_damage_coeff_spell_power"]?.let {
+            damageParams["magical_damage_coeff_spell_power_formula"] = it
+        }
+        // --- 수정 끝 ---
+
+        val radius = explosionParams["explosion_radius"]?.toString()?.toDoubleOrNull() ?: 3.0
         val targets = target.getNearbyEntities(radius, radius, radius).filterIsInstance<LivingEntity>() + target
 
         targets.forEach { explosionTarget ->
-            applySkillDamage(caster, explosionTarget, SkillEffectData("DAMAGE", "PLACEHOLDER", effect.parameters))
+            // 새로 만든 damageParams를 사용하여 스킬 데미지를 적용합니다.
+            applySkillDamage(caster, explosionTarget, SkillEffectData("DAMAGE", "PLACEHOLDER", damageParams))
         }
     }
 }

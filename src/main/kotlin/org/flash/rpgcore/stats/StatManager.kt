@@ -133,13 +133,16 @@ object StatManager {
             val playerData = PlayerDataManager.getPlayerData(player)
             val newBaseValue = playerData.getBaseStat(statType) + statType.incrementValue
             playerData.updateBaseStat(statType, newBaseValue)
+
             fullyRecalculateAndApplyStats(player)
             PlayerDataManager.savePlayerData(player, async = true)
-            val finalUpdatedValue = getFinalStatValue(player, statType)
-            val displayValue = if (statType.isPercentageBased) String.format("%.2f%%", finalUpdatedValue * 100)
-            else if (statType == StatType.ATTACK_SPEED) String.format("%.2f배", finalUpdatedValue)
-            else finalUpdatedValue.toInt().toString()
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&e[System] &f${statType.displayName} &e스탯이 &a${displayValue} &e(으)로 적용되었습니다! (XP 소모: &6$upgradeCost&e)"))
+
+            // 메시지 개선: 최종 스탯 대신, 플레이어가 직접 올린 '기본 스탯'의 변화를 명확히 보여줌
+            val baseDisplayValue = if (statType.isPercentageBased) String.format("%.2f%%", newBaseValue * 100)
+            else if (statType == StatType.ATTACK_SPEED) String.format("%.2f배", newBaseValue)
+            else newBaseValue.toInt().toString()
+
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&e[System] &f${statType.displayName} &e기본 스탯이 &a${baseDisplayValue} &e(으)로 상승했습니다! (XP 소모: &6$upgradeCost&e)"))
             player.playSound(player.location, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.2f)
             return true
         } else {

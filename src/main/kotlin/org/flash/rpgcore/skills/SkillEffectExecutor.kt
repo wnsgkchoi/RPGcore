@@ -9,6 +9,7 @@ import org.bukkit.entity.Arrow
 import org.bukkit.entity.Fireball
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
+import org.bukkit.entity.Snowball
 import org.bukkit.metadata.FixedMetadataValue
 import org.bukkit.scheduler.BukkitRunnable
 import org.flash.rpgcore.RPGcore
@@ -41,7 +42,6 @@ object SkillEffectExecutor {
 
         val levelData = skillData.levelData[level] ?: return
 
-        // 스킬별 특별 핸들러
         when (skillId) {
             "wind_slash" -> {
                 applyWindSlash(caster, skillData, level)
@@ -56,7 +56,7 @@ object SkillEffectExecutor {
         if (skillData.behavior.equals("TOGGLE", ignoreCase = true)) {
             val statusEffectData = levelData.effects.firstOrNull { it.type == "APPLY_CUSTOM_STATUS" }
             if (statusEffectData != null) {
-                val statusId = statusEffectData.parameters["status_id"] ?: skillData.internalId
+                val statusId = statusEffectData.parameters["status_id"]?.toString() ?: skillData.internalId
                 if (StatusEffectManager.hasStatus(caster, statusId)) {
                     StatusEffectManager.removeStatus(caster, statusId)
                     caster.sendActionBar(ChatColor.translateAlternateColorCodes('&', "&e${skillData.displayName} &f효과가 &c비활성화&f되었습니다."))
@@ -76,13 +76,12 @@ object SkillEffectExecutor {
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun executeEffectsFromProjectile(caster: LivingEntity, hitLocation: Location, skillData: RPGSkillData, level: Int, onImpactEffectMaps: List<Map<*, *>>) {
         val effects = onImpactEffectMaps.mapNotNull { effectMap ->
             val type = effectMap["type"] as? String ?: return@mapNotNull null
             val targetSelector = effectMap["target_selector"] as? String ?: "SELF"
-            val parameters = (effectMap["parameters"] as? Map<*, *>)
-                ?.mapNotNull { (k, v) -> (k as? String)?.let { key -> v?.toString()?.let { value -> key to value } } }
-                ?.toMap() ?: emptyMap()
+            val parameters = (effectMap["parameters"] as? Map<String, Any>) ?: emptyMap()
             SkillEffectData(type, targetSelector, parameters)
         }
 
@@ -109,32 +108,40 @@ object SkillEffectExecutor {
             "PROJECTILE" -> launchProjectile(caster, effect, skillData, level)
             "PLAY_SOUND" -> EffectPlayer.playSound(target.location, effect)
             "SPAWN_PARTICLE" -> EffectPlayer.spawnParticle(target.location, effect)
-
             "TAUNT" -> applyTaunt(caster, target)
             "SHIELD_CHARGE" -> if (target == caster) applyShieldCharge(caster, effect)
             "APPLY_LAST_STAND" -> if (target == caster) applyLastStand(caster, effect)
             "ON_TAKE_DAMAGE_BUFF" -> {}
             "RANDOM_ARROW_VOLLEY" -> if (target == caster) applyRandomArrowVolley(caster, effect, skillData, level)
             "EMPOWER_NEXT_SHOT" -> if (target == caster) applyEmpowerNextShot(caster, effect)
-
             else -> logger.warning("[SkillEffectExecutor] Unknown effect type: ${effect.type}")
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun launchProjectile(caster: LivingEntity, effect: SkillEffectData, skillData: RPGSkillData, level: Int) {
-        val projectileTypeStr = effect.parameters["projectile_type"]?.uppercase() ?: "ARROW"
+        val projectileTypeStr = effect.parameters["projectile_type"]?.toString()?.uppercase() ?: "ARROW"
+
         val projectileClass = when(projectileTypeStr) {
-            "FIREBALL" -> org.bukkit.entity.Fireball::class.java
-            "SNOWBALL" -> org.bukkit.entity.Snowball::class.java
+            "FIREBALL" -> Fireball::class.java
+            "SNOWBALL" -> Snowball::class.java
             else -> Arrow::class.java
         }
 
         val projectile = caster.launchProjectile(projectileClass)
 
-        if (projectile is Fireball) {
-            projectile.setIsIncendiary(false)
-            projectile.yield = 0f
+        // --- 수정된 부분 ---
+        when (projectile) {
+            is Fireball -> {
+                projectile.setIsIncendiary(false) // 불 붙지 않도록 설정
+                projectile.yield = 0f            // 폭발로 지형 파괴되지 않도록 설정
+                projectile.velocity = projectile.velocity.multiply(2.0) // 속도를 2배로 증가
+            }
+            is Snowball -> {
+                projectile.setGravity(false) // 중력 효과 제거
+            }
         }
+        // --- 수정 끝 ---
 
         projectile.setMetadata(PROJECTILE_SKILL_ID_KEY, FixedMetadataValue(plugin, skillData.internalId))
         projectile.setMetadata(PROJECTILE_CASTER_UUID_KEY, FixedMetadataValue(plugin, caster.uniqueId.toString()))
@@ -149,13 +156,13 @@ object SkillEffectExecutor {
     private fun applyHeal(caster: Player, target: LivingEntity, effect: SkillEffectData) {
         if (target !is Player) return
         val params = effect.parameters
-        val baseHeal = params["heal_base_formula"]?.toDoubleOrNull() ?: 0.0
-        val casterMaxHpCoeff = params["heal_coeff_max_hp_formula"]?.toDoubleOrNull() ?: 0.0
-        val casterMaxHp = StatManager.getFinalStatValue(caster, org.flash.rpgcore.stats.StatType.MAX_HP)
+        val baseHeal = params["heal_base_formula"]?.toString()?.toDoubleOrNull() ?: 0.0
+        val casterMaxHpCoeff = params["heal_coeff_max_hp_formula"]?.toString()?.toDoubleOrNull() ?: 0.0
+        val casterMaxHp = StatManager.getFinalStatValue(caster, StatType.MAX_HP)
         val healAmount = baseHeal + (casterMaxHp * casterMaxHpCoeff)
         if (healAmount <= 0) return
         val targetData = PlayerDataManager.getPlayerData(target)
-        val targetMaxHp = StatManager.getFinalStatValue(target, org.flash.rpgcore.stats.StatType.MAX_HP)
+        val targetMaxHp = StatManager.getFinalStatValue(target, StatType.MAX_HP)
         val newHp = min(targetMaxHp, targetData.currentHp + healAmount)
         val actualHeal = newHp - targetData.currentHp
         targetData.currentHp = newHp
@@ -168,7 +175,7 @@ object SkillEffectExecutor {
     }
 
     private fun applyTeleport(caster: Player, effect: SkillEffectData) {
-        val distance = effect.parameters["distance"]?.toDoubleOrNull() ?: 5.0
+        val distance = effect.parameters["distance"]?.toString()?.toDoubleOrNull() ?: 5.0
         val direction = caster.location.direction.normalize()
         if (distance < 0) {
             direction.multiply(-1)
@@ -179,8 +186,8 @@ object SkillEffectExecutor {
     }
 
     private fun applyCustomStatus(caster: Player, target: LivingEntity, effect: SkillEffectData) {
-        val statusId = effect.parameters["status_id"] ?: return
-        val duration = effect.parameters["duration_ticks"]?.toIntOrNull() ?: -1
+        val statusId = effect.parameters["status_id"]?.toString() ?: return
+        val duration = effect.parameters["duration_ticks"]?.toString()?.toIntOrNull() ?: -1
         StatusEffectManager.applyStatus(caster, target, statusId, duration, effect.parameters)
     }
 
@@ -195,7 +202,7 @@ object SkillEffectExecutor {
         val damageEffect = skillData.levelData[level]?.effects?.find { it.type == "DAMAGE" } ?: return
         val soundEffect = skillData.levelData[level]?.effects?.find { it.type == "PLAY_SOUND" }
 
-        val distance = damageEffect.parameters["path_length"]?.toDoubleOrNull() ?: 6.0
+        val distance = damageEffect.parameters["path_length"]?.toString()?.toDoubleOrNull() ?: 6.0
         val speed = 1.5
         val duration = (distance / speed).toLong()
         val direction = caster.location.direction.clone().apply { y = 0.0 }.normalize()
@@ -214,13 +221,11 @@ object SkillEffectExecutor {
                     this.cancel()
                     return
                 }
-
                 val nextPos = caster.location.clone().add(direction.clone().multiply(speed))
                 if (!nextPos.block.isPassable || !nextPos.clone().add(0.0, 1.0, 0.0).block.isPassable) {
                     this.cancel()
                     return
                 }
-
                 caster.velocity = direction.clone().multiply(speed)
                 ticks++
             }
@@ -233,9 +238,7 @@ object SkillEffectExecutor {
         val soundEffect = skillData.levelData[level]?.effects?.find { it.type == "PLAY_SOUND" } ?: return
 
         val originalLocation = caster.location.clone()
-
         applyTeleport(caster, teleportEffect)
-
         val targets = TargetSelector.findTargets(caster, damageEffect, originalLocation)
         targets.forEach { target ->
             CombatManager.applySkillDamage(caster, target, damageEffect)
@@ -245,16 +248,15 @@ object SkillEffectExecutor {
 
     private fun applyShieldCharge(caster: Player, effect: SkillEffectData) {
         val params = effect.parameters
-        val distance = params["dash_distance"]?.toDoubleOrNull() ?: 5.0
+        val distance = params["dash_distance"]?.toString()?.toDoubleOrNull() ?: 5.0
         val speed = 1.5
         val duration = (distance / speed).toLong()
         val direction = caster.location.direction.normalize().multiply(speed)
-
-        val directHitDamageCoeff = params["direct_hit_damage_coeff_attack_power_formula"]?.toDoubleOrNull() ?: 0.0
-        val knockback = params["direct_hit_knockback_strength"]?.toDoubleOrNull() ?: 0.0
-        val aoeRadius = params["impact_aoe_radius"]?.toDoubleOrNull() ?: 0.0
-        val aoeDamageCoeff = params["impact_aoe_damage_coeff_attack_power_formula"]?.toDoubleOrNull() ?: 0.0
-        val invincibilityTicks = params["invincibility_duration_ticks"]?.toLong() ?: 0L
+        val directHitDamageCoeff = params["direct_hit_damage_coeff_attack_power_formula"]?.toString()?.toDoubleOrNull() ?: 0.0
+        val knockback = params["direct_hit_knockback_strength"]?.toString()?.toDoubleOrNull() ?: 0.0
+        val aoeRadius = params["impact_aoe_radius"]?.toString()?.toDoubleOrNull() ?: 0.0
+        val aoeDamageCoeff = params["impact_aoe_damage_coeff_attack_power_formula"]?.toString()?.toDoubleOrNull() ?: 0.0
+        val invincibilityTicks = params["invincibility_duration_ticks"]?.toString()?.toLongOrNull() ?: 0L
 
         if (invincibilityTicks > 0) {
             StatusEffectManager.applyStatus(caster, caster, "invincibility", invincibilityTicks.toInt(), emptyMap())
@@ -297,7 +299,7 @@ object SkillEffectExecutor {
     }
 
     private fun applyLastStand(caster: Player, effect: SkillEffectData) {
-        val hpCostPercent = effect.parameters["hp_cost_percent"]?.toDoubleOrNull() ?: 0.0
+        val hpCostPercent = effect.parameters["hp_cost_percent"]?.toString()?.toDoubleOrNull() ?: 0.0
         val casterMaxHp = StatManager.getFinalStatValue(caster, StatType.MAX_HP)
         val hpToConsume = casterMaxHp * hpCostPercent
         val playerData = PlayerDataManager.getPlayerData(caster)
@@ -314,10 +316,10 @@ object SkillEffectExecutor {
 
     private fun applyRandomArrowVolley(caster: Player, effect: SkillEffectData, skillData: RPGSkillData, level: Int) {
         val params = skillData.levelData[level]!!.effects.find { it.type == "RANDOM_ARROW_VOLLEY" }!!.parameters
-        val arrowCount = params["arrow_count"]?.toIntOrNull() ?: 20
-        val radius = params["radius"]?.toDoubleOrNull() ?: 8.0
-        val damageCoeff = params["damage_coeff_attack_power_formula"]?.toDoubleOrNull() ?: 0.0
-        val noGravity = params["no_gravity"]?.toBoolean() ?: false
+        val arrowCount = params["arrow_count"]?.toString()?.toIntOrNull() ?: 20
+        val radius = params["radius"]?.toString()?.toDoubleOrNull() ?: 8.0
+        val damageCoeff = params["damage_coeff_attack_power_formula"]?.toString()?.toDoubleOrNull() ?: 0.0
+        val noGravity = params["no_gravity"]?.toString()?.toBoolean() ?: false
 
         val attackerAtk = StatManager.getFinalStatValue(caster, StatType.ATTACK_POWER)
         val damagePerArrow = attackerAtk * damageCoeff
