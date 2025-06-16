@@ -1,0 +1,12 @@
+player-uuid: 888dec2b-fec3-48c4-86d2-0cec9bf0b12d
+player-name: chyomoo0820
+last-login-timestamp: 1748767345734
+current-hp: 20.0
+current-mp: 50.0
+base-stats:
+  MAX_HP: 20.0
+  MAX_MP: 50.0
+  ATTACK_POWER: 5.0
+  DEFENSE_POWER: 5.0
+  SPELL_POWER: 5.0
+  MAGIC_RESISTANCE: 5.0

@@ -1,0 +1,15 @@
+recipe_id: "craft_rotten_sword" # 레시피 고유 ID
+output:
+  item_internal_name: "rotten_sword" # 제작될 장비의 ID
+xp_cost: 500000
+ingredients:
+  - item_type: "RPGCORE_CUSTOM_MATERIAL"
+    item_id: "dark_flesh"
+    amount: 10
+  - item_type: "VANILLA"
+    item_id: "IRON_INGOT"
+    amount: 2
+  - item_type: "RPGCORE_CUSTOM_EQUIPMENT"
+    item_id: "basic_sword" # 초심자의 검 5강이 재료로 필요하다고 가정
+    required_upgrade_level: 3
+    amount: 1

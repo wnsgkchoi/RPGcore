@@ -1,0 +1,40 @@
+display_name: "&e패럴라이징 스택 숙련"
+description:
+  - "&7(고유 능력) 패럴라이징 스택이 부여된 적이 가하는"
+  - "&7최종 데미지를 감소시킵니다."
+class_restrictions: [ "elementalist" ]
+icon_material: "LIGHTNING_ROD"
+skill_type: "INNATE_PASSIVE"
+behavior: "PASSIVE"
+max_level: 5
+level_data:
+  1:
+    effects:
+      - type: "PARALYZING_STACK_MASTERY"
+        parameters:
+          target_damage_reduction_percent: "10"
+  2:
+    effects:
+      - type: "PARALYZING_STACK_MASTERY"
+        parameters:
+          target_damage_reduction_percent: "15"
+  3:
+    effects:
+      - type: "PARALYZING_STACK_MASTERY"
+        parameters:
+          target_damage_reduction_percent: "20"
+  4:
+    effects:
+      - type: "PARALYZING_STACK_MASTERY"
+        parameters:
+          target_damage_reduction_percent: "25"
+  5:
+    effects:
+      - type: "PARALYZING_STACK_MASTERY"
+        parameters:
+          target_damage_reduction_percent: "30"
+upgrade_cost_per_level:
+  2: 50000
+  3: 250000
+  4: 1000000
+  5: 5000000

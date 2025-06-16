@@ -1,0 +1,19 @@
+# 명사수 (Marksman)
+display_name: "&a명사수"
+archetype_internal_id: "RANGED_DEALER"
+archetype_display_name: "&2원거리 딜러 계열"
+description:
+  - "&7먼 거리에서 적의 심장을 꿰뚫는 저격수입니다."
+  - "&7강력한 한 발을 위한 '정밀 차징 샷'이 핵심입니다."
+unique_mechanic_summary: "정밀 차징 샷"
+icon_material: "BOW"
+custom_model_data: null
+allowed_main_hand_materials:
+  - "BOW"
+starter_skills:
+  ACTIVE:
+    - "arrow_spree"         # 화살 난사: 전방에 무중력 화살을 발사한다. 총 30발 발사 가능하며, 전부 소진하면 쿨타임.
+    - "instant_charge"      # 빠른 장전: mp를 소모하여 n초 동안 항상 최종 단계 차징을 유지한다.
+    - "explosive_arrow"     # 폭발 화살: on/off 스킬. mp를 소모하여 다음 화살을 폭발 화살로 한다. 폭발 화살은 탄착 지점의 주위 n칸 내에 있는 모든 적에게 데미지를 준다.
+innate_passive_skill_ids:
+  - "precision_charging"

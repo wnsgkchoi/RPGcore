@@ -1,0 +1,45 @@
+display_name: "&c버닝 스택 숙련"
+description:
+  - "&7(고유 능력) 주변에 버닝 스택을 가진 적의 수에 비례하여"
+  - "&7자신의 최종 데미지가 증가합니다."
+class_restrictions: [ "elementalist" ]
+icon_material: "LAVA_BUCKET"
+skill_type: "INNATE_PASSIVE"
+behavior: "PASSIVE"
+max_level: 5
+level_data:
+  1:
+    effects:
+      - type: "BURNING_STACK_MASTERY"
+        parameters:
+          final_damage_increase_per_stack_percent: "2"
+          check_radius: "8"
+  2:
+    effects:
+      - type: "BURNING_STACK_MASTERY"
+        parameters:
+          final_damage_increase_per_stack_percent: "2.5"
+          check_radius: "9"
+  3:
+    effects:
+      - type: "BURNING_STACK_MASTERY"
+        parameters:
+          final_damage_increase_per_stack_percent: "3"
+          check_radius: "10"
+  4:
+    effects:
+      - type: "BURNING_STACK_MASTERY"
+        parameters:
+          final_damage_increase_per_stack_percent: "3.5"
+          check_radius: "11"
+  5:
+    effects:
+      - type: "BURNING_STACK_MASTERY"
+        parameters:
+          final_damage_increase_per_stack_percent: "4"
+          check_radius: "12"
+upgrade_cost_per_level:
+  2: 50000
+  3: 250000
+  4: 1000000
+  5: 5000000

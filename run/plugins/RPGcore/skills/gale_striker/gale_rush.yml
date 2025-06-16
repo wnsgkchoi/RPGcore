@@ -1,0 +1,60 @@
+display_name: "&b질풍노도"
+description:
+  - "&7(고유 능력) 스킬 적중 시 스택을 쌓아"
+  - "&7치명타 공격 강화 및 쿨타임 감소 효과를 얻습니다."
+class_restrictions: [ "gale_striker" ]
+icon_material: "ELYTRA"
+skill_type: "INNATE_PASSIVE"
+behavior: "PASSIVE"
+max_level: 5
+level_data:
+  1:
+    effects:
+      - type: "MANAGE_GALE_RUSH_STACK"
+        parameters:
+          max_stack: "25"
+          stack_expire_ticks: "60"
+          bonus_armor_pen_percent_per_stack: "0.5"
+          bonus_crit_multiplier_per_stack: "0.01"
+          cdr_per_stack_percent: "0.2"
+  2:
+    effects:
+      - type: "MANAGE_GALE_RUSH_STACK"
+        parameters:
+          max_stack: "25"
+          stack_expire_ticks: "60"
+          bonus_armor_pen_percent_per_stack: "0.6"
+          bonus_crit_multiplier_per_stack: "0.012"
+          cdr_per_stack_percent: "0.25"
+  3:
+    effects:
+      - type: "MANAGE_GALE_RUSH_STACK"
+        parameters:
+          max_stack: "25"
+          stack_expire_ticks: "60"
+          bonus_armor_pen_percent_per_stack: "0.7"
+          bonus_crit_multiplier_per_stack: "0.014"
+          cdr_per_stack_percent: "0.3"
+  4:
+    effects:
+      - type: "MANAGE_GALE_RUSH_STACK"
+        parameters:
+          max_stack: "25"
+          stack_expire_ticks: "60"
+          bonus_armor_pen_percent_per_stack: "0.85"
+          bonus_crit_multiplier_per_stack: "0.017"
+          cdr_per_stack_percent: "0.35"
+  5:
+    effects:
+      - type: "MANAGE_GALE_RUSH_STACK"
+        parameters:
+          max_stack: "25"
+          stack_expire_ticks: "60"
+          bonus_armor_pen_percent_per_stack: "1.0"
+          bonus_crit_multiplier_per_stack: "0.02"
+          cdr_per_stack_percent: "0.4"
+upgrade_cost_per_level:
+  2: 50000
+  3: 250000
+  4: 1000000
+  5: 5000000

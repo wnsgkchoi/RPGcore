@@ -1,0 +1,27 @@
+# 광전사 (Frenzy DPS)
+display_name: "&c광전사"
+archetype_internal_id: "WARRIOR"
+archetype_display_name: "&4전사 계열"
+description:
+  - "&7전투가 지속될수록 강해지는 근접 전사입니다."
+  - "&7피해를 주거나 받을 때마다 '전투 열기'를 얻어"
+  - "&7공격 능력치를 극대화합니다."
+unique_mechanic_summary: "전투 열기 스택"
+icon_material: "IRON_AXE"
+custom_model_data: null
+allowed_main_hand_materials:
+  - "WOODEN_SWORD"
+  - "STONE_SWORD"
+  - "IRON_SWORD"
+  - "GOLDEN_SWORD"
+  - "DIAMOND_SWORD"
+  - "NETHERITE_SWORD"
+  - "MACE"
+starter_skills:
+  ACTIVE:
+    - "rage_whirlwind" # 분노의 광휘: 자신 주변에 검기를 발사하여 주변 n칸에 있는 적에게 데미지를 주고 넉백시킨다.
+    - "last_stand" # 결사의 일격: 체력의 30%를 소비하여 강력한 일격을 준비한다. 다음 일반 공격의 데미지를 계산할 때, 최종 공격력을 다음과 같이 계산한다 (공격력 * 2 + 소비한 체력)
+  PASSIVE:
+    - "bloody_smell" # 피의 냄새: 자신이 피격당하면 (HP가 차감되어야 함), 그 다음 공격의 데미지가 1.1배가 된다.
+innate_passive_skill_ids:
+  - "fury_stack"

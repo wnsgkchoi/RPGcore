@@ -1,0 +1,61 @@
+# 무한 던전 시스템 설정 파일
+
+# 재입장 대기시간 (초)
+re_entry_cooldown_seconds: 600
+# 웨이브 클리어 후 다음 웨이브까지 대기 시간 (초)
+prepare_time_seconds: 5
+
+# 몬스터 스탯 스케일링 2차 함수 계수 (결과 = 기본스탯 * (a*wave^2 + b*wave + c))
+stat_scaling:
+  a: 0.015
+  b: 0.3
+  c: 1.0
+
+# 경험치 보상 스케일링 1차 함수 계수 (결과 = 기본경험치 * (a*wave + b))
+xp_scaling:
+  a: 0.2
+  b: 1.0
+
+# 웨이브별 몬스터 스폰 설정
+wave_settings:
+  # 일반 웨이브에 등장할 몬스터 ID 풀
+  # 역할(MELEE, RANGED, MAGE, ASSASSIN)에 따라 몬스터 ID를 지정합니다.
+  normal_monster_pool:
+    MELEE: [ "inf_melee_1", "inf_melee_2" ]
+    RANGED: [ "inf_ranged_1" ]
+    MAGE: [ "inf_mage_1" ]
+    ASSASSIN: [ "inf_assassin_1" ]
+  # 보스 웨이브에 등장할 몬스터 ID 풀 (이 중 하나가 랜덤으로 선택됨)
+  boss_monster_pool: [ "inf_boss_1", "inf_boss_2", "inf_boss_3" ]
+  
+  # 웨이브별 몬스터 수 공식 (결과 = a*wave + b)
+  spawn_count:
+    a: 0.5
+    b: 2
+
+# 보스 처치 시 웨이브 레벨에 따른 보상 테이블 ID
+boss_loot_tables:
+  10: "inf_boss_loot_tier1"
+  20: "inf_boss_loot_tier2"
+  30: "inf_boss_loot_tier3"
+
+# 아레나 위치 정보 (이 파일 내에서 모두 관리)
+arenas:
+  arena_1:
+    player_spawn_location: { world: "infinite_dungeon_world", x: 0.5, y: -59.0, z: 0.5, yaw: 180.0, pitch: 0.0 }
+    monster_spawn_locations:
+      - { world: "infinite_dungeon_world", x: 10.5, y: -59.0, z: 10.5 }
+      - { world: "infinite_dungeon_world", x: -9.5, y: -59.0, z: -9.5 }
+      - { world: "infinite_dungeon_world", x: 0.5, y: -59.0, z: 15.5 }
+  arena_2:
+    player_spawn_location: { world: "infinite_dungeon_world", x: 50.5, y: -59.0, z: 50.5, yaw: 180.0, pitch: 0.0 }
+    monster_spawn_locations:
+      - { world: "infinite_dungeon_world", x: 60.5, y: -59.0, z: 60.5 }
+      - { world: "infinite_dungeon_world", x: 40.5, y: -59.0, z: 40.5 }
+      - { world: "infinite_dungeon_world", x: 50.5, y: -59.0, z: 65.5 }
+  arena_3:
+    player_spawn_location: { world: "infinite_dungeon_world", x: -49.5, y: -59.0, z: -49.5, yaw: 180.0, pitch: 0.0 }
+    monster_spawn_locations:
+        - { world: "infinite_dungeon_world", x: -39.5, y: -59.0, z: -39.5 }
+        - { world: "infinite_dungeon_world", x: -59.5, y: -59.0, z: -59.5 }
+        - { world: "infinite_dungeon_world", x: -49.5, y: -59.0, z: -34.5 }

@@ -1,0 +1,27 @@
+sets:
+  vampiric_set: # 이 부분이 setId가 됩니다.
+    display_name: "&b피의 결의"
+    category: "MAIN"
+    required_pieces: 5
+    bonus_stats:
+      additiveStats:
+        DEFENSE_POWER: 50.0 # 고정 방어력 +50
+        MAX_HP: 100.0      # 고정 체력 +100
+        PHYSICAL_LIFESTEAL: 0.1
+        SPELL_LIFESTEAL: 0.1
+    bonus_effects:
+      - type: "MODIFY_INCOMING_DAMAGE" # 받는 모든 피해 10% 감소
+        target_selector: "SELF"
+        parameters:
+          reduction_percent: "10"
+  basic_set: # 이 부분이 setId가 됩니다.
+    display_name: "&b초심자 세트"
+    category: "MAIN"
+    required_pieces: 5
+    bonus_stats:
+      additiveStats:
+        DEFENSE_POWER: 10
+        MAX_HP: 30.0
+        XP_GAIN_RATE: 0.05
+      multiplicativeStats:
+        DEFENSE_POWER: 0.05

@@ -1,0 +1,45 @@
+display_name: "&6반사 오라"
+description:
+  - "&7(고유 능력) 받은 피해의 일부를 주문력에 비례하여"
+  - "&7적에게 되돌려줍니다."
+class_restrictions: [ "spike_tank" ]
+icon_material: "POINTED_DRIPSTONE"
+skill_type: "INNATE_PASSIVE"
+behavior: "PASSIVE"
+max_level: 5
+level_data:
+  1:
+    effects:
+      - type: "REFLECTION_AURA"
+        parameters:
+          base_reflect_ratio: "0.1"
+          spell_power_reflect_coeff: "0.2"
+  2:
+    effects:
+      - type: "REFLECTION_AURA"
+        parameters:
+          base_reflect_ratio: "0.12"
+          spell_power_reflect_coeff: "0.25"
+  3:
+    effects:
+      - type: "REFLECTION_AURA"
+        parameters:
+          base_reflect_ratio: "0.14"
+          spell_power_reflect_coeff: "0.3"
+  4:
+    effects:
+      - type: "REFLECTION_AURA"
+        parameters:
+          base_reflect_ratio: "0.17"
+          spell_power_reflect_coeff: "0.35"
+  5:
+    effects:
+      - type: "REFLECTION_AURA"
+        parameters:
+          base_reflect_ratio: "0.2"
+          spell_power_reflect_coeff: "0.4"
+upgrade_cost_per_level:
+  2: 50000
+  3: 250000
+  4: 1000000
+  5: 5000000

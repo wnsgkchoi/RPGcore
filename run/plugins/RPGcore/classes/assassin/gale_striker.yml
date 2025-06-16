@@ -1,0 +1,27 @@
+display_name: "&b질풍검객"
+archetype_internal_id: "ASSASSIN"
+archetype_display_name: "&d암살자 계열"
+description:
+  - "&7바람처럼 전장을 누비는 민첩한 검객입니다."
+  - "&7빠른 기동성과 연속적인 스킬 사용으로"
+  - "&7적을 몰아치는 플레이가 특징입니다."
+unique_mechanic_summary: "질풍노도 스택"
+icon_material: "FEATHER"
+custom_model_data: null
+# mainhand 허용 무기는 모든 종류의 칼
+allowed_main_hand_materials:
+  - "WOODEN_SWORD"
+  - "STONE_SWORD"
+  - "IRON_SWORD"
+  - "GOLDEN_SWORD"
+  - "DIAMOND_SWORD"
+  - "NETHERITE_SWORD"
+
+starter_skills:
+  ACTIVE:
+    - "wind_slash"    # 질풍참: 전방으로 빠르게 이동하며 경로 주변의 적을 벤다.
+    - "backstep"      # 돌풍후퇴: 뒤로 뛰며 자신이 있던 자리 주변에 있는 적에게 데미지를 준다.
+  PASSIVE:
+    - "windflow"  # 풍류: 자신의 이동속도에 비례하여 최종 데미지가 증가
+innate_passive_skill_ids:
+  - "gale_rush"

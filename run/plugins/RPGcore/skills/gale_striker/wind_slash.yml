@@ -1,0 +1,90 @@
+display_name: "&b질풍참"
+description:
+  - "&7전방으로 빠르게 이동하며 경로 주변의 적을 벱니다."
+class_restrictions: [ "gale_striker" ]
+icon_material: "IRON_SWORD"
+skill_type: "ACTIVE"
+behavior: "DASH"
+max_level: 10
+max_charge: 3
+level_data:
+  1:
+    mp_cost: 15
+    cooldown_ticks: 80 # 6초
+    effects:
+      - { type: "TELEPORT_FORWARD", target_selector: "SELF", parameters: { distance: "6.0" } }
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_IN_PATH", parameters: { path_length: "6.0", path_width: "3.0", physical_damage_coeff_attack_power_formula: "1.1" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PLAYER_ATTACK_SWEEP", volume: "1.0", pitch: "1.5" } }
+  2:
+    mp_cost: 16
+    cooldown_ticks: 80
+    effects:
+      - { type: "TELEPORT_FORWARD", target_selector: "SELF", parameters: { distance: "6.0" } }
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_IN_PATH", parameters: { path_length: "6.2", path_width: "3.0", physical_damage_coeff_attack_power_formula: "1.18" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PLAYER_ATTACK_SWEEP", volume: "1.0", pitch: "1.5" } }
+  3:
+    mp_cost: 17
+    cooldown_ticks: 80
+    effects:
+      - { type: "TELEPORT_FORWARD", target_selector: "SELF", parameters: { distance: "6.0" } }
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_IN_PATH", parameters: { path_length: "6.4", path_width: "3.0", physical_damage_coeff_attack_power_formula: "1.26" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PLAYER_ATTACK_SWEEP", volume: "1.0", pitch: "1.5" } }
+  4:
+    mp_cost: 18
+    cooldown_ticks: 80
+    effects:
+      - { type: "TELEPORT_FORWARD", target_selector: "SELF", parameters: { distance: "6.0" } }
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_IN_PATH", parameters: { path_length: "6.6", path_width: "3.0", physical_damage_coeff_attack_power_formula: "1.34" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PLAYER_ATTACK_SWEEP", volume: "1.0", pitch: "1.5" } }
+  5:
+    mp_cost: 20
+    cooldown_ticks: 80
+    effects:
+      - { type: "TELEPORT_FORWARD", target_selector: "SELF", parameters: { distance: "6.0" } }
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_IN_PATH", parameters: { path_length: "6.8", path_width: "3.0", physical_damage_coeff_attack_power_formula: "1.42" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PLAYER_ATTACK_SWEEP", volume: "1.0", pitch: "1.5" } }
+  6:
+    mp_cost: 22
+    cooldown_ticks: 75
+    effects:
+      - { type: "TELEPORT_FORWARD", target_selector: "SELF", parameters: { distance: "6.0" } }
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_IN_PATH", parameters: { path_length: "7.0", path_width: "3.0", physical_damage_coeff_attack_power_formula: "1.5" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PLAYER_ATTACK_SWEEP", volume: "1.0", pitch: "1.5" } }
+  7:
+    mp_cost: 24
+    cooldown_ticks: 70
+    effects:
+      - { type: "TELEPORT_FORWARD", target_selector: "SELF", parameters: { distance: "6.0" } }
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_IN_PATH", parameters: { path_length: "7.2", path_width: "3.0", physical_damage_coeff_attack_power_formula: "1.6" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PLAYER_ATTACK_SWEEP", volume: "1.0", pitch: "1.5" } }
+  8:
+    mp_cost: 26
+    cooldown_ticks: 65
+    effects:
+      - { type: "TELEPORT_FORWARD", target_selector: "SELF", parameters: { distance: "6.0" } }
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_IN_PATH", parameters: { path_length: "7.4", path_width: "3.0", physical_damage_coeff_attack_power_formula: "1.7" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PLAYER_ATTACK_SWEEP", volume: "1.0", pitch: "1.5" } }
+  9:
+    mp_cost: 28
+    cooldown_ticks: 60
+    effects:
+      - { type: "TELEPORT_FORWARD", target_selector: "SELF", parameters: { distance: "6.0" } }
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_IN_PATH", parameters: { path_length: "7.7", path_width: "3.0", physical_damage_coeff_attack_power_formula: "1.75" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PLAYER_ATTACK_SWEEP", volume: "1.0", pitch: "1.5" } }
+  10:
+    mp_cost: 30
+    cooldown_ticks: 40
+    effects:
+      - { type: "TELEPORT_FORWARD", target_selector: "SELF", parameters: { distance: "6.0" } }
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_IN_PATH", parameters: { path_length: "8.0", path_width: "3.0", physical_damage_coeff_attack_power_formula: "1.8" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PLAYER_ATTACK_SWEEP", volume: "1.0", pitch: "1.5" } }
+upgrade_cost_per_level:
+  2: 5000
+  3: 16875
+  4: 40000
+  5: 78125
+  6: 135000
+  7: 214375
+  8: 320000
+  9: 455625
+  10: 625000

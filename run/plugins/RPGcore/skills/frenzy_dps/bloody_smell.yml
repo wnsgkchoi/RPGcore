@@ -1,0 +1,49 @@
+display_name: "&8피의 냄새"
+description:
+  - "&7(패시브) 피해를 입으면 다음 공격이 강화됩니다."
+class_restrictions: [ "frenzy_dps" ]
+icon_material: "BONE"
+skill_type: "PASSIVE"
+behavior: "TRIGGERED_BUFF"
+max_level: 10
+level_data:
+  1:
+    effects:
+      - { type: "ON_TAKE_DAMAGE_BUFF", parameters: { damage_multiplier_on_next_hit: "1.1", buff_duration_ticks: "100" } }
+  2:
+    effects:
+      - { type: "ON_TAKE_DAMAGE_BUFF", parameters: { damage_multiplier_on_next_hit: "1.15", buff_duration_ticks: "100"  } }
+  3:
+    effects:
+      - { type: "ON_TAKE_DAMAGE_BUFF", parameters: { damage_multiplier_on_next_hit: "1.2", buff_duration_ticks: "100"  } }
+  4:
+    effects:
+      - { type: "ON_TAKE_DAMAGE_BUFF", parameters: { damage_multiplier_on_next_hit: "1.25", buff_duration_ticks: "100"  } }
+  5:
+    effects:
+      - { type: "ON_TAKE_DAMAGE_BUFF", parameters: { damage_multiplier_on_next_hit: "1.3", buff_duration_ticks: "100"  } }
+  6:
+    effects:
+      - { type: "ON_TAKE_DAMAGE_BUFF", parameters: { damage_multiplier_on_next_hit: "1.35", buff_duration_ticks: "100"  } }
+  7:
+    effects:
+      - { type: "ON_TAKE_DAMAGE_BUFF", parameters: { damage_multiplier_on_next_hit: "1.4", buff_duration_ticks: "100"  } }
+  8:
+    effects:
+      - { type: "ON_TAKE_DAMAGE_BUFF", parameters: { damage_multiplier_on_next_hit: "1.45", buff_duration_ticks: "100"  } }
+  9:
+    effects:
+      - { type: "ON_TAKE_DAMAGE_BUFF", parameters: { damage_multiplier_on_next_hit: "1.48", buff_duration_ticks: "100"  } }
+  10:
+    effects:
+      - { type: "ON_TAKE_DAMAGE_BUFF", parameters: { damage_multiplier_on_next_hit: "1.5", buff_duration_ticks: "100" } }
+upgrade_cost_per_level:
+  2: 5000
+  3: 16875
+  4: 40000
+  5: 78125
+  6: 135000
+  7: 214375
+  8: 320000
+  9: 455625
+  10: 625000

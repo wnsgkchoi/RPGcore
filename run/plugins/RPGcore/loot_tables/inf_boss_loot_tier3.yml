@@ -1,0 +1,8 @@
+# Wave 30~ 보스 드롭 테이블
+drops:
+  - type: RPGCORE_EQUIPMENT
+    id: "mage_advanced_staff" # 예시 장비 ID
+    minAmount: 1
+    maxAmount: 1
+    chance: 0.1 # 10%
+    upgradeLevel: 0

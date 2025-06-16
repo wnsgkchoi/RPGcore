@@ -1,0 +1,296 @@
+player-uuid: 51eb01ae-1653-4e2b-b6a6-c5f6bca013aa
+player-name: TiredFlash
+last-login-timestamp: 1750051420889
+current-hp: 30.0
+current-mp: 50000.0
+current-class-id: elementalist
+learned-recipes:
+- rotten_sword
+base-stats:
+  MAX_HP: 30.0
+  MAX_MP: 50000.0
+  ATTACK_POWER: 5.0
+  DEFENSE_POWER: 5.0
+  SPELL_POWER: 5.0
+  MAGIC_RESISTANCE: 5.0
+  ATTACK_SPEED: 1.0
+  CRITICAL_CHANCE: 0.0
+  COOLDOWN_REDUCTION: 0.0
+  PHYSICAL_LIFESTEAL: 0.0
+  SPELL_LIFESTEAL: 0.0
+  XP_GAIN_RATE: 0.0
+  ITEM_DROP_RATE: 0.0
+custom-equipment: {}
+learned-skills:
+  rage_whirlwind: 2
+  last_stand: 1
+  bloody_smell: 1
+  fury_stack: 2
+  fireball: 1
+  iceball: 1
+  lightning_strike: 1
+  elemental_explosion: 1
+  burning_stack_mastery: 1
+  freezing_stack_mastery: 1
+  paralyzing_stack_mastery: 1
+equipped-active-skills:
+  SLOT_Q: fireball
+  SLOT_F: iceball
+  SLOT_SHIFT_Q: lightning_strike
+equipped-passive-skills:
+- null
+- null
+- null
+skillCharges: {}
+skillChargeCooldowns: {}
+monster-encyclopedia: '{}'
+claimed-encyclopedia-rewards: []
+backpack:
+  page_0:
+  - DataVersion: 4325
+    id: minecraft:cooked_salmon
+    count: 1
+    components:
+      minecraft:lore: '[{extra:[" "],text:""},{extra:[{bold:0b,color:"gold",italic:0b,obfuscated:0b,strikethrough:0b,text:"강화
+        레벨: ",underlined:0b},{color:"yellow",italic:0b,text:"+10"}],text:""},{extra:[{bold:0b,color:"dark_gray",italic:0b,obfuscated:0b,strikethrough:0b,text:"---
+        기본 옵션 (+10) ---",underlined:0b}],text:""},{extra:[{bold:0b,color:"blue",italic:0b,obfuscated:0b,strikethrough:0b,text:"공격력:
+        +50",underlined:0b}],text:""},{extra:[{bold:0b,color:"blue",italic:0b,obfuscated:0b,strikethrough:0b,text:"주문력:
+        +20",underlined:0b}],text:""},{extra:[{bold:0b,color:"blue",italic:0b,obfuscated:0b,strikethrough:0b,text:"공격력:
+        +30%",underlined:0b}],text:""},{extra:[{bold:0b,color:"blue",italic:0b,obfuscated:0b,strikethrough:0b,text:"주문력:
+        +30%",underlined:0b}],text:""}]'
+      minecraft:tooltip_display: '{hidden_components:["minecraft:attribute_modifiers"]}'
+      minecraft:custom_name: '{extra:[{bold:0b,color:"gold",italic:0b,obfuscated:0b,strikethrough:0b,text:"굳어버린
+        연어",underlined:0b}],text:""}'
+      minecraft:custom_data: '{PublicBukkitValues:{"rpgcore:rpgcore_item_id":"dried_salmon","rpgcore:rpgcore_item_upgrade_level":10}}'
+    schema_version: 1
+  - DataVersion: 4325
+    id: minecraft:golden_apple
+    count: 14
+    schema_version: 1
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  page_1:
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  page_2:
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  page_3:
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  page_4:
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null
+  - null

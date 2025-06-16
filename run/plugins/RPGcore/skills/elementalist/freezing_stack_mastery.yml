@@ -1,0 +1,40 @@
+display_name: "&b프리징 스택 숙련"
+description:
+  - "&7(고유 능력) 프리징 스택이 부여된 적의"
+  - "&7이동 속도를 감소시킵니다."
+class_restrictions: [ "elementalist" ]
+icon_material: "PACKED_ICE"
+skill_type: "INNATE_PASSIVE"
+behavior: "PASSIVE"
+max_level: 5
+level_data:
+  1:
+    effects:
+      - type: "FREEZING_STACK_MASTERY"
+        parameters:
+          move_speed_reduction_percent: "20"
+  2:
+    effects:
+      - type: "FREEZING_STACK_MASTERY"
+        parameters:
+          move_speed_reduction_percent: "30"
+  3:
+    effects:
+      - type: "FREEZING_STACK_MASTERY"
+        parameters:
+          move_speed_reduction_percent: "40"
+  4:
+    effects:
+      - type: "FREEZING_STACK_MASTERY"
+        parameters:
+          move_speed_reduction_percent: "50"
+  5:
+    effects:
+      - type: "FREEZING_STACK_MASTERY"
+        parameters:
+          move_speed_reduction_percent: "75"
+upgrade_cost_per_level:
+  2: 50000
+  3: 250000
+  4: 1000000
+  5: 5000000

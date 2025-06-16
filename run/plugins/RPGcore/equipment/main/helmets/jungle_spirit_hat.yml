@@ -1,0 +1,32 @@
+display_name: "§a정글나무의 영혼모자"
+description:
+  - "§7고대 정글나무에 깃든 정령의 힘을 담은 모자."
+  - "§7착용자에게 정글의 지혜와 보호를 선사한다."
+material: CARVED_PUMPKIN
+equipment_type: HELMET
+max_upgrade_level: 10
+
+statsPerLevel:
+  0:  { additiveStats: { MAX_HP: 10.0, MAX_MP: 20.0, DEFENSE_POWER: 3.0, SPELL_POWER: 1.0, MAGIC_RESISTANCE: 3.0 }, multiplicativeStats: {} }
+  1:  { additiveStats: { MAX_HP: 20.0, MAX_MP: 40.0, DEFENSE_POWER: 6.0, SPELL_POWER: 1.0, MAGIC_RESISTANCE: 6.0 }, multiplicativeStats: {} }
+  2:  { additiveStats: { MAX_HP: 30.0, MAX_MP: 60.0, DEFENSE_POWER: 9.0, SPELL_POWER: 2.0, MAGIC_RESISTANCE: 9.0 }, multiplicativeStats: {} }
+  3:  { additiveStats: { MAX_HP: 40.0, MAX_MP: 80.0, DEFENSE_POWER: 12.0, SPELL_POWER: 2.0, MAGIC_RESISTANCE: 12.0 }, multiplicativeStats: {} }
+  4:  { additiveStats: { MAX_HP: 50.0, MAX_MP: 100.0, DEFENSE_POWER: 15.0, SPELL_POWER: 3.0, MAGIC_RESISTANCE: 15.0 }, multiplicativeStats: {} }
+  5:  { additiveStats: { MAX_HP: 60.0, MAX_MP: 120.0, DEFENSE_POWER: 18.0, SPELL_POWER: 3.0, MAGIC_RESISTANCE: 18.0 }, multiplicativeStats: {} }
+  6:  { additiveStats: { MAX_HP: 70.0, MAX_MP: 140.0, DEFENSE_POWER: 21.0, SPELL_POWER: 4.0, MAGIC_RESISTANCE: 21.0 }, multiplicativeStats: {} }
+  7:  { additiveStats: { MAX_HP: 80.0, MAX_MP: 160.0, DEFENSE_POWER: 24.0, SPELL_POWER: 4.0, MAGIC_RESISTANCE: 24.0 }, multiplicativeStats: {} }
+  8:  { additiveStats: { MAX_HP: 90.0, MAX_MP: 180.0, DEFENSE_POWER: 27.0, SPELL_POWER: 5.0, MAGIC_RESISTANCE: 27.0 }, multiplicativeStats: {} }
+  9:  { additiveStats: { MAX_HP: 100.0, MAX_MP: 200.0, DEFENSE_POWER: 30.0, SPELL_POWER: 5.0, MAGIC_RESISTANCE: 30.0 }, multiplicativeStats: {} }
+  10: { additiveStats: { MAX_HP: 100.0, MAX_MP: 200.0, DEFENSE_POWER: 30.0, SPELL_POWER: 5.0, MAGIC_RESISTANCE: 30.0 }, multiplicativeStats: { MAX_HP: 0.20, MAX_MP: 0.30, DEFENSE_POWER: 0.15, SPELL_POWER: 0.05, MAGIC_RESISTANCE: 0.15 } }
+
+xpCostPerUpgradeLevel:
+  1: 1000
+  2: 4000
+  3: 9000
+  4: 16000
+  5: 25000
+  6: 36000
+  7: 49000
+  8: 64000
+  9: 81000
+  10: 100000

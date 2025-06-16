@@ -1,0 +1,91 @@
+display_name: "&b돌풍후퇴"
+description:
+  - "&7뒤로 빠르게 물러나며, 원래 있던 자리에"
+  - "&7검기를 남겨 주변의 적에게 피해를 줍니다."
+class_restrictions: [ "gale_striker" ]
+icon_material: "FEATHER"
+skill_type: "ACTIVE"
+behavior: "DASH"
+max_level: 10
+max_charge: 2
+level_data:
+  1:
+    mp_cost: 20
+    cooldown_ticks: 80 # 10초
+    effects:
+      - { type: "TELEPORT_FORWARD", target_selector: "SELF", parameters: { distance: "-5.0" } } # 음수 거리로 후퇴
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { area_radius: "3.0", physical_damage_coeff_attack_power_formula: "1.0" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PHANTOM_FLAP", volume: "1.0", pitch: "1.5" } }
+  2:
+    mp_cost: 21
+    cooldown_ticks: 80
+    effects:
+      - { type: "TELEPORT_FORWARD", target_selector: "SELF", parameters: { distance: "-5.0" } }
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { area_radius: "3.0", physical_damage_coeff_attack_power_formula: "1.2" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PHANTOM_FLAP", volume: "1.0", pitch: "1.5" } }
+  3:
+    mp_cost: 22
+    cooldown_ticks: 80
+    effects:
+      - { type: "TELEPORT_FORWARD", target_selector: "SELF", parameters: { distance: "-5.0" } }
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { area_radius: "3.0", physical_damage_coeff_attack_power_formula: "1.4" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PHANTOM_FLAP", volume: "1.0", pitch: "1.5" } }
+  4:
+    mp_cost: 23
+    cooldown_ticks: 80
+    effects:
+      - { type: "TELEPORT_FORWARD", target_selector: "SELF", parameters: { distance: "-5.0" } }
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { area_radius: "3.0", physical_damage_coeff_attack_power_formula: "1.6" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PHANTOM_FLAP", volume: "1.0", pitch: "1.5" } }
+  5:
+    mp_cost: 25
+    cooldown_ticks: 80
+    effects:
+      - { type: "TELEPORT_FORWARD", target_selector: "SELF", parameters: { distance: "-5.0" } }
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { area_radius: "3.0", physical_damage_coeff_attack_power_formula: "1.8" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PHANTOM_FLAP", volume: "1.0", pitch: "1.5" } }
+  6:
+    mp_cost: 27
+    cooldown_ticks: 75
+    effects:
+      - { type: "TELEPORT_FORWARD", target_selector: "SELF", parameters: { distance: "-5.0" } }
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { area_radius: "3.0", physical_damage_coeff_attack_power_formula: "2.0" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PHANTOM_FLAP", volume: "1.0", pitch: "1.5" } }
+  7:
+    mp_cost: 29
+    cooldown_ticks: 70
+    effects:
+      - { type: "TELEPORT_FORWARD", target_selector: "SELF", parameters: { distance: "-5.0" } }
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { area_radius: "3.0", physical_damage_coeff_attack_power_formula: "2.2" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PHANTOM_FLAP", volume: "1.0", pitch: "1.5" } }
+  8:
+    mp_cost: 31
+    cooldown_ticks: 65
+    effects:
+      - { type: "TELEPORT_FORWARD", target_selector: "SELF", parameters: { distance: "-5.0" } }
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { area_radius: "3.0", physical_damage_coeff_attack_power_formula: "2.4" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PHANTOM_FLAP", volume: "1.0", pitch: "1.5" } }
+  9:
+    mp_cost: 33
+    cooldown_ticks: 60
+    effects:
+      - { type: "TELEPORT_FORWARD", target_selector: "SELF", parameters: { distance: "-5.0" } }
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { area_radius: "3.0", physical_damage_coeff_attack_power_formula: "2.6" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PHANTOM_FLAP", volume: "1.0", pitch: "1.5" } }
+  10:
+    mp_cost: 35
+    cooldown_ticks: 40
+    effects:
+      - { type: "TELEPORT_FORWARD", target_selector: "SELF", parameters: { distance: "-5.0" } }
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { area_radius: "3.0", physical_damage_coeff_attack_power_formula: "3.0" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PHANTOM_FLAP", volume: "1.0", pitch: "1.5" } }
+upgrade_cost_per_level:
+  2: 5000
+  3: 16875
+  4: 40000
+  5: 78125
+  6: 135000
+  7: 214375
+  8: 320000
+  9: 455625
+  10: 625000

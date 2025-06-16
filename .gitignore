@@ -1,4 +1,7 @@
-run/
+/run/*
+!/run/plugins/
+/run/plugins/*
+!/run/plugins/RPGcore/
 note/
 gradle/
 build/

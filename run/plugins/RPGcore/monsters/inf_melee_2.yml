@@ -1,0 +1,16 @@
+monster_id: "inf_melee_2"
+display_name: "&c무한던전 스켈레톤"
+vanilla_mob_type: "SKELETON"
+icon_material: "IRON_SWORD"
+equipment:
+  main_hand: "STONE_AXE"
+stats:
+  MAX_HP: { min: 100.0, max: 100.0 }
+  ATTACK_POWER: { min: 18.0, max: 25.0 }
+  DEFENSE_POWER: { min: 5.0, max: 5.0 }
+  MAGIC_RESISTANCE: { min: 5.0, max: 5.0 } # 추가
+skills: []
+xp_reward: 60
+drop_table_id: null
+is_boss_monster: false
+aggro_type: "NEAREST"
