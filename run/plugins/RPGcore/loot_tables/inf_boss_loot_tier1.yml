@@ -1,8 +1,18 @@
-# Wave 10~ 보스 드롭 테이블
 drops:
-  - type: RPGCORE_EQUIPMENT
-    id: "warrior_starter_sword" # 예시 장비 ID
+  - type: RPGCORE_CUSTOM_MATERIAL
+    id: "challenger_mark"
     minAmount: 1
-    maxAmount: 1
-    chance: 0.1 # 10%
-    upgradeLevel: 0
+    maxAmount: 3
+    chance: 0.5
+  - type: MULTIPLE_DROP
+    chance: 0.3
+    drops:
+      - { type: RPGCORE_CUSTOM_MATERIAL, id: "core_of_swift_magic", minAmount: 1, maxAmount: 1, chance: 0.111 }
+      - { type: RPGCORE_CUSTOM_MATERIAL, id: "feather_of_light_wind", minAmount: 1, maxAmount: 1, chance: 0.111 }
+      - { type: RPGCORE_CUSTOM_MATERIAL, id: "pouch_of_time_dust", minAmount: 1, maxAmount: 1, chance: 0.111 }
+      - { type: RPGCORE_CUSTOM_MATERIAL, id: "guardian_steel_fragment", minAmount: 1, maxAmount: 1, chance: 0.111 }
+      - { type: RPGCORE_CUSTOM_MATERIAL, id: "indomitable_rock_heart", minAmount: 1, maxAmount: 1, chance: 0.112 }
+      - { type: RPGCORE_CUSTOM_MATERIAL, id: "rampart_shadow_spool", minAmount: 1, maxAmount: 1, chance: 0.111 }
+      - { type: RPGCORE_CUSTOM_MATERIAL, id: "assassins_black_cloth", minAmount: 1, maxAmount: 1, chance: 0.111 }
+      - { type: RPGCORE_CUSTOM_MATERIAL, id: "sharpening_stone", minAmount: 1, maxAmount: 1, chance: 0.111 }
+      - { type: RPGCORE_CUSTOM_MATERIAL, id: "shadow_essence", minAmount: 1, maxAmount: 1, chance: 0.111 }

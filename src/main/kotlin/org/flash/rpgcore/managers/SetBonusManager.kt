@@ -32,29 +32,40 @@ object SetBonusManager {
                 val category = config.getString("$path.category", "MISC")!!.uppercase()
                 val requiredPieces = config.getInt("$path.required_pieces", 0)
 
-                // 보너스 스탯 파싱
-                val additiveStats = mutableMapOf<StatType, Double>()
-                val multiplicativeStats = mutableMapOf<StatType, Double>()
-                val bonusStatsSection = config.getConfigurationSection("$path.bonus_stats")
+                // <<<<<<< 수정된 부분 시작 >>>>>>>
+                val bonusStatsByTier = mutableMapOf<Int, EquipmentStats>()
+                val bonusStatsSection = config.getConfigurationSection("$path.bonus_stats_by_tier")
+                bonusStatsSection?.getKeys(false)?.forEach { tierKey ->
+                    val tier = tierKey.toInt()
+                    val tierPath = "$path.bonus_stats_by_tier.$tierKey"
+                    val additiveStats = mutableMapOf<StatType, Double>()
+                    val multiplicativeStats = mutableMapOf<StatType, Double>()
 
-                bonusStatsSection?.getConfigurationSection("additiveStats")?.getKeys(false)?.forEach { statKey ->
-                    additiveStats[StatType.valueOf(statKey.uppercase())] = bonusStatsSection.getDouble("additiveStats.$statKey")
-                }
-                bonusStatsSection?.getConfigurationSection("multiplicativeStats")?.getKeys(false)?.forEach { statKey ->
-                    multiplicativeStats[StatType.valueOf(statKey.uppercase())] = bonusStatsSection.getDouble("multiplicativeStats.$statKey")
-                }
-                val bonusStats = EquipmentStats(additiveStats, multiplicativeStats)
-
-                // 보너스 효과 파싱 (EquipmentManager의 parseEffectList와 유사)
-                val bonusEffects = config.getMapList("$path.bonus_effects").mapNotNull { effectMap ->
-                    val type = effectMap["type"] as? String ?: return@mapNotNull null
-                    val parameters = (effectMap["parameters"] as? Map<*, *>)
-                        ?.mapNotNull { (k, v) -> (k as? String)?.let { key -> v?.toString()?.let { value -> key to value } } }
-                        ?.toMap() ?: emptyMap()
-                    EffectDefinition(type, parameters)
+                    config.getConfigurationSection("$tierPath.additiveStats")?.getKeys(false)?.forEach { statKey ->
+                        additiveStats[StatType.valueOf(statKey.uppercase())] = config.getDouble("$tierPath.additiveStats.$statKey")
+                    }
+                    config.getConfigurationSection("$tierPath.multiplicativeStats")?.getKeys(false)?.forEach { statKey ->
+                        multiplicativeStats[StatType.valueOf(statKey.uppercase())] = config.getDouble("$tierPath.multiplicativeStats.$statKey")
+                    }
+                    bonusStatsByTier[tier] = EquipmentStats(additiveStats, multiplicativeStats)
                 }
 
-                loadedSetBonuses[setId] = SetBonusData(setId, displayName, category, requiredPieces, bonusStats, bonusEffects)
+                val bonusEffectsByTier = mutableMapOf<Int, List<EffectDefinition>>()
+                val bonusEffectsSection = config.getConfigurationSection("$path.bonus_effects_by_tier")
+                bonusEffectsSection?.getKeys(false)?.forEach { tierKey ->
+                    val tier = tierKey.toInt()
+                    val effectsList = config.getMapList("$path.bonus_effects_by_tier.$tierKey").mapNotNull { effectMap ->
+                        val type = effectMap["type"] as? String ?: return@mapNotNull null
+                        val parameters = (effectMap["parameters"] as? Map<*, *>)
+                            ?.mapNotNull { (k, v) -> (k as? String)?.let { key -> v?.toString()?.let { value -> key to value } } }
+                            ?.toMap() ?: emptyMap()
+                        EffectDefinition(type, parameters)
+                    }
+                    bonusEffectsByTier[tier] = effectsList
+                }
+
+                loadedSetBonuses[setId] = SetBonusData(setId, displayName, category, requiredPieces, bonusStatsByTier, bonusEffectsByTier)
+                // <<<<<<< 수정된 부분 끝 >>>>>>>
 
             } catch (e: Exception) {
                 logger.severe("[SetBonusManager] '$setId' 세트 보너스 로딩 중 오류 발생: ${e.message}")
@@ -84,5 +95,13 @@ object SetBonusManager {
             }
         }
         return activeBonuses
+    }
+
+    fun getActiveSetTier(player: Player, setId: String): Int {
+        val playerData = PlayerDataManager.getPlayerData(player)
+        return playerData.customEquipment.values
+            .filterNotNull()
+            .mapNotNull { EquipmentManager.getEquipmentDefinition(it.itemInternalId) }
+            .filter { it.setId == setId }.minOfOrNull { it.tier } ?: 0 // 세트를 구성하는 아이템 중 가장 낮은 티어를 현재 세트 티어로 간주
     }
 }

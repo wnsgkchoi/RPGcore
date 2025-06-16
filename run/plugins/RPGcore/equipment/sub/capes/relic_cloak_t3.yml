@@ -1,0 +1,78 @@
+display_name: "&3뫼비우스의 장막"
+description:
+  - "&7시간의 흐름을 완벽히 제어하는 궁극의 유물."
+  - "&7시작과 끝이 없는 시간의 고리 위에서 모든 충격을 무의미하게 만듭니다."
+material: "ELYTRA"
+custom_model_data: 20
+equipment_type: CLOAK
+set_id: "relic_set"
+tier: 3
+max_upgrade_level: 30
+unique_effects_on_hit_taken:
+  - type: "COOLDOWN_REDUCTION_ON_HIT"
+    parameters:
+      chance: "0.15"
+      reduction_ticks: "15" # 0.75초
+statsPerLevel:
+  0:  { additiveStats: { COOLDOWN_REDUCTION: 0.095, DEFENSE_POWER: 155.0 } }
+  1:  { additiveStats: { COOLDOWN_REDUCTION: 0.096, DEFENSE_POWER: 160.0 } }
+  2:  { additiveStats: { COOLDOWN_REDUCTION: 0.097, DEFENSE_POWER: 165.0 } }
+  3:  { additiveStats: { COOLDOWN_REDUCTION: 0.098, DEFENSE_POWER: 170.0 } }
+  4:  { additiveStats: { COOLDOWN_REDUCTION: 0.099, DEFENSE_POWER: 175.0 } }
+  5:  { additiveStats: { COOLDOWN_REDUCTION: 0.101, DEFENSE_POWER: 181.0 } }
+  6:  { additiveStats: { COOLDOWN_REDUCTION: 0.103, DEFENSE_POWER: 187.0 } }
+  7:  { additiveStats: { COOLDOWN_REDUCTION: 0.105, DEFENSE_POWER: 193.0 } }
+  8:  { additiveStats: { COOLDOWN_REDUCTION: 0.107, DEFENSE_POWER: 199.0 } }
+  9:  { additiveStats: { COOLDOWN_REDUCTION: 0.109, DEFENSE_POWER: 205.0 } }
+  10: { additiveStats: { COOLDOWN_REDUCTION: 0.112, DEFENSE_POWER: 213.0 } }
+  11: { additiveStats: { COOLDOWN_REDUCTION: 0.115, DEFENSE_POWER: 221.0 } }
+  12: { additiveStats: { COOLDOWN_REDUCTION: 0.118, DEFENSE_POWER: 229.0 } }
+  13: { additiveStats: { COOLDOWN_REDUCTION: 0.121, DEFENSE_POWER: 237.0 } }
+  14: { additiveStats: { COOLDOWN_REDUCTION: 0.124, DEFENSE_POWER: 245.0 } }
+  15: { additiveStats: { COOLDOWN_REDUCTION: 0.128, DEFENSE_POWER: 255.0 } }
+  16: { additiveStats: { COOLDOWN_REDUCTION: 0.132, DEFENSE_POWER: 265.0 } }
+  17: { additiveStats: { COOLDOWN_REDUCTION: 0.136, DEFENSE_POWER: 275.0 } }
+  18: { additiveStats: { COOLDOWN_REDUCTION: 0.14, DEFENSE_POWER: 285.0 } }
+  19: { additiveStats: { COOLDOWN_REDUCTION: 0.144, DEFENSE_POWER: 295.0 } }
+  20: { additiveStats: { COOLDOWN_REDUCTION: 0.15, DEFENSE_POWER: 310.0 } }
+  21: { additiveStats: { COOLDOWN_REDUCTION: 0.155, DEFENSE_POWER: 325.0 } }
+  22: { additiveStats: { COOLDOWN_REDUCTION: 0.16, DEFENSE_POWER: 340.0 } }
+  23: { additiveStats: { COOLDOWN_REDUCTION: 0.165, DEFENSE_POWER: 355.0 } }
+  24: { additiveStats: { COOLDOWN_REDUCTION: 0.17, DEFENSE_POWER: 370.0 } }
+  25: { additiveStats: { COOLDOWN_REDUCTION: 0.176, DEFENSE_POWER: 390.0 } }
+  26: { additiveStats: { COOLDOWN_REDUCTION: 0.182, DEFENSE_POWER: 410.0 } }
+  27: { additiveStats: { COOLDOWN_REDUCTION: 0.188, DEFENSE_POWER: 430.0 } }
+  28: { additiveStats: { COOLDOWN_REDUCTION: 0.194, DEFENSE_POWER: 450.0 } }
+  29: { additiveStats: { COOLDOWN_REDUCTION: 0.2, DEFENSE_POWER: 470.0 } }
+  30: { additiveStats: { COOLDOWN_REDUCTION: 0.22, DEFENSE_POWER: 500.0 } }
+xpCostPerUpgradeLevel:
+  1: 2000000
+  2: 2100000
+  3: 2250000
+  4: 2450000
+  5: 2700000
+  6: 3000000
+  7: 3350000
+  8: 3750000
+  9: 4200000
+  10: 4700000
+  11: 5250000
+  12: 5850000
+  13: 6500000
+  14: 7200000
+  15: 8000000
+  16: 8850000
+  17: 9750000
+  18: 10700000
+  19: 11700000
+  20: 12800000
+  21: 14000000
+  22: 15300000
+  23: 16700000
+  24: 18200000
+  25: 19800000
+  26: 21500000
+  27: 23300000
+  28: 25200000
+  29: 27200000
+  30: 29300000

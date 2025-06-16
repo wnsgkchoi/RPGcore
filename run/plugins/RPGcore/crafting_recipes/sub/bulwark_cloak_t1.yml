@@ -1,0 +1,8 @@
+recipe_id: "craft_bulwark_cloak_t1"
+output:
+  item_internal_name: "bulwark_cloak_t1"
+xp_cost: 12000
+ingredients:
+  - { item_type: "RPGCORE_CUSTOM_MATERIAL", item_id: "challenger_mark", amount: 3 }
+  - { item_type: "RPGCORE_CUSTOM_MATERIAL", item_id: "rampart_shadow_spool", amount: 1 }
+  - { item_type: "VANILLA", item_id: "WHITE_WOOL", amount: 8 }

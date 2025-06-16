@@ -1,0 +1,15 @@
+recipe_id: "upgrade_relic_gloves_t2"
+output:
+  item_internal_name: "relic_gloves_t2"
+xp_cost: 500000
+ingredients:
+  - item_type: "RPGCORE_CUSTOM_EQUIPMENT"
+    item_id: "relic_gloves_t1"
+    required_upgrade_level: 10
+    amount: 1
+  - item_type: "RPGCORE_CUSTOM_MATERIAL"
+    item_id: "successor_sigil"
+    amount: 5
+  - item_type: "VANILLA"
+    item_id: "DIAMOND"
+    amount: 4

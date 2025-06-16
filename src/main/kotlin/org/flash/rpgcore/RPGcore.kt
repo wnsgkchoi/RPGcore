@@ -131,6 +131,28 @@ class RPGcore : JavaPlugin() {
                             }
                         }
 
+                        val bulwarkSet = SetBonusManager.getActiveBonuses(player).find { it.setId == "bulwark_set" }
+                        if (bulwarkSet != null) {
+                            val tier = SetBonusManager.getActiveSetTier(player, "bulwark_set")
+                            val effect = bulwarkSet.bonusEffectsByTier[tier]?.find { it.type == "OUT_OF_COMBAT_SHIELD" }
+                            if (effect != null) {
+                                val checkInterval = (effect.parameters["check_interval_ticks"]?.toLongOrNull() ?: 100L) * 50
+                                if (System.currentTimeMillis() - playerData.lastDamagedTime > checkInterval) {
+                                    val maxShield = StatManager.getFinalStatValue(player, StatType.MAX_HP) * (effect.parameters["shield_percent_max_hp"]?.toDoubleOrNull() ?: 0.0)
+                                    if (playerData.currentShield < maxShield) {
+                                        playerData.currentShield = maxShield
+                                        player.sendActionBar("§7[강철의 보루] §f보호막이 재생성되었습니다.")
+                                        needsUpdate = true
+                                    }
+                                }
+                            }
+                        } else {
+                            if (playerData.currentShield > 0) {
+                                playerData.currentShield = 0.0
+                                needsUpdate = true
+                            }
+                        }
+
                         if (StatusEffectManager.hasStatus(player, "explosive_arrow_mode")) {
                             val effect = StatusEffectManager.getActiveStatus(player, "explosive_arrow_mode")
                             val mpDrain = effect?.parameters?.get("mp_drain_per_second")?.toString()?.toDoubleOrNull() ?: 0.0

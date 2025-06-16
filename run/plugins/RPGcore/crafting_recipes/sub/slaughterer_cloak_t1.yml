@@ -1,0 +1,8 @@
+recipe_id: "craft_slaughterer_cloak_t1"
+output:
+  item_internal_name: "slaughterer_cloak_t1"
+xp_cost: 15000
+ingredients:
+  - { item_type: "RPGCORE_CUSTOM_MATERIAL", item_id: "challenger_mark", amount: 3 }
+  - { item_type: "RPGCORE_CUSTOM_MATERIAL", item_id: "shadow_essence", amount: 1 }
+  - { item_type: "VANILLA", item_id: "REDSTONE_BLOCK", amount: 2 }

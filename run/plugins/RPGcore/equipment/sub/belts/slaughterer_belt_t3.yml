@@ -1,0 +1,78 @@
+display_name: "&4차원 포식자의 허리띠"
+description:
+  - "&7적의 피로 물든 학살자 세트의 일부."
+  - "&7강자의 여유, 혹은 약자에 대한 자비 없는 포식을 상징합니다."
+material: "NETHER_BRICK"
+custom_model_data: 20
+equipment_type: BELT
+set_id: "slaughterer_set"
+tier: 3
+max_upgrade_level: 30
+unique_effects_on_hit_dealt:
+  - type: "HIGH_HP_BONUS_DAMAGE"
+    parameters:
+      health_threshold_percent: "0.8" 
+      bonus_damage_percent: "0.15"   # 15%로 효과 강화
+statsPerLevel:
+  0:  { additiveStats: { ATTACK_POWER: 140.0, SPELL_POWER: 140.0 } }
+  1:  { additiveStats: { ATTACK_POWER: 145.0, SPELL_POWER: 145.0 } }
+  2:  { additiveStats: { ATTACK_POWER: 150.0, SPELL_POWER: 150.0 } }
+  3:  { additiveStats: { ATTACK_POWER: 155.0, SPELL_POWER: 155.0 } }
+  4:  { additiveStats: { ATTACK_POWER: 160.0, SPELL_POWER: 160.0 } }
+  5:  { additiveStats: { ATTACK_POWER: 166.0, SPELL_POWER: 166.0 } }
+  6:  { additiveStats: { ATTACK_POWER: 172.0, SPELL_POWER: 172.0 } }
+  7:  { additiveStats: { ATTACK_POWER: 178.0, SPELL_POWER: 178.0 } }
+  8:  { additiveStats: { ATTACK_POWER: 184.0, SPELL_POWER: 184.0 } }
+  9:  { additiveStats: { ATTACK_POWER: 190.0, SPELL_POWER: 190.0 } }
+  10: { additiveStats: { ATTACK_POWER: 198.0, SPELL_POWER: 198.0 } }
+  11: { additiveStats: { ATTACK_POWER: 206.0, SPELL_POWER: 206.0 } }
+  12: { additiveStats: { ATTACK_POWER: 214.0, SPELL_POWER: 214.0 } }
+  13: { additiveStats: { ATTACK_POWER: 222.0, SPELL_POWER: 222.0 } }
+  14: { additiveStats: { ATTACK_POWER: 230.0, SPELL_POWER: 230.0 } }
+  15: { additiveStats: { ATTACK_POWER: 240.0, SPELL_POWER: 240.0 } }
+  16: { additiveStats: { ATTACK_POWER: 250.0, SPELL_POWER: 250.0 } }
+  17: { additiveStats: { ATTACK_POWER: 260.0, SPELL_POWER: 260.0 } }
+  18: { additiveStats: { ATTACK_POWER: 270.0, SPELL_POWER: 270.0 } }
+  19: { additiveStats: { ATTACK_POWER: 280.0, SPELL_POWER: 280.0 } }
+  20: { additiveStats: { ATTACK_POWER: 295.0, SPELL_POWER: 295.0 } }
+  21: { additiveStats: { ATTACK_POWER: 310.0, SPELL_POWER: 310.0 } }
+  22: { additiveStats: { ATTACK_POWER: 325.0, SPELL_POWER: 325.0 } }
+  23: { additiveStats: { ATTACK_POWER: 340.0, SPELL_POWER: 340.0 } }
+  24: { additiveStats: { ATTACK_POWER: 355.0, SPELL_POWER: 355.0 } }
+  25: { additiveStats: { ATTACK_POWER: 375.0, SPELL_POWER: 375.0 } }
+  26: { additiveStats: { ATTACK_POWER: 395.0, SPELL_POWER: 395.0 } }
+  27: { additiveStats: { ATTACK_POWER: 415.0, SPELL_POWER: 415.0 } }
+  28: { additiveStats: { ATTACK_POWER: 435.0, SPELL_POWER: 435.0 } }
+  29: { additiveStats: { ATTACK_POWER: 455.0, SPELL_POWER: 455.0 } }
+  30: { additiveStats: { ATTACK_POWER: 480.0, SPELL_POWER: 480.0 } }
+xpCostPerUpgradeLevel:
+  1: 2500000
+  2: 2600000
+  3: 2750000
+  4: 2950000
+  5: 3200000
+  6: 3500000
+  7: 3850000
+  8: 4250000
+  9: 4700000
+  10: 5200000
+  11: 5750000
+  12: 6350000
+  13: 7000000
+  14: 7700000
+  15: 8500000
+  16: 9350000
+  17: 10250000
+  18: 11200000
+  19: 12200000
+  20: 13300000
+  21: 14500000
+  22: 15800000
+  23: 17200000
+  24: 18700000
+  25: 20300000
+  26: 22000000
+  27: 23800000
+  28: 25700000
+  29: 27700000
+  30: 30000000

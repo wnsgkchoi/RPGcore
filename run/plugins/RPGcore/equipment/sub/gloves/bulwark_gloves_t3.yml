@@ -1,0 +1,78 @@
+display_name: "&8타이탄의 주먹"
+description:
+  - "&7신들의 대장간에서 단조된 궁극의 방어구."
+  - "&7패배를 모르는 불굴의 투지가 깃들어, 죽음의 위기에서 착용자를 보호합니다."
+material: "IRON_INGOT" 
+custom_model_data: 21
+equipment_type: GLOVES
+set_id: "bulwark_set"
+tier: 3
+max_upgrade_level: 30
+unique_effects_on_equip:
+  - type: "LOW_HP_DEFENSE_BUFF"
+    parameters:
+      health_threshold_percent: "0.3" 
+      defense_boost_percent: "0.35"    # 35%로 효과 강화
+statsPerLevel:
+  0:  { additiveStats: { MAX_HP: 300.0, DEFENSE_POWER: 120.0, MAGIC_RESISTANCE: 80.0 } }
+  1:  { additiveStats: { MAX_HP: 310.0, DEFENSE_POWER: 124.0, MAGIC_RESISTANCE: 83.0 } }
+  2:  { additiveStats: { MAX_HP: 320.0, DEFENSE_POWER: 128.0, MAGIC_RESISTANCE: 86.0 } }
+  3:  { additiveStats: { MAX_HP: 330.0, DEFENSE_POWER: 132.0, MAGIC_RESISTANCE: 89.0 } }
+  4:  { additiveStats: { MAX_HP: 340.0, DEFENSE_POWER: 136.0, MAGIC_RESISTANCE: 92.0 } }
+  5:  { additiveStats: { MAX_HP: 350.0, DEFENSE_POWER: 140.0, MAGIC_RESISTANCE: 95.0 } }
+  6:  { additiveStats: { MAX_HP: 360.0, DEFENSE_POWER: 144.0, MAGIC_RESISTANCE: 98.0 } }
+  7:  { additiveStats: { MAX_HP: 370.0, DEFENSE_POWER: 148.0, MAGIC_RESISTANCE: 101.0 } }
+  8:  { additiveStats: { MAX_HP: 380.0, DEFENSE_POWER: 152.0, MAGIC_RESISTANCE: 104.0 } }
+  9:  { additiveStats: { MAX_HP: 390.0, DEFENSE_POWER: 156.0, MAGIC_RESISTANCE: 107.0 } }
+  10: { additiveStats: { MAX_HP: 405.0, DEFENSE_POWER: 162.0, MAGIC_RESISTANCE: 111.0 } }
+  11: { additiveStats: { MAX_HP: 420.0, DEFENSE_POWER: 168.0, MAGIC_RESISTANCE: 115.0 } }
+  12: { additiveStats: { MAX_HP: 435.0, DEFENSE_POWER: 174.0, MAGIC_RESISTANCE: 119.0 } }
+  13: { additiveStats: { MAX_HP: 450.0, DEFENSE_POWER: 180.0, MAGIC_RESISTANCE: 123.0 } }
+  14: { additiveStats: { MAX_HP: 465.0, DEFENSE_POWER: 186.0, MAGIC_RESISTANCE: 127.0 } }
+  15: { additiveStats: { MAX_HP: 485.0, DEFENSE_POWER: 194.0, MAGIC_RESISTANCE: 132.0 } }
+  16: { additiveStats: { MAX_HP: 505.0, DEFENSE_POWER: 202.0, MAGIC_RESISTANCE: 137.0 } }
+  17: { additiveStats: { MAX_HP: 525.0, DEFENSE_POWER: 210.0, MAGIC_RESISTANCE: 142.0 } }
+  18: { additiveStats: { MAX_HP: 545.0, DEFENSE_POWER: 218.0, MAGIC_RESISTANCE: 147.0 } }
+  19: { additiveStats: { MAX_HP: 565.0, DEFENSE_POWER: 226.0, MAGIC_RESISTANCE: 152.0 } }
+  20: { additiveStats: { MAX_HP: 590.0, DEFENSE_POWER: 236.0, MAGIC_RESISTANCE: 160.0 } }
+  21: { additiveStats: { MAX_HP: 615.0, DEFENSE_POWER: 246.0, MAGIC_RESISTANCE: 168.0 } }
+  22: { additiveStats: { MAX_HP: 640.0, DEFENSE_POWER: 256.0, MAGIC_RESISTANCE: 176.0 } }
+  23: { additiveStats: { MAX_HP: 665.0, DEFENSE_POWER: 266.0, MAGIC_RESISTANCE: 184.0 } }
+  24: { additiveStats: { MAX_HP: 690.0, DEFENSE_POWER: 276.0, MAGIC_RESISTANCE: 192.0 } }
+  25: { additiveStats: { MAX_HP: 720.0, DEFENSE_POWER: 288.0, MAGIC_RESISTANCE: 200.0 } }
+  26: { additiveStats: { MAX_HP: 750.0, DEFENSE_POWER: 300.0, MAGIC_RESISTANCE: 208.0 } }
+  27: { additiveStats: { MAX_HP: 780.0, DEFENSE_POWER: 312.0, MAGIC_RESISTANCE: 216.0 } }
+  28: { additiveStats: { MAX_HP: 810.0, DEFENSE_POWER: 324.0, MAGIC_RESISTANCE: 224.0 } }
+  29: { additiveStats: { MAX_HP: 840.0, DEFENSE_POWER: 336.0, MAGIC_RESISTANCE: 232.0 } }
+  30: { additiveStats: { MAX_HP: 900.0, DEFENSE_POWER: 350.0, MAGIC_RESISTANCE: 250.0 } }
+xpCostPerUpgradeLevel:
+  1: 2000000
+  2: 2100000
+  3: 2250000
+  4: 2450000
+  5: 2700000
+  6: 3000000
+  7: 3350000
+  8: 3750000
+  9: 4200000
+  10: 4700000
+  11: 5250000
+  12: 5850000
+  13: 6500000
+  14: 7200000
+  15: 8000000
+  16: 8850000
+  17: 9750000
+  18: 10700000
+  19: 11700000
+  20: 12800000
+  21: 14000000
+  22: 15300000
+  23: 16700000
+  24: 18200000
+  25: 19800000
+  26: 21500000
+  27: 23300000
+  28: 25200000
+  29: 27200000
+  30: 29300000

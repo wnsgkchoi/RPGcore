@@ -1,0 +1,57 @@
+display_name: "&b깨어난 신속의 손길"
+description:
+  - "&7잠들어 있던 유물의 힘이 완전히 깨어났습니다."
+  - "&7마력이 폭주하여 종종 시간의 제약을 완전히 무시합니다."
+material: "LEATHER"
+custom_model_data: 10
+equipment_type: GLOVES
+set_id: "relic_set"
+tier: 2
+max_upgrade_level: 20
+unique_effects_on_skill_use:
+  - type: "COOLDOWN_RESET"
+    parameters:
+      chance: "0.05"
+statsPerLevel:
+  0:  { additiveStats: { MAX_MP: 60.0, COOLDOWN_REDUCTION: 0.045 } }
+  1:  { additiveStats: { MAX_MP: 65.0, COOLDOWN_REDUCTION: 0.046 } }
+  2:  { additiveStats: { MAX_MP: 70.0, COOLDOWN_REDUCTION: 0.047 } }
+  3:  { additiveStats: { MAX_MP: 75.0, COOLDOWN_REDUCTION: 0.048 } }
+  4:  { additiveStats: { MAX_MP: 80.0, COOLDOWN_REDUCTION: 0.049 } }
+  5:  { additiveStats: { MAX_MP: 86.0, COOLDOWN_REDUCTION: 0.051 } }
+  6:  { additiveStats: { MAX_MP: 92.0, COOLDOWN_REDUCTION: 0.053 } }
+  7:  { additiveStats: { MAX_MP: 98.0, COOLDOWN_REDUCTION: 0.055 } }
+  8:  { additiveStats: { MAX_MP: 104.0, COOLDOWN_REDUCTION: 0.057 } }
+  9:  { additiveStats: { MAX_MP: 110.0, COOLDOWN_REDUCTION: 0.059 } }
+  10: { additiveStats: { MAX_MP: 118.0, COOLDOWN_REDUCTION: 0.062 } }
+  11: { additiveStats: { MAX_MP: 126.0, COOLDOWN_REDUCTION: 0.064 } }
+  12: { additiveStats: { MAX_MP: 134.0, COOLDOWN_REDUCTION: 0.066 } }
+  13: { additiveStats: { MAX_MP: 142.0, COOLDOWN_REDUCTION: 0.068 } }
+  14: { additiveStats: { MAX_MP: 150.0, COOLDOWN_REDUCTION: 0.07 } }
+  15: { additiveStats: { MAX_MP: 160.0, COOLDOWN_REDUCTION: 0.073 } }
+  16: { additiveStats: { MAX_MP: 170.0, COOLDOWN_REDUCTION: 0.076 } }
+  17: { additiveStats: { MAX_MP: 180.0, COOLDOWN_REDUCTION: 0.079 } }
+  18: { additiveStats: { MAX_MP: 190.0, COOLDOWN_REDUCTION: 0.082 } }
+  19: { additiveStats: { MAX_MP: 200.0, COOLDOWN_REDUCTION: 0.085 } }
+  20: { additiveStats: { MAX_MP: 215.0, COOLDOWN_REDUCTION: 0.09 } }
+xpCostPerUpgradeLevel:
+  1: 300000
+  2: 320000
+  3: 345000
+  4: 375000
+  5: 410000
+  6: 450000
+  7: 495000
+  8: 545000
+  9: 600000
+  10: 660000
+  11: 726000
+  12: 798000
+  13: 878000
+  14: 966000
+  15: 1062000
+  16: 1168000
+  17: 1285000
+  18: 1413000
+  19: 1555000
+  20: 1710000

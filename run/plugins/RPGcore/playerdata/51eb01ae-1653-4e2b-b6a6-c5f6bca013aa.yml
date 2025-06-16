@@ -1,8 +1,8 @@
 player-uuid: 51eb01ae-1653-4e2b-b6a6-c5f6bca013aa
 player-name: TiredFlash
-last-login-timestamp: 1750051420889
+last-login-timestamp: 1750086648767
 current-hp: 30.0
-current-mp: 50000.0
+current-mp: 50485.0
 current-class-id: elementalist
 learned-recipes:
 - rotten_sword
@@ -20,7 +20,16 @@ base-stats:
   SPELL_LIFESTEAL: 0.0
   XP_GAIN_RATE: 0.0
   ITEM_DROP_RATE: 0.0
-custom-equipment: {}
+custom-equipment:
+  CLOAK:
+    item_id: relic_cloak_t3
+    upgrade_level: 0
+  BELT:
+    item_id: relic_belt_t3
+    upgrade_level: 0
+  GLOVES:
+    item_id: relic_gloves_t3
+    upgrade_level: 0
 learned-skills:
   rage_whirlwind: 2
   last_stand: 1
@@ -58,9 +67,9 @@ backpack:
         +20",underlined:0b}],text:""},{extra:[{bold:0b,color:"blue",italic:0b,obfuscated:0b,strikethrough:0b,text:"공격력:
         +30%",underlined:0b}],text:""},{extra:[{bold:0b,color:"blue",italic:0b,obfuscated:0b,strikethrough:0b,text:"주문력:
         +30%",underlined:0b}],text:""}]'
-      minecraft:tooltip_display: '{hidden_components:["minecraft:attribute_modifiers"]}'
       minecraft:custom_name: '{extra:[{bold:0b,color:"gold",italic:0b,obfuscated:0b,strikethrough:0b,text:"굳어버린
         연어",underlined:0b}],text:""}'
+      minecraft:tooltip_display: '{hidden_components:["minecraft:attribute_modifiers"]}'
       minecraft:custom_data: '{PublicBukkitValues:{"rpgcore:rpgcore_item_id":"dried_salmon","rpgcore:rpgcore_item_upgrade_level":10}}'
     schema_version: 1
   - DataVersion: 4325

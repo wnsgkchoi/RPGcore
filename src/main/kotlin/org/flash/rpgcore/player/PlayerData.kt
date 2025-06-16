@@ -23,12 +23,14 @@ data class PlayerData(
 
     // --- 편의 기능 데이터 ---
     var customSpawnLocation: CustomSpawnLocation? = null,
-    val backpack: MutableMap<Int, Array<ItemStack?>> = ConcurrentHashMap(), // 백팩은 다중 접근 가능성 있으므로 유지
+    val backpack: MutableMap<Int, Array<ItemStack?>> = ConcurrentHashMap(),
 
     // --- 스탯 관련 데이터 ---
     val baseStats: MutableMap<StatType, Double> = mutableMapOf(),
     var currentHp: Double = 0.0,
     var currentMp: Double = 0.0,
+    var currentShield: Double = 0.0,
+    var lastDamagedTime: Long = 0L,
 
     // --- 클래스 관련 데이터 ---
     var currentClassId: String? = null,
@@ -39,7 +41,7 @@ data class PlayerData(
     // --- 스킬 관련 데이터 ---
     val learnedSkills: MutableMap<String, Int> = mutableMapOf(),
     val equippedActiveSkills: MutableMap<String, String?> = mutableMapOf(),
-    val equippedPassiveSkills: MutableList<String?> = mutableListOf(null, null, null), // null로 3칸을 미리 초기화
+    val equippedPassiveSkills: MutableList<String?> = mutableListOf(null, null, null),
     val skillCooldowns: MutableMap<String, Long> = ConcurrentHashMap(),
     val skillCharges: MutableMap<String, Int> = mutableMapOf(),
     val skillChargeCooldowns: MutableMap<String, Long> = ConcurrentHashMap(),
@@ -54,13 +56,15 @@ data class PlayerData(
     val claimedEncyclopediaRewards: MutableSet<String> = ConcurrentHashMap.newKeySet(),
 
 
-    // --- 클래스 고유 매커니즘 데이터 ---
+    // --- 클래스 고유 매커니즘 및 장비 효과 데이터 ---
     var furyStacks: Int = 0,
     var lastFuryActionTime: Long = 0L,
     var galeRushStacks: Int = 0,
     var lastGaleRushActionTime: Long = 0L,
     var bowChargeLevel: Int = 0,
-    var isChargingBow: Boolean = false
+    var isChargingBow: Boolean = false,
+    var distanceTraveledForBeltEffect: Double = 0.0,
+    var burstDamageNegationCooldown: Long = 0L // <<<<<<< 추가된 필드
 ) {
 
     fun initializeForNewPlayer() {
@@ -69,14 +73,13 @@ data class PlayerData(
         }
         currentHp = baseStats[StatType.MAX_HP] ?: StatType.MAX_HP.defaultValue
         currentMp = baseStats[StatType.MAX_MP] ?: StatType.MAX_MP.defaultValue
+        lastDamagedTime = System.currentTimeMillis()
 
         EquipmentSlotType.entries.forEach { customEquipment[it] = null }
 
         equippedActiveSkills["SLOT_Q"] = null
         equippedActiveSkills["SLOT_F"] = null
         equippedActiveSkills["SLOT_SHIFT_Q"] = null
-
-        // 생성자에서 이미 3개의 null로 초기화되었으므로 별도 처리 필요 없음
     }
 
     fun getBaseStat(statType: StatType): Double {
@@ -130,4 +133,10 @@ data class PlayerData(
     fun startChargeCooldown(skillId: String, cooldownEndTimeMillis: Long) { skillChargeCooldowns[skillId] = cooldownEndTimeMillis }
     fun getRemainingChargeCooldownMillis(skillId: String): Long = (skillChargeCooldowns[skillId] ?: 0L).let { if (it > System.currentTimeMillis()) it - System.currentTimeMillis() else 0L }
     fun isOnChargeCooldown(skillId: String): Boolean = getRemainingChargeCooldownMillis(skillId) > 0
+
+    fun reduceAllCooldowns(millis: Long) {
+        val now = System.currentTimeMillis()
+        skillCooldowns.replaceAll { _, endTime -> if (endTime > now) endTime - millis else endTime }
+        skillChargeCooldowns.replaceAll { _, endTime -> if (endTime > now) endTime - millis else endTime }
+    }
 }

@@ -18,6 +18,7 @@ import org.flash.rpgcore.equipment.EquipmentStats
 import org.flash.rpgcore.equipment.EquippedItemInfo
 import org.flash.rpgcore.stats.StatManager
 import org.flash.rpgcore.stats.StatType
+import org.flash.rpgcore.utils.EffectLoreHelper
 import org.flash.rpgcore.utils.XPHelper
 import java.io.File
 
@@ -63,6 +64,7 @@ object EquipmentManager : IEquipmentManager {
             val customModelData = if (config.contains("custom_model_data")) config.getInt("custom_model_data") else null
             val lore = config.getStringList("lore").map { ChatColor.translateAlternateColorCodes('&', it) }
             val equipmentType = EquipmentSlotType.valueOf(config.getString("equipment_type", "WEAPON")!!.uppercase())
+            val tier = config.getInt("tier", 1)
             val requiredClassInternalIds = config.getStringList("required_class_internal_ids")
             val maxUpgradeLevel = config.getInt("max_upgrade_level", 0)
 
@@ -94,13 +96,16 @@ object EquipmentManager : IEquipmentManager {
             val uniqueEffectsOnEquip = parseEffectList(config.getMapList("unique_effects_on_equip"))
             val uniqueEffectsOnHitDealt = parseEffectList(config.getMapList("unique_effects_on_hit_dealt"))
             val uniqueEffectsOnHitTaken = parseEffectList(config.getMapList("unique_effects_on_hit_taken"))
+            val uniqueEffectsOnSkillUse = parseEffectList(config.getMapList("unique_effects_on_skill_use"))
+            val uniqueEffectsOnMove = parseEffectList(config.getMapList("unique_effects_on_move")) // <<<<<<< 추가된 로드 로직
             val setId = config.getString("set_id")
             val baseCooldownMs = if (config.contains("base_cooldown_ms")) config.getInt("base_cooldown_ms") else null
 
             val equipmentData = EquipmentData(
-                internalId, displayName, material, customModelData, lore, equipmentType,
+                internalId, displayName, material, customModelData, lore, equipmentType, tier,
                 requiredClassInternalIds, maxUpgradeLevel, statsPerLevel, xpCostPerUpgradeLevel,
-                uniqueEffectsOnEquip, uniqueEffectsOnHitDealt, uniqueEffectsOnHitTaken, setId, baseCooldownMs
+                uniqueEffectsOnEquip, uniqueEffectsOnHitDealt, uniqueEffectsOnHitTaken, uniqueEffectsOnSkillUse, uniqueEffectsOnMove, // <<<<<<< 생성자에 추가
+                setId, baseCooldownMs
             )
             equipmentDefinitions[internalId] = equipmentData
         } catch (e: Exception) {
@@ -128,13 +133,14 @@ object EquipmentManager : IEquipmentManager {
 
     override fun getTotalAdditiveStatBonus(player: Player, statType: StatType): Double {
         var totalBonus = 0.0
-        // 개별 장비 보너스
         player.let { PlayerDataManager.getPlayerData(it) }.customEquipment.values.filterNotNull().forEach { info ->
             getEquipmentDefinition(info.itemInternalId)?.statsPerLevel?.get(info.upgradeLevel)?.additiveStats?.get(statType)?.let { totalBonus += it }
         }
-        // 세트 효과 보너스
         SetBonusManager.getActiveBonuses(player).forEach { setBonus ->
-            setBonus.bonusStats.additiveStats[statType]?.let { totalBonus += it }
+            val tier = SetBonusManager.getActiveSetTier(player, setBonus.setId)
+            if (tier > 0) {
+                setBonus.bonusStatsByTier[tier]?.additiveStats?.get(statType)?.let { totalBonus += it }
+            }
         }
         return totalBonus
     }
@@ -153,7 +159,10 @@ object EquipmentManager : IEquipmentManager {
             getEquipmentDefinition(info.itemInternalId)?.statsPerLevel?.get(info.upgradeLevel)?.multiplicativeStats?.get(statType)?.let { totalBonus += it }
         }
         SetBonusManager.getActiveBonuses(player).forEach { setBonus ->
-            setBonus.bonusStats.multiplicativeStats[statType]?.let { totalBonus += it }
+            val tier = SetBonusManager.getActiveSetTier(player, setBonus.setId)
+            if (tier > 0) {
+                setBonus.bonusStatsByTier[tier]?.multiplicativeStats?.get(statType)?.let { totalBonus += it }
+            }
         }
         return totalBonus
     }
@@ -167,7 +176,6 @@ object EquipmentManager : IEquipmentManager {
     }
 
     override fun getTotalFlatAttackSpeedBonus(player: Player): Double {
-        // 공격 속도는 무기와 세트 효과에서만 가져옴
         var totalBonus = 0.0
         player.let { PlayerDataManager.getPlayerData(it) }.customEquipment.values.filterNotNull().forEach { info ->
             if (getEquipmentDefinition(info.itemInternalId)?.equipmentType == EquipmentSlotType.WEAPON) {
@@ -175,7 +183,10 @@ object EquipmentManager : IEquipmentManager {
             }
         }
         SetBonusManager.getActiveBonuses(player).forEach { setBonus ->
-            setBonus.bonusStats.additiveStats[StatType.ATTACK_SPEED]?.let { totalBonus += it }
+            val tier = SetBonusManager.getActiveSetTier(player, setBonus.setId)
+            if (tier > 0) {
+                setBonus.bonusStatsByTier[tier]?.additiveStats?.get(StatType.ATTACK_SPEED)?.let { totalBonus += it }
+            }
         }
         return totalBonus
     }
@@ -199,14 +210,25 @@ object EquipmentManager : IEquipmentManager {
             lore.add(ChatColor.translateAlternateColorCodes('&',"&8--- 기본 옵션 (+${upgradeLevel}) ---"))
             stats.additiveStats.forEach { (stat, value) ->
                 if (value != 0.0) {
-                    val formatted = if (stat.isPercentageBased) "${String.format("%.0f", value * 100)}%" else value.toInt().toString()
+                    val formatted = if (stat.isPercentageBased) "${String.format("%.1f", value * 100)}%" else value.toInt().toString()
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&9${stat.displayName}: +$formatted"))
                 }
             }
             stats.multiplicativeStats.forEach { (stat, value) ->
-                if (value != 0.0) lore.add(ChatColor.translateAlternateColorCodes('&', "&9${stat.displayName}: +${String.format("%.0f", value * 100)}%"))
+                if (value != 0.0) lore.add(ChatColor.translateAlternateColorCodes('&', "&9${stat.displayName}: +${String.format("%.1f", value * 100)}%"))
             }
         }
+
+        // <<<<<<< 고유 효과 Lore 추가 로직 시작 >>>>>>>
+        val allUniqueEffects = definition.uniqueEffectsOnEquip + definition.uniqueEffectsOnHitDealt + definition.uniqueEffectsOnHitTaken + definition.uniqueEffectsOnSkillUse + definition.uniqueEffectsOnMove
+        if (allUniqueEffects.isNotEmpty()) {
+            lore.add(" ")
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&d[고유 효과]"))
+            allUniqueEffects.forEach { effect ->
+                lore.add(EffectLoreHelper.generateEffectLore(effect))
+            }
+        }
+        // <<<<<<< 고유 효과 Lore 추가 로직 끝 >>>>>>>
 
         meta.lore = lore
         meta.persistentDataContainer.set(ITEM_ID_KEY, PersistentDataType.STRING, id)

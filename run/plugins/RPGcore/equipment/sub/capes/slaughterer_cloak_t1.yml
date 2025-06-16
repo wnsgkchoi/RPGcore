@@ -1,0 +1,32 @@
+display_name: "&c잔상의 망토"
+description:
+  - "&7적의 피로 물든 학살자 세트의 일부."
+  - "&7너무 빠른 움직임에 여러 개의 잔상이 겹쳐 보이는 듯합니다."
+material: "RED_BANNER"
+custom_model_data: null
+equipment_type: CLOAK
+set_id: "slaughterer_set"
+max_upgrade_level: 10
+statsPerLevel:
+  0:  { additiveStats: { CRITICAL_CHANCE: 0.03 } }
+  1:  { additiveStats: { CRITICAL_CHANCE: 0.032 } }
+  2:  { additiveStats: { CRITICAL_CHANCE: 0.034 } }
+  3:  { additiveStats: { CRITICAL_CHANCE: 0.036 } }
+  4:  { additiveStats: { CRITICAL_CHANCE: 0.038 } }
+  5:  { additiveStats: { CRITICAL_CHANCE: 0.041 } }
+  6:  { additiveStats: { CRITICAL_CHANCE: 0.044 } }
+  7:  { additiveStats: { CRITICAL_CHANCE: 0.047 } }
+  8:  { additiveStats: { CRITICAL_CHANCE: 0.05 } }
+  9:  { additiveStats: { CRITICAL_CHANCE: 0.055 } }
+  10: { additiveStats: { CRITICAL_CHANCE: 0.06 } }
+xpCostPerUpgradeLevel:
+  1: 7000
+  2: 9800
+  3: 13700
+  4: 19200
+  5: 26900
+  6: 37700
+  7: 52800
+  8: 73900
+  9: 103500
+  10: 145000

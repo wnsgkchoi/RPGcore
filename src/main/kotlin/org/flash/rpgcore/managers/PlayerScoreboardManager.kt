@@ -32,6 +32,9 @@ object PlayerScoreboardManager {
         updateLine(board, objective, "xp", score--, "§eXP: §f${XPHelper.getTotalExperience(player)}")
         val maxHp = StatManager.getFinalStatValue(player, StatType.MAX_HP).toInt()
         updateLine(board, objective, "hp", score--, "§cHP: §f${playerData.currentHp.toInt()} / $maxHp")
+        if (playerData.currentShield > 0) {
+            updateLine(board, objective, "shield", score--, "§7보호막: §f${playerData.currentShield.toInt()}")
+        }
         val maxMp = StatManager.getFinalStatValue(player, StatType.MAX_MP).toInt()
         updateLine(board, objective, "mp", score--, "§9MP: §f${playerData.currentMp.toInt()} / $maxMp")
 

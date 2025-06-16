@@ -1,0 +1,58 @@
+display_name: "&7강철 심장 건틀릿"
+description:
+  - "&7패배를 모르는 심장의 힘이 깃든 건틀릿."
+  - "&7극한의 위기 속에서 착용자의 투지를 강철처럼 단단하게 만듭니다."
+material: "IRON_INGOT"
+custom_model_data: 11
+equipment_type: GLOVES
+set_id: "bulwark_set"
+tier: 2
+max_upgrade_level: 20
+unique_effects_on_equip:
+  - type: "LOW_HP_DEFENSE_BUFF"
+    parameters:
+      health_threshold_percent: "0.3" # 체력 30% 이하
+      defense_boost_percent: "0.2"    # 방어력/마법저항력 20% 증가
+statsPerLevel:
+  0:  { additiveStats: { MAX_HP: 80.0, DEFENSE_POWER: 30.0, MAGIC_RESISTANCE: 15.0 } }
+  1:  { additiveStats: { MAX_HP: 85.0, DEFENSE_POWER: 32.0, MAGIC_RESISTANCE: 16.0 } }
+  2:  { additiveStats: { MAX_HP: 90.0, DEFENSE_POWER: 34.0, MAGIC_RESISTANCE: 17.0 } }
+  3:  { additiveStats: { MAX_HP: 95.0, DEFENSE_POWER: 36.0, MAGIC_RESISTANCE: 18.0 } }
+  4:  { additiveStats: { MAX_HP: 100.0, DEFENSE_POWER: 38.0, MAGIC_RESISTANCE: 19.0 } }
+  5:  { additiveStats: { MAX_HP: 106.0, DEFENSE_POWER: 41.0, MAGIC_RESISTANCE: 21.0 } }
+  6:  { additiveStats: { MAX_HP: 112.0, DEFENSE_POWER: 44.0, MAGIC_RESISTANCE: 23.0 } }
+  7:  { additiveStats: { MAX_HP: 118.0, DEFENSE_POWER: 47.0, MAGIC_RESISTANCE: 25.0 } }
+  8:  { additiveStats: { MAX_HP: 124.0, DEFENSE_POWER: 50.0, MAGIC_RESISTANCE: 27.0 } }
+  9:  { additiveStats: { MAX_HP: 130.0, DEFENSE_POWER: 53.0, MAGIC_RESISTANCE: 29.0 } }
+  10: { additiveStats: { MAX_HP: 140.0, DEFENSE_POWER: 57.0, MAGIC_RESISTANCE: 32.0 } }
+  11: { additiveStats: { MAX_HP: 150.0, DEFENSE_POWER: 61.0, MAGIC_RESISTANCE: 35.0 } }
+  12: { additiveStats: { MAX_HP: 160.0, DEFENSE_POWER: 65.0, MAGIC_RESISTANCE: 38.0 } }
+  13: { additiveStats: { MAX_HP: 170.0, DEFENSE_POWER: 69.0, MAGIC_RESISTANCE: 41.0 } }
+  14: { additiveStats: { MAX_HP: 180.0, DEFENSE_POWER: 73.0, MAGIC_RESISTANCE: 44.0 } }
+  15: { additiveStats: { MAX_HP: 195.0, DEFENSE_POWER: 78.0, MAGIC_RESISTANCE: 48.0 } }
+  16: { additiveStats: { MAX_HP: 210.0, DEFENSE_POWER: 83.0, MAGIC_RESISTANCE: 52.0 } }
+  17: { additiveStats: { MAX_HP: 225.0, DEFENSE_POWER: 88.0, MAGIC_RESISTANCE: 56.0 } }
+  18: { additiveStats: { MAX_HP: 240.0, DEFENSE_POWER: 93.0, MAGIC_RESISTANCE: 60.0 } }
+  19: { additiveStats: { MAX_HP: 255.0, DEFENSE_POWER: 100.0, MAGIC_RESISTANCE: 65.0 } }
+  20: { additiveStats: { MAX_HP: 275.0, DEFENSE_POWER: 110.0, MAGIC_RESISTANCE: 75.0 } }
+xpCostPerUpgradeLevel:
+  1: 300000
+  2: 320000
+  3: 345000
+  4: 375000
+  5: 410000
+  6: 450000
+  7: 495000
+  8: 545000
+  9: 600000
+  10: 660000
+  11: 726000
+  12: 798000
+  13: 878000
+  14: 966000
+  15: 1062000
+  16: 1168000
+  17: 1285000
+  18: 1413000
+  19: 1555000
+  20: 1710000

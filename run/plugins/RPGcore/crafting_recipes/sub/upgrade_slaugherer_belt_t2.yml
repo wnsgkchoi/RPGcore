@@ -1,0 +1,8 @@
+recipe_id: "upgrade_slaughterer_belt_t2"
+output:
+  item_internal_name: "slaughterer_belt_t2"
+xp_cost: 750000
+ingredients:
+  - { item_type: "RPGCORE_CUSTOM_EQUIPMENT", item_id: "slaughterer_belt_t1", required_upgrade_level: 10, amount: 1 }
+  - { item_type: "RPGCORE_CUSTOM_MATERIAL", item_id: "successor_sigil", amount: 5 }
+  - { item_type: "VANILLA", item_id: "NETHERITE_INGOT", amount: 1 }

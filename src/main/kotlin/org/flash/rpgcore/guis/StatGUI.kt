@@ -88,24 +88,29 @@ class StatGUI(private val player: Player) : InventoryHolder {
         val finalStatValue = StatManager.getFinalStatValue(player, statType)
         val isPercentage = statType.isPercentageBased || statType == StatType.ATTACK_SPEED
 
-        // --- 세부 스탯 정보 추가 ---
         val baseStat = PlayerDataManager.getPlayerData(player).getBaseStat(statType)
         lore.add(ChatColor.translateAlternateColorCodes('&', "&7기본 ${statType.displayName}: &b${formatStatValue(baseStat, statType)}"))
 
-        // 장비 개별 보너스
         val equipAdd = EquipmentManager.getIndividualAdditiveStatBonus(player, statType)
         val equipMul = EquipmentManager.getIndividualMultiplicativePercentBonus(player, statType)
         if (equipAdd != 0.0 || equipMul != 0.0) {
             lore.add(ChatColor.translateAlternateColorCodes('&', "&a  + 장비 개별 합계: ${formatBonus(equipAdd, equipMul, isPercentage)}"))
         }
 
-        // 세트 효과 보너스
-        val setBonus = SetBonusManager.getActiveBonuses(player)
-        val setAdd = setBonus.sumOf { it.bonusStats.additiveStats[statType] ?: 0.0 }
-        val setMul = setBonus.sumOf { it.bonusStats.multiplicativeStats[statType] ?: 0.0 }
+        // <<<<<<< 수정된 부분 시작 >>>>>>>
+        val activeBonuses = SetBonusManager.getActiveBonuses(player)
+        val setAdd = activeBonuses.sumOf { setBonus ->
+            val tier = SetBonusManager.getActiveSetTier(player, setBonus.setId)
+            setBonus.bonusStatsByTier[tier]?.additiveStats?.get(statType) ?: 0.0
+        }
+        val setMul = activeBonuses.sumOf { setBonus ->
+            val tier = SetBonusManager.getActiveSetTier(player, setBonus.setId)
+            setBonus.bonusStatsByTier[tier]?.multiplicativeStats?.get(statType) ?: 0.0
+        }
         if (setAdd != 0.0 || setMul != 0.0) {
             lore.add(ChatColor.translateAlternateColorCodes('&', "&a  + 세트 효과 합계: ${formatBonus(setAdd, setMul, isPercentage)}"))
         }
+        // <<<<<<< 수정된 부분 끝 >>>>>>>
 
         val skillAddBonus = SkillManager.getTotalAdditiveStatBonus(player, statType)
         val skillMulBonus = SkillManager.getTotalMultiplicativePercentBonus(player, statType)
@@ -121,13 +126,12 @@ class StatGUI(private val player: Player) : InventoryHolder {
 
         val encyclopediaAddBonus = EncyclopediaManager.getAdditivePercentageBonus(player, statType)
         val encyclopediaMulBonus = EncyclopediaManager.getGlobalStatMultiplier(player, statType) - 1.0
-        if (encyclopediaAddBonus != 0.0 || encyclopediaMulBonus > 0.0) { // 곱연산은 0보다 클 때만
+        if (encyclopediaAddBonus != 0.0 || encyclopediaMulBonus > 0.0) {
             lore.add(ChatColor.translateAlternateColorCodes('&', "&6  + 도감 합계: ${formatBonus(encyclopediaAddBonus, encyclopediaMulBonus, isPercentage)}"))
         }
 
         lore.add(" ")
         lore.add(ChatColor.translateAlternateColorCodes('&', "&e최종 ${statType.displayName}: &b&l${formatStatValue(finalStatValue, statType)}"))
-        // --- 세부 스탯 정보 끝 ---
 
         if (statType.isXpUpgradable) {
             lore.add(" ")

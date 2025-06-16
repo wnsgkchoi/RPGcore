@@ -1,0 +1,57 @@
+display_name: "&7면죄의 장막"
+description:
+  - "&7모든 해로운 기운을 정화하는 신성한 장막."
+  - "&7어떠한 악의에도 더럽혀지지 않는 힘을 지녔습니다."
+material: "GRAY_BANNER"
+custom_model_data: 10
+equipment_type: CLOAK
+set_id: "bulwark_set"
+tier: 2
+max_upgrade_level: 20
+unique_effects_on_equip:
+  - type: "DEBUFF_DURATION_REDUCTION"
+    parameters:
+      reduction_percent: "0.15" # 15%
+statsPerLevel:
+  0:  { additiveStats: { MAX_HP: 55.0, DEFENSE_POWER: 20.0, MAGIC_RESISTANCE: 35.0 } }
+  1:  { additiveStats: { MAX_HP: 58.0, DEFENSE_POWER: 21.0, MAGIC_RESISTANCE: 37.0 } }
+  2:  { additiveStats: { MAX_HP: 61.0, DEFENSE_POWER: 22.0, MAGIC_RESISTANCE: 39.0 } }
+  3:  { additiveStats: { MAX_HP: 64.0, DEFENSE_POWER: 23.0, MAGIC_RESISTANCE: 41.0 } }
+  4:  { additiveStats: { MAX_HP: 67.0, DEFENSE_POWER: 24.0, MAGIC_RESISTANCE: 43.0 } }
+  5:  { additiveStats: { MAX_HP: 71.0, DEFENSE_POWER: 26.0, MAGIC_RESISTANCE: 46.0 } }
+  6:  { additiveStats: { MAX_HP: 75.0, DEFENSE_POWER: 28.0, MAGIC_RESISTANCE: 49.0 } }
+  7:  { additiveStats: { MAX_HP: 79.0, DEFENSE_POWER: 30.0, MAGIC_RESISTANCE: 52.0 } }
+  8:  { additiveStats: { MAX_HP: 83.0, DEFENSE_POWER: 32.0, MAGIC_RESISTANCE: 55.0 } }
+  9:  { additiveStats: { MAX_HP: 87.0, DEFENSE_POWER: 34.0, MAGIC_RESISTANCE: 58.0 } }
+  10: { additiveStats: { MAX_HP: 93.0, DEFENSE_POWER: 37.0, MAGIC_RESISTANCE: 62.0 } }
+  11: { additiveStats: { MAX_HP: 99.0, DEFENSE_POWER: 40.0, MAGIC_RESISTANCE: 66.0 } }
+  12: { additiveStats: { MAX_HP: 105.0, DEFENSE_POWER: 43.0, MAGIC_RESISTANCE: 70.0 } }
+  13: { additiveStats: { MAX_HP: 111.0, DEFENSE_POWER: 46.0, MAGIC_RESISTANCE: 74.0 } }
+  14: { additiveStats: { MAX_HP: 117.0, DEFENSE_POWER: 49.0, MAGIC_RESISTANCE: 78.0 } }
+  15: { additiveStats: { MAX_HP: 125.0, DEFENSE_POWER: 53.0, MAGIC_RESISTANCE: 83.0 } }
+  16: { additiveStats: { MAX_HP: 133.0, DEFENSE_POWER: 57.0, MAGIC_RESISTANCE: 88.0 } }
+  17: { additiveStats: { MAX_HP: 141.0, DEFENSE_POWER: 61.0, MAGIC_RESISTANCE: 93.0 } }
+  18: { additiveStats: { MAX_HP: 149.0, DEFENSE_POWER: 65.0, MAGIC_RESISTANCE: 98.0 } }
+  19: { additiveStats: { MAX_HP: 160.0, DEFENSE_POWER: 70.0, MAGIC_RESISTANCE: 105.0 } }
+  20: { additiveStats: { MAX_HP: 175.0, DEFENSE_POWER: 80.0, MAGIC_RESISTANCE: 115.0 } }
+xpCostPerUpgradeLevel:
+  1: 300000
+  2: 320000
+  3: 345000
+  4: 375000
+  5: 410000
+  6: 450000
+  7: 495000
+  8: 545000
+  9: 600000
+  10: 660000
+  11: 726000
+  12: 798000
+  13: 878000
+  14: 966000
+  15: 1062000
+  16: 1168000
+  17: 1285000
+  18: 1413000
+  19: 1555000
+  20: 1710000

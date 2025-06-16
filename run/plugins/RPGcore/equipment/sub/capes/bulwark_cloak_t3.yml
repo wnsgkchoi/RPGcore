@@ -1,0 +1,77 @@
+display_name: "&8절대자의 가호"
+description:
+  - "&7신성한 힘이 깃들어 모든 악의를 거부하는 최후의 장막."
+  - "&7어떠한 저주도 착용자의 의지를 꺾을 수 없습니다."
+material: "GRAY_BANNER"
+custom_model_data: 20
+equipment_type: CLOAK
+set_id: "bulwark_set"
+tier: 3
+max_upgrade_level: 30
+unique_effects_on_equip:
+  - type: "DEBUFF_DURATION_REDUCTION"
+    parameters:
+      reduction_percent: "0.25" # 25%로 효과 강화
+statsPerLevel:
+  0:  { additiveStats: { MAX_HP: 180.0, DEFENSE_POWER: 85.0, MAGIC_RESISTANCE: 120.0 } }
+  1:  { additiveStats: { MAX_HP: 185.0, DEFENSE_POWER: 88.0, MAGIC_RESISTANCE: 124.0 } }
+  2:  { additiveStats: { MAX_HP: 190.0, DEFENSE_POWER: 91.0, MAGIC_RESISTANCE: 128.0 } }
+  3:  { additiveStats: { MAX_HP: 195.0, DEFENSE_POWER: 94.0, MAGIC_RESISTANCE: 132.0 } }
+  4:  { additiveStats: { MAX_HP: 200.0, DEFENSE_POWER: 97.0, MAGIC_RESISTANCE: 136.0 } }
+  5:  { additiveStats: { MAX_HP: 206.0, DEFENSE_POWER: 101.0, MAGIC_RESISTANCE: 141.0 } }
+  6:  { additiveStats: { MAX_HP: 212.0, DEFENSE_POWER: 105.0, MAGIC_RESISTANCE: 146.0 } }
+  7:  { additiveStats: { MAX_HP: 218.0, DEFENSE_POWER: 109.0, MAGIC_RESISTANCE: 151.0 } }
+  8:  { additiveStats: { MAX_HP: 224.0, DEFENSE_POWER: 113.0, MAGIC_RESISTANCE: 156.0 } }
+  9:  { additiveStats: { MAX_HP: 230.0, DEFENSE_POWER: 117.0, MAGIC_RESISTANCE: 161.0 } }
+  10: { additiveStats: { MAX_HP: 240.0, DEFENSE_POWER: 123.0, MAGIC_RESISTANCE: 168.0 } }
+  11: { additiveStats: { MAX_HP: 250.0, DEFENSE_POWER: 129.0, MAGIC_RESISTANCE: 175.0 } }
+  12: { additiveStats: { MAX_HP: 260.0, DEFENSE_POWER: 135.0, MAGIC_RESISTANCE: 182.0 } }
+  13: { additiveStats: { MAX_HP: 270.0, DEFENSE_POWER: 141.0, MAGIC_RESISTANCE: 189.0 } }
+  14: { additiveStats: { MAX_HP: 280.0, DEFENSE_POWER: 147.0, MAGIC_RESISTANCE: 196.0 } }
+  15: { additiveStats: { MAX_HP: 295.0, DEFENSE_POWER: 155.0, MAGIC_RESISTANCE: 205.0 } }
+  16: { additiveStats: { MAX_HP: 310.0, DEFENSE_POWER: 163.0, MAGIC_RESISTANCE: 214.0 } }
+  17: { additiveStats: { MAX_HP: 325.0, DEFENSE_POWER: 171.0, MAGIC_RESISTANCE: 223.0 } }
+  18: { additiveStats: { MAX_HP: 340.0, DEFENSE_POWER: 179.0, MAGIC_RESISTANCE: 232.0 } }
+  19: { additiveStats: { MAX_HP: 355.0, DEFENSE_POWER: 187.0, MAGIC_RESISTANCE: 241.0 } }
+  20: { additiveStats: { MAX_HP: 375.0, DEFENSE_POWER: 200.0, MAGIC_RESISTANCE: 250.0 } }
+  21: { additiveStats: { MAX_HP: 395.0, DEFENSE_POWER: 213.0, MAGIC_RESISTANCE: 260.0 } }
+  22: { additiveStats: { MAX_HP: 415.0, DEFENSE_POWER: 226.0, MAGIC_RESISTANCE: 270.0 } }
+  23: { additiveStats: { MAX_HP: 435.0, DEFENSE_POWER: 239.0, MAGIC_RESISTANCE: 280.0 } }
+  24: { additiveStats: { MAX_HP: 455.0, DEFENSE_POWER: 252.0, MAGIC_RESISTANCE: 290.0 } }
+  25: { additiveStats: { MAX_HP: 480.0, DEFENSE_POWER: 268.0, MAGIC_RESISTANCE: 305.0 } }
+  26: { additiveStats: { MAX_HP: 505.0, DEFENSE_POWER: 284.0, MAGIC_RESISTANCE: 320.0 } }
+  27: { additiveStats: { MAX_HP: 530.0, DEFENSE_POWER: 300.0, MAGIC_RESISTANCE: 335.0 } }
+  28: { additiveStats: { MAX_HP: 555.0, DEFENSE_POWER: 316.0, MAGIC_RESISTANCE: 350.0 } }
+  29: { additiveStats: { MAX_HP: 580.0, DEFENSE_POWER: 332.0, MAGIC_RESISTANCE: 365.0 } }
+  30: { additiveStats: { MAX_HP: 620.0, DEFENSE_POWER: 350.0, MAGIC_RESISTANCE: 380.0 } }
+xpCostPerUpgradeLevel:
+  1: 2000000
+  2: 2100000
+  3: 2250000
+  4: 2450000
+  5: 2700000
+  6: 3000000
+  7: 3350000
+  8: 3750000
+  9: 4200000
+  10: 4700000
+  11: 5250000
+  12: 5850000
+  13: 6500000
+  14: 7200000
+  15: 8000000
+  16: 8850000
+  17: 9750000
+  18: 10700000
+  19: 11700000
+  20: 12800000
+  21: 14000000
+  22: 15300000
+  23: 16700000
+  24: 18200000
+  25: 19800000
+  26: 21500000
+  27: 23300000
+  28: 25200000
+  29: 27200000
+  30: 29300000

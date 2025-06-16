@@ -1,0 +1,32 @@
+display_name: "&c살수의 장갑"
+description:
+  - "&7적의 피로 물든 학살자 세트의 일부."
+  - "&7치명적인 일격을 가했을 때, 손놀림이 순간적으로 폭발하듯 빨라집니다."
+material: "NETHERITE_SCRAP" 
+custom_model_data: null
+equipment_type: GLOVES
+set_id: "slaughterer_set"
+max_upgrade_level: 10
+statsPerLevel:
+  0:  { additiveStats: { ATTACK_POWER: 5.0, SPELL_POWER: 5.0, CRITICAL_CHANCE: 0.01 } }
+  1:  { additiveStats: { ATTACK_POWER: 6.0, SPELL_POWER: 6.0, CRITICAL_CHANCE: 0.01 } }
+  2:  { additiveStats: { ATTACK_POWER: 7.0, SPELL_POWER: 7.0, CRITICAL_CHANCE: 0.01 } }
+  3:  { additiveStats: { ATTACK_POWER: 8.0, SPELL_POWER: 8.0, CRITICAL_CHANCE: 0.02 } }
+  4:  { additiveStats: { ATTACK_POWER: 9.0, SPELL_POWER: 9.0, CRITICAL_CHANCE: 0.02 } }
+  5:  { additiveStats: { ATTACK_POWER: 11.0, SPELL_POWER: 11.0, CRITICAL_CHANCE: 0.02 } }
+  6:  { additiveStats: { ATTACK_POWER: 13.0, SPELL_POWER: 13.0, CRITICAL_CHANCE: 0.03 } }
+  7:  { additiveStats: { ATTACK_POWER: 15.0, SPELL_POWER: 15.0, CRITICAL_CHANCE: 0.03 } }
+  8:  { additiveStats: { ATTACK_POWER: 17.0, SPELL_POWER: 17.0, CRITICAL_CHANCE: 0.04 } }
+  9:  { additiveStats: { ATTACK_POWER: 20.0, SPELL_POWER: 20.0, CRITICAL_CHANCE: 0.04 } }
+  10: { additiveStats: { ATTACK_POWER: 25.0, SPELL_POWER: 25.0, CRITICAL_CHANCE: 0.05 } }
+xpCostPerUpgradeLevel:
+  1: 7000
+  2: 9800
+  3: 13700
+  4: 19200
+  5: 26900
+  6: 37700
+  7: 52800
+  8: 73900
+  9: 103500
+  10: 145000

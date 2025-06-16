@@ -3,6 +3,7 @@ package org.flash.rpgcore.listeners
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import org.bukkit.Bukkit
+import org.bukkit.ChatColor
 import org.bukkit.entity.Arrow
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
@@ -16,11 +17,13 @@ import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.entity.ProjectileHitEvent
 import org.flash.rpgcore.RPGcore
+import org.flash.rpgcore.equipment.EquipmentSlotType
 import org.flash.rpgcore.managers.*
 import org.flash.rpgcore.player.MonsterEncounterData
 import org.flash.rpgcore.skills.SkillEffectExecutor
 import org.flash.rpgcore.utils.XPHelper
 import java.util.*
+import kotlin.random.Random
 
 class CombatListener : Listener {
 
@@ -88,10 +91,17 @@ class CombatListener : Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun onEntityDamageByEntity(event: EntityDamageByEntityEvent) {
         val victim = event.entity as? LivingEntity ?: return
+
+        if (victim is Player) {
+            PlayerDataManager.getPlayerData(victim).lastDamagedTime = System.currentTimeMillis() // <<<<<<< 피격 시간 갱신
+            handleOnHitTakenEffects(victim)
+        }
+
         when (val eventDamager = event.damager) {
             is Player -> {
                 event.isCancelled = true
                 CombatManager.handleDamage(eventDamager, victim)
+                handleOnAttackSetBonuses(eventDamager)
             }
             is Arrow -> {
                 val shooter = eventDamager.shooter as? LivingEntity ?: return
@@ -115,6 +125,7 @@ class CombatListener : Listener {
                     } else {
                         CombatManager.handleDamage(shooter, victim)
                     }
+                    handleOnAttackSetBonuses(shooter)
                 } else {
                     if (victim is Player) {
                         event.isCancelled = true
@@ -157,6 +168,10 @@ class CombatListener : Listener {
             val onImpactEffectMaps: List<Map<*, *>> = gson.fromJson(onImpactJson, type)
             val hitLocation = event.hitEntity?.location ?: event.hitBlock?.location ?: projectile.location
             SkillEffectExecutor.executeEffectsFromProjectile(caster, hitLocation, skill, skillLevel, onImpactEffectMaps)
+
+            if (caster is Player) {
+                handleOnAttackSetBonuses(caster)
+            }
             projectile.remove()
         }
 
@@ -214,6 +229,53 @@ class CombatListener : Listener {
             }
             if (monsterDefinition.isBoss) BossBarManager.removeBoss(victim)
             EntityManager.unregisterEntity(victim)
+        }
+    }
+
+    private fun handleOnAttackSetBonuses(player: Player) {
+        val activeBonuses = SetBonusManager.getActiveBonuses(player)
+        if (activeBonuses.isEmpty()) return
+
+        for (setBonus in activeBonuses) {
+            val tier = SetBonusManager.getActiveSetTier(player, setBonus.setId)
+            if (tier == 0) continue
+
+            val effects = setBonus.bonusEffectsByTier[tier] ?: continue
+            for (effect in effects) {
+                if (effect.type == "ON_ATTACK_COOLDOWN_REDUCTION") {
+                    val chance = effect.parameters["chance"]?.toDoubleOrNull() ?: 0.0
+                    if (Random.nextDouble() < chance) {
+                        val reductionTicks = effect.parameters["reduction_ticks"]?.toLongOrNull() ?: 0L
+                        if (reductionTicks > 0) {
+                            val playerData = PlayerDataManager.getPlayerData(player)
+                            playerData.reduceAllCooldowns(reductionTicks * 50)
+                            player.sendActionBar(ChatColor.translateAlternateColorCodes('&', "&b[가속의 유물] §f세트 효과 발동!"))
+                            PlayerScoreboardManager.updateScoreboard(player)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // <<<<<<< 추가된 함수 >>>>>>>
+    private fun handleOnHitTakenEffects(player: Player) {
+        val playerData = PlayerDataManager.getPlayerData(player)
+        val cloakInfo = playerData.customEquipment[EquipmentSlotType.CLOAK] ?: return
+        val cloakData = EquipmentManager.getEquipmentDefinition(cloakInfo.itemInternalId) ?: return
+
+        for (effect in cloakData.uniqueEffectsOnHitTaken) {
+            if (effect.type == "COOLDOWN_REDUCTION_ON_HIT") {
+                val chance = effect.parameters["chance"]?.toDoubleOrNull() ?: 0.0
+                if (Random.nextDouble() < chance) {
+                    val reductionTicks = effect.parameters["reduction_ticks"]?.toLongOrNull() ?: 0L
+                    if (reductionTicks > 0) {
+                        playerData.reduceAllCooldowns(reductionTicks * 50)
+                        player.sendActionBar(ChatColor.translateAlternateColorCodes('&', "&b[시간 왜곡의 망토] §f효과 발동!"))
+                        PlayerScoreboardManager.updateScoreboard(player)
+                    }
+                }
+            }
         }
     }
 }

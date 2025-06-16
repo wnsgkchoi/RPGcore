@@ -16,6 +16,7 @@ import org.flash.rpgcore.equipment.EquipmentSlotType
 import org.flash.rpgcore.managers.EquipmentManager
 import org.flash.rpgcore.managers.PlayerDataManager
 import org.flash.rpgcore.managers.SetBonusManager
+import org.flash.rpgcore.utils.EffectLoreHelper
 
 class EquipmentGUI(private val player: Player) : InventoryHolder {
 
@@ -139,7 +140,6 @@ class EquipmentGUI(private val player: Player) : InventoryHolder {
             inventory.setItem(baseSlotIndex + 2, upgradeButtonItem)
         }
 
-        // ★★★★★★★★★★★★★★★★★★★★★ 오류 수정 부분 ★★★★★★★★★★★★★★★★★★★★★
         val activeBonuses = SetBonusManager.getActiveBonuses(player)
 
         val setCategories = mapOf(
@@ -162,31 +162,40 @@ class EquipmentGUI(private val player: Player) : InventoryHolder {
             val setItem: ItemStack
 
             if (activeSet != null) {
+                val tier = SetBonusManager.getActiveSetTier(player, activeSet.setId)
                 val lore = mutableListOf<String>()
-                // Additive Stats 포맷팅
-                activeSet.bonusStats.additiveStats.forEach { (stat, value) ->
-                    if (value != 0.0) {
-                        val formattedValue = if (stat.isPercentageBased) {
-                            "${String.format("%.0f", value * 100)}%"
-                        } else {
-                            value.toInt().toString()
+                lore.add(ChatColor.translateAlternateColorCodes('&', "&a세트: ${activeSet.displayName} &7(Tier $tier)"))
+
+                val statsForTier = activeSet.bonusStatsByTier[tier]
+                if (statsForTier != null) {
+                    lore.add(" ")
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&6[스탯 보너스]"))
+                    statsForTier.additiveStats.forEach { (stat, value) ->
+                        if (value != 0.0) {
+                            val formattedValue = if (stat.isPercentageBased) "${String.format("%.0f", value * 100)}%" else value.toInt().toString()
+                            lore.add(ChatColor.translateAlternateColorCodes('&', "&9${stat.displayName}: +$formattedValue"))
                         }
-                        lore.add("&9${stat.displayName}: +$formattedValue")
+                    }
+                    statsForTier.multiplicativeStats.forEach { (stat, value) ->
+                        if (value != 0.0) lore.add(ChatColor.translateAlternateColorCodes('&', "&9${stat.displayName}: +${String.format("%.0f", value * 100)}%"))
                     }
                 }
-                // Multiplicative Stats 포맷팅
-                activeSet.bonusStats.multiplicativeStats.forEach { (stat, value) ->
-                    if (value != 0.0) {
-                        lore.add("&9${stat.displayName}: +${String.format("%.0f", value * 100)}%")
+
+                val effectsForTier = activeSet.bonusEffectsByTier[tier]
+                if (!effectsForTier.isNullOrEmpty()) {
+                    lore.add(" ")
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&d[고유 효과]"))
+                    effectsForTier.forEach { effect ->
+                        lore.add(EffectLoreHelper.generateEffectLore(effect))
                     }
                 }
+
                 setItem = createNamedItem(material, title, lore)
             } else {
                 setItem = createNamedItem(Material.BARRIER, title, listOf("&7(활성화되지 않음)"))
             }
             inventory.setItem(slot, setItem)
         }
-        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 
         val craftingOpenButton = createInteractiveItemStack(
             material = Material.CRAFTING_TABLE,

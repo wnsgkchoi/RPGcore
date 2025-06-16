@@ -9,10 +9,12 @@ import org.bukkit.event.player.PlayerDropItemEvent
 import org.bukkit.event.player.PlayerSwapHandItemsEvent
 import org.bukkit.inventory.ItemStack
 import org.flash.rpgcore.RPGcore
+import org.flash.rpgcore.equipment.EquipmentSlotType
 import org.flash.rpgcore.managers.*
 import org.flash.rpgcore.skills.SkillEffectExecutor
 import org.flash.rpgcore.stats.StatManager
 import org.flash.rpgcore.stats.StatType
+import kotlin.random.Random
 
 class SkillKeyListener : Listener {
 
@@ -90,6 +92,24 @@ class SkillKeyListener : Listener {
             return
         }
 
+        // 쿨타임 계산 먼저 수행
+        var cooldownReduction = StatManager.getFinalStatValue(player, StatType.COOLDOWN_REDUCTION)
+
+        // <<<<<<< 허리띠 버프 효과 적용 로직 시작 >>>>>>>
+        val beltBuff = StatusEffectManager.getActiveStatus(player, "next_skill_cdr_buff")
+        if (beltBuff != null) {
+            val reductionSeconds = beltBuff.parameters["reduction_seconds"]?.toString()?.toDoubleOrNull() ?: 0.0
+            if (reductionSeconds > 0) {
+                val reductionPercentage = reductionSeconds / (levelData.cooldownTicks / 20.0)
+                cooldownReduction += reductionPercentage
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&b[유랑하는 바람의 허리띠] §f효과로 재사용 대기시간이 감소합니다!"))
+                StatusEffectManager.removeStatus(player, "next_skill_cdr_buff")
+            }
+        }
+        // <<<<<<< 허리띠 버프 효과 적용 로직 끝 >>>>>>>
+
+        val finalCooldownTicks = (levelData.cooldownTicks * (1.0 - cooldownReduction)).toLong()
+
         val maxCharges = skill.maxCharges
         if (maxCharges != null && maxCharges > 0) {
             val currentCharges = playerData.getSkillCharges(skillId, maxCharges)
@@ -100,9 +120,11 @@ class SkillKeyListener : Listener {
                 if (levelData.castTimeTicks > 0) CastingManager.startCasting(player, skill, level) else SkillEffectExecutor.execute(player, skillId)
 
                 if (playerData.getSkillCharges(skillId, maxCharges) == 0) {
-                    val cooldownReduction = StatManager.getFinalStatValue(player, StatType.COOLDOWN_REDUCTION)
-                    val finalCooldownTicks = (levelData.cooldownTicks * (1.0 - cooldownReduction)).toLong()
-                    playerData.startChargeCooldown(skillId, System.currentTimeMillis() + finalCooldownTicks * 50)
+                    if (!handleCooldownResetEffect(player)) {
+                        playerData.startChargeCooldown(skillId, System.currentTimeMillis() + finalCooldownTicks * 50)
+                    } else {
+                        player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&b[신속의 손길] §f재사용 대기시간이 초기화되었습니다!"))
+                    }
                 }
             } else {
                 if (playerData.isOnChargeCooldown(skillId)) {
@@ -120,12 +142,30 @@ class SkillKeyListener : Listener {
             }
             playerData.currentMp -= levelData.mpCost
 
-            val cooldownReduction = StatManager.getFinalStatValue(player, StatType.COOLDOWN_REDUCTION)
-            val finalCooldownTicks = (levelData.cooldownTicks * (1.0 - cooldownReduction)).toLong()
-            playerData.startSkillCooldown(skillId, System.currentTimeMillis() + finalCooldownTicks * 50)
+            if (!handleCooldownResetEffect(player)) {
+                playerData.startSkillCooldown(skillId, System.currentTimeMillis() + finalCooldownTicks * 50)
+            } else {
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&b[신속의 손길] §f재사용 대기시간이 초기화되었습니다!"))
+            }
 
             if (levelData.castTimeTicks > 0) CastingManager.startCasting(player, skill, level) else SkillEffectExecutor.execute(player, skillId)
         }
         PlayerScoreboardManager.updateScoreboard(player)
+    }
+
+    private fun handleCooldownResetEffect(player: Player): Boolean {
+        val playerData = PlayerDataManager.getPlayerData(player)
+        val glovesInfo = playerData.customEquipment[EquipmentSlotType.GLOVES] ?: return false
+        val glovesData = EquipmentManager.getEquipmentDefinition(glovesInfo.itemInternalId) ?: return false
+
+        val effect = glovesData.uniqueEffectsOnSkillUse.find { it.type == "COOLDOWN_RESET" } ?: return false
+
+        val chance = effect.parameters["chance"]?.toDoubleOrNull() ?: 0.0
+
+        return if (Random.nextDouble() < chance) {
+            true
+        } else {
+            false
+        }
     }
 }

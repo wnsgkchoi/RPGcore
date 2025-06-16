@@ -1,0 +1,79 @@
+display_name: "&8월드 스파인 거들"
+description:
+  - "&7세상의 척추를 이루는 바위로 만들었다는 전설의 허리띠."
+  - "&7세상을 짊어진 그 무게는 어떠한 공격도 솜털처럼 가볍게 만듭니다."
+material: "CHAIN"
+custom_model_data: 20
+equipment_type: BELT
+set_id: "bulwark_set"
+tier: 3
+max_upgrade_level: 30
+unique_effects_on_hit_taken:
+  - type: "BURST_DAMAGE_NEGATION"
+    parameters:
+      damage_threshold_percent_max_hp: "0.2"
+      negation_percent_of_excess: "0.75" # 75%로 효과 강화
+      cooldown_ticks: "160" # 8초로 쿨타임 감소
+statsPerLevel:
+  0:  { additiveStats: { MAX_HP: 360.0, DEFENSE_POWER: 85.0 } }
+  1:  { additiveStats: { MAX_HP: 370.0, DEFENSE_POWER: 88.0 } }
+  2:  { additiveStats: { MAX_HP: 380.0, DEFENSE_POWER: 91.0 } }
+  3:  { additiveStats: { MAX_HP: 390.0, DEFENSE_POWER: 94.0 } }
+  4:  { additiveStats: { MAX_HP: 400.0, DEFENSE_POWER: 97.0 } }
+  5:  { additiveStats: { MAX_HP: 412.0, DEFENSE_POWER: 101.0 } }
+  6:  { additiveStats: { MAX_HP: 424.0, DEFENSE_POWER: 105.0 } }
+  7:  { additiveStats: { MAX_HP: 436.0, DEFENSE_POWER: 109.0 } }
+  8:  { additiveStats: { MAX_HP: 448.0, DEFENSE_POWER: 113.0 } }
+  9:  { additiveStats: { MAX_HP: 460.0, DEFENSE_POWER: 117.0 } }
+  10: { additiveStats: { MAX_HP: 475.0, DEFENSE_POWER: 123.0 } }
+  11: { additiveStats: { MAX_HP: 490.0, DEFENSE_POWER: 129.0 } }
+  12: { additiveStats: { MAX_HP: 505.0, DEFENSE_POWER: 135.0 } }
+  13: { additiveStats: { MAX_HP: 520.0, DEFENSE_POWER: 141.0 } }
+  14: { additiveStats: { MAX_HP: 535.0, DEFENSE_POWER: 147.0 } }
+  15: { additiveStats: { MAX_HP: 555.0, DEFENSE_POWER: 155.0 } }
+  16: { additiveStats: { MAX_HP: 575.0, DEFENSE_POWER: 163.0 } }
+  17: { additiveStats: { MAX_HP: 595.0, DEFENSE_POWER: 171.0 } }
+  18: { additiveStats: { MAX_HP: 615.0, DEFENSE_POWER: 179.0 } }
+  19: { additiveStats: { MAX_HP: 635.0, DEFENSE_POWER: 187.0 } }
+  20: { additiveStats: { MAX_HP: 660.0, DEFENSE_POWER: 200.0 } }
+  21: { additiveStats: { MAX_HP: 685.0, DEFENSE_POWER: 213.0 } }
+  22: { additiveStats: { MAX_HP: 710.0, DEFENSE_POWER: 226.0 } }
+  23: { additiveStats: { MAX_HP: 735.0, DEFENSE_POWER: 239.0 } }
+  24: { additiveStats: { MAX_HP: 760.0, DEFENSE_POWER: 252.0 } }
+  25: { additiveStats: { MAX_HP: 790.0, DEFENSE_POWER: 268.0 } }
+  26: { additiveStats: { MAX_HP: 820.0, DEFENSE_POWER: 284.0 } }
+  27: { additiveStats: { MAX_HP: 850.0, DEFENSE_POWER: 300.0 } }
+  28: { additiveStats: { MAX_HP: 880.0, DEFENSE_POWER: 316.0 } }
+  29: { additiveStats: { MAX_HP: 910.0, DEFENSE_POWER: 332.0 } }
+  30: { additiveStats: { MAX_HP: 1000.0, DEFENSE_POWER: 350.0 } }
+xpCostPerUpgradeLevel:
+  1: 2000000
+  2: 2100000
+  3: 2250000
+  4: 2450000
+  5: 2700000
+  6: 3000000
+  7: 3350000
+  8: 3750000
+  9: 4200000
+  10: 4700000
+  11: 5250000
+  12: 5850000
+  13: 6500000
+  14: 7200000
+  15: 8000000
+  16: 8850000
+  17: 9750000
+  18: 10700000
+  19: 11700000
+  20: 12800000
+  21: 14000000
+  22: 15300000
+  23: 16700000
+  24: 18200000
+  25: 19800000
+  26: 21500000
+  27: 23300000
+  28: 25200000
+  29: 27200000
+  30: 29300000

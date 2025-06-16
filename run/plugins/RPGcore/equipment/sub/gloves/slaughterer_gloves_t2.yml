@@ -1,0 +1,59 @@
+display_name: "&c심판의 손길"
+description:
+  - "&7적의 피로 물든 학살자 세트의 일부."
+  - "&7치명적인 일격은 더 빠른 다음 공격을 위한 발판이 될 뿐입니다."
+material: "NETHERITE_SCRAP" 
+custom_model_data: 10
+equipment_type: GLOVES
+set_id: "slaughterer_set"
+tier: 2
+max_upgrade_level: 20
+unique_effects_on_hit_dealt:
+  - type: "CRIT_ATTACK_SPEED_BUFF"
+    parameters:
+      trigger_on_crit_only: "true"
+      duration_ticks: "100" # 5초
+      attack_speed_bonus: "0.1" # 10%
+statsPerLevel:
+  0:  { additiveStats: { ATTACK_POWER: 30.0, SPELL_POWER: 30.0, CRITICAL_CHANCE: 0.055 } }
+  1:  { additiveStats: { ATTACK_POWER: 32.0, SPELL_POWER: 32.0, CRITICAL_CHANCE: 0.056 } }
+  2:  { additiveStats: { ATTACK_POWER: 34.0, SPELL_POWER: 34.0, CRITICAL_CHANCE: 0.057 } }
+  3:  { additiveStats: { ATTACK_POWER: 36.0, SPELL_POWER: 36.0, CRITICAL_CHANCE: 0.058 } }
+  4:  { additiveStats: { ATTACK_POWER: 38.0, SPELL_POWER: 38.0, CRITICAL_CHANCE: 0.059 } }
+  5:  { additiveStats: { ATTACK_POWER: 41.0, SPELL_POWER: 41.0, CRITICAL_CHANCE: 0.06 } }
+  6:  { additiveStats: { ATTACK_POWER: 44.0, SPELL_POWER: 44.0, CRITICAL_CHANCE: 0.061 } }
+  7:  { additiveStats: { ATTACK_POWER: 47.0, SPELL_POWER: 47.0, CRITICAL_CHANCE: 0.062 } }
+  8:  { additiveStats: { ATTACK_POWER: 50.0, SPELL_POWER: 50.0, CRITICAL_CHANCE: 0.063 } }
+  9:  { additiveStats: { ATTACK_POWER: 53.0, SPELL_POWER: 53.0, CRITICAL_CHANCE: 0.064 } }
+  10: { additiveStats: { ATTACK_POWER: 58.0, SPELL_POWER: 58.0, CRITICAL_CHANCE: 0.066 } }
+  11: { additiveStats: { ATTACK_POWER: 63.0, SPELL_POWER: 63.0, CRITICAL_CHANCE: 0.068 } }
+  12: { additiveStats: { MAX_HP: 50.0, ATTACK_POWER: 68.0, SPELL_POWER: 68.0, CRITICAL_CHANCE: 0.07 } }
+  13: { additiveStats: { MAX_HP: 55.0, ATTACK_POWER: 73.0, SPELL_POWER: 73.0, CRITICAL_CHANCE: 0.072 } }
+  14: { additiveStats: { MAX_HP: 60.0, ATTACK_POWER: 78.0, SPELL_POWER: 78.0, CRITICAL_CHANCE: 0.074 } }
+  15: { additiveStats: { MAX_HP: 65.0, ATTACK_POWER: 85.0, SPELL_POWER: 85.0, CRITICAL_CHANCE: 0.077 } }
+  16: { additiveStats: { MAX_HP: 70.0, ATTACK_POWER: 92.0, SPELL_POWER: 92.0, CRITICAL_CHANCE: 0.08 } }
+  17: { additiveStats: { MAX_HP: 75.0, ATTACK_POWER: 99.0, SPELL_POWER: 99.0, CRITICAL_CHANCE: 0.083 } }
+  18: { additiveStats: { MAX_HP: 80.0, ATTACK_POWER: 106.0, SPELL_POWER: 106.0, CRITICAL_CHANCE: 0.086 } }
+  19: { additiveStats: { MAX_HP: 85.0, ATTACK_POWER: 115.0, SPELL_POWER: 115.0, CRITICAL_CHANCE: 0.09 } }
+  20: { additiveStats: { MAX_HP: 100.0, ATTACK_POWER: 125.0, SPELL_POWER: 125.0, CRITICAL_CHANCE: 0.1 } }
+xpCostPerUpgradeLevel:
+  1: 400000
+  2: 420000
+  3: 445000
+  4: 475000
+  5: 510000
+  6: 550000
+  7: 595000
+  8: 645000
+  9: 700000
+  10: 760000
+  11: 826000
+  12: 898000
+  13: 978000
+  14: 1066000
+  15: 1162000
+  16: 1268000
+  17: 1385000
+  18: 1513000
+  19: 1655000
+  20: 1810000

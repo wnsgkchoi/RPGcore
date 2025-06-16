@@ -5,6 +5,7 @@ import org.bukkit.Sound
 import org.bukkit.attribute.Attribute
 import org.bukkit.entity.Player
 import org.flash.rpgcore.RPGcore
+import org.flash.rpgcore.equipment.EquipmentSlotType
 import org.flash.rpgcore.managers.*
 import org.flash.rpgcore.providers.IEncyclopediaProvider
 import org.flash.rpgcore.providers.IEquipmentProvider
@@ -21,7 +22,7 @@ object StatManager {
     private val logger = RPGcore.instance.logger
 
     private val equipmentProvider: IEquipmentProvider = EquipmentManager
-    private val statusEffectProvider: IStatusEffectProvider = StubStatusEffectProvider
+    private val statusEffectProvider: IStatusEffectProvider = StatusEffectManager // <<<<<<< 수정
     private val encyclopediaProvider: IEncyclopediaProvider = EncyclopediaManager
     private val skillStatProvider: ISkillStatProvider = SkillManager
     private val xpHelper: IXPHelper = XPHelper
@@ -69,6 +70,17 @@ object StatManager {
                     }
                 }
 
+                // <<<<<<< '그림자 학살자' 세트 효과 로직 시작 >>>>>>>
+                if (statType == StatType.CRITICAL_CHANCE) {
+                    SetBonusManager.getActiveBonuses(player).find { it.setId == "slaughterer_set" }?.let { setBonus ->
+                        val tier = SetBonusManager.getActiveSetTier(player, setBonus.setId)
+                        setBonus.bonusEffectsByTier[tier]?.find { it.type == "CRITICAL_BOOST" }?.let { effect ->
+                            totalPercentage += effect.parameters["crit_chance"]?.toDoubleOrNull() ?: 0.0
+                        }
+                    }
+                }
+                // <<<<<<< '그림자 학살자' 세트 효과 로직 끝 >>>>>>>
+
                 max(0.0, totalPercentage)
             }
             else -> {
@@ -90,6 +102,26 @@ object StatManager {
                             val percentPerStack = try { (params["attack_power_per_stack"] as? String)?.toDouble() ?: 0.0 } catch (e: Exception) { 0.0 }
                             val totalPercentIncrease = playerData.furyStacks * percentPerStack / 100.0
                             finalValue *= (1.0 + totalPercentIncrease)
+                        }
+                    }
+                }
+
+                if (statType == StatType.DEFENSE_POWER || statType == StatType.MAGIC_RESISTANCE) {
+                    val glovesInfo = playerData.customEquipment[EquipmentSlotType.GLOVES]
+                    if (glovesInfo != null) {
+                        val glovesData = EquipmentManager.getEquipmentDefinition(glovesInfo.itemInternalId)
+                        if (glovesData != null) {
+                            val effect = glovesData.uniqueEffectsOnEquip.find { it.type == "LOW_HP_DEFENSE_BUFF" }
+                            if (effect != null) {
+                                val currentMaxHp = getFinalStatValue(player, StatType.MAX_HP)
+                                if (currentMaxHp > 0) {
+                                    val healthThreshold = effect.parameters["health_threshold_percent"]?.toDoubleOrNull() ?: 0.3
+                                    if ((playerData.currentHp / currentMaxHp) <= healthThreshold) {
+                                        val boostPercent = effect.parameters["defense_boost_percent"]?.toDoubleOrNull() ?: 0.0
+                                        finalValue *= (1.0 + boostPercent)
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -137,7 +169,6 @@ object StatManager {
             fullyRecalculateAndApplyStats(player)
             PlayerDataManager.savePlayerData(player, async = true)
 
-            // 메시지 개선: 최종 스탯 대신, 플레이어가 직접 올린 '기본 스탯'의 변화를 명확히 보여줌
             val baseDisplayValue = if (statType.isPercentageBased) String.format("%.2f%%", newBaseValue * 100)
             else if (statType == StatType.ATTACK_SPEED) String.format("%.2f배", newBaseValue)
             else newBaseValue.toInt().toString()
@@ -174,5 +205,17 @@ object StatManager {
 
     private fun statTypeShouldNotBeNegative(statType: StatType): Boolean {
         return statType.isXpUpgradable || statType == StatType.ATTACK_SPEED
+    }
+
+    // <<<<<<< 추가된 함수 >>>>>>>
+    fun getActiveCritDamageBonus(player: Player): Double {
+        var bonus = 0.0
+        SetBonusManager.getActiveBonuses(player).find { it.setId == "slaughterer_set" }?.let { setBonus ->
+            val tier = SetBonusManager.getActiveSetTier(player, setBonus.setId)
+            setBonus.bonusEffectsByTier[tier]?.find { it.type == "CRITICAL_BOOST" }?.let { effect ->
+                bonus = effect.parameters["crit_damage"]?.toDoubleOrNull() ?: 0.0
+            }
+        }
+        return bonus
     }
 }
