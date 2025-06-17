@@ -11,5 +11,6 @@ data class CustomEntityData(
     var stats: Map<String, Double>,
     var aggroTarget: UUID? = null,
     var lastAggroChangeTime: Long = 0L,
-    val skillCooldowns: MutableMap<String, Long> = ConcurrentHashMap() // 몬스터 스킬 쿨타임
+    val skillCooldowns: MutableMap<String, Long> = ConcurrentHashMap(),
+    var lastDamager: UUID? = null // <<<<<<< 마지막 공격자 UUID 필드 추가
 )

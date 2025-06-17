@@ -11,4 +11,12 @@ commands:
     description: RPGCore+ 플러그인의 메인 명령어입니다. 사용 가능한 하위 명령어를 보려면 /rpg help를 입력하세요.
     usage: /rpg <subcommand> [args...]
     aliases: [r, rpgcore] # (선택 사항) 명령어 단축 별명
-    permission: rpgcore.command.base # (선택 사항) 기본 /rpg 명령어 사용 권한
+    permission-message: "§c[System] 이 명령어를 사용할 권한이 없습니다."
+
+permissions:
+  rpgcore.command.base:
+    description: Grants access to basic /rpg user commands.
+    default: true
+  rpgcore.admin:
+    description: Grants access to all /rpg admin commands.
+    default: op

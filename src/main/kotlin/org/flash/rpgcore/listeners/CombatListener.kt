@@ -93,7 +93,8 @@ class CombatListener : Listener {
         val victim = event.entity as? LivingEntity ?: return
 
         if (victim is Player) {
-            PlayerDataManager.getPlayerData(victim).lastDamagedTime = System.currentTimeMillis() // <<<<<<< 피격 시간 갱신
+            val playerData = PlayerDataManager.getPlayerData(victim)
+            playerData.lastDamagedTime = System.currentTimeMillis()
             handleOnHitTakenEffects(victim)
         }
 
@@ -189,47 +190,58 @@ class CombatListener : Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST) // <<<<<<< 우선순위 HIGHEST로 변경
     fun onEntityDeath(event: EntityDeathEvent) {
         val victim = event.entity
-        EntityManager.getEntityData(victim)?.let { customEntityData ->
-            event.drops.clear()
-            event.droppedExp = 0
-            val killer = victim.killer ?: return@let
-            val monsterId = customEntityData.monsterId
-            val monsterDefinition = MonsterManager.getMonsterData(monsterId) ?: return@let
 
-            if (InfiniteDungeonManager.isDungeonMonster(victim.uniqueId)) {
-                val session = InfiniteDungeonManager.getSessionByMonster(victim.uniqueId)
-                if (session != null) {
-                    session.monsterUUIDs.remove(victim.uniqueId)
-                    val wave = session.wave.toDouble()
-                    val xpScale = InfiniteDungeonManager.xpScalingCoeff.first * wave + InfiniteDungeonManager.xpScalingCoeff.second
-                    val finalXp = (monsterDefinition.xpReward * xpScale).toInt()
-                    if (finalXp > 0) {
-                        XPHelper.addTotalExperience(killer, finalXp)
-                        killer.sendMessage("§e+${finalXp} XP")
-                    }
-                    if (session.wave > 0 && session.wave % 10 == 0) {
-                        InfiniteDungeonManager.getBossLootTableIdForWave(session.wave)?.let { tableId ->
-                            LootManager.processLoot(killer, tableId)
-                        }
-                    }
-                }
-            } else {
-                if (monsterDefinition.xpReward > 0) {
-                    XPHelper.addTotalExperience(killer, monsterDefinition.xpReward)
-                    killer.sendMessage("§e+${monsterDefinition.xpReward} XP")
-                }
-                monsterDefinition.dropTableId?.let { tableId -> LootManager.processLoot(killer, tableId) }
-                val playerData = PlayerDataManager.getPlayerData(killer)
-                val encounterData = playerData.monsterEncyclopedia.computeIfAbsent(monsterId) { MonsterEncounterData() }
-                encounterData.killCount++
-                EncyclopediaManager.checkAndApplyKillCountReward(killer, monsterId)
-            }
-            if (monsterDefinition.isBoss) BossBarManager.removeBoss(victim)
-            EntityManager.unregisterEntity(victim)
+        val customEntityData = EntityManager.getEntityData(victim)
+
+        // 커스텀 몬스터가 아니면, 이 리스너에서 아무것도 하지 않고 바닐라 로직을 따르도록 즉시 종료
+        if (customEntityData == null) {
+            return
         }
+
+        event.drops.clear()
+        event.droppedExp = 0
+        val killerUUID = customEntityData.lastDamager ?: victim.killer?.uniqueId
+        if (killerUUID == null) {
+            EntityManager.unregisterEntity(victim) // 경험치 지급 대상이 없으면 데이터만 정리하고 종료
+            return
+        }
+        val killer = Bukkit.getPlayer(killerUUID) ?: return
+        val monsterId = customEntityData.monsterId
+        val monsterDefinition = MonsterManager.getMonsterData(monsterId) ?: return
+
+        if (InfiniteDungeonManager.isDungeonMonster(victim.uniqueId)) {
+            val session = InfiniteDungeonManager.getSessionByMonster(victim.uniqueId)
+            if (session != null) {
+                session.monsterUUIDs.remove(victim.uniqueId)
+                val wave = session.wave.toDouble()
+                val xpScale = InfiniteDungeonManager.xpScalingCoeff.first * wave + InfiniteDungeonManager.xpScalingCoeff.second
+                val finalXp = (monsterDefinition.xpReward * xpScale).toInt()
+                if (finalXp > 0) {
+                    XPHelper.addTotalExperience(killer, finalXp)
+                    killer.sendMessage("§e+${finalXp} XP")
+                }
+                if (session.wave > 0 && session.wave % 10 == 0) {
+                    InfiniteDungeonManager.getBossLootTableIdForWave(session.wave)?.let { tableId ->
+                        LootManager.processLoot(killer, tableId)
+                    }
+                }
+            }
+        } else {
+            if (monsterDefinition.xpReward > 0) {
+                XPHelper.addTotalExperience(killer, monsterDefinition.xpReward)
+                killer.sendMessage("§e+${monsterDefinition.xpReward} XP")
+            }
+            monsterDefinition.dropTableId?.let { tableId -> LootManager.processLoot(killer, tableId) }
+            val playerData = PlayerDataManager.getPlayerData(killer)
+            val encounterData = playerData.monsterEncyclopedia.computeIfAbsent(monsterId) { MonsterEncounterData() }
+            encounterData.killCount++
+            EncyclopediaManager.checkAndApplyKillCountReward(killer, monsterId)
+        }
+        if (monsterDefinition.isBoss) BossBarManager.removeBoss(victim)
+        EntityManager.unregisterEntity(victim)
     }
 
     private fun handleOnAttackSetBonuses(player: Player) {
@@ -258,7 +270,6 @@ class CombatListener : Listener {
         }
     }
 
-    // <<<<<<< 추가된 함수 >>>>>>>
     private fun handleOnHitTakenEffects(player: Player) {
         val playerData = PlayerDataManager.getPlayerData(player)
         val cloakInfo = playerData.customEquipment[EquipmentSlotType.CLOAK] ?: return

@@ -1,6 +1,6 @@
 # Wave 30~ 보스 드롭 테이블
 drops:
-  - type: RPGCORE_CUSTOM_MATERIAL
+  - type: RPGCORE_MATERIAL
     id: "conqueror_essence"
     minAmount: 1
     maxAmount: 5

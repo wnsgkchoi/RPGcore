@@ -58,7 +58,7 @@ object PlayerDataManager {
             logger.severe("CRITICAL: Failed to load data for $playerName ($uuid). A new default data object will be created to prevent further errors.")
             e.printStackTrace()
             val newPlayerData = PlayerData(uuid, playerName)
-            newPlayerData.initializeForNewPlayer() // 새 플레이어 데이터 초기화
+            newPlayerData.initializeForNewPlayer()
             playerDataCache[uuid] = newPlayerData
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[Error] Failed to load player data. Please contact an administrator."))
             StatManager.fullyRecalculateAndApplyStats(player)
@@ -140,7 +140,12 @@ object PlayerDataManager {
         }
 
         config.set("base-stats", playerData.baseStats.mapKeys { it.key.name })
-        config.set("custom-equipment", playerData.customEquipment.mapKeys { it.key.name }.mapValues { it.value?.let { info -> mapOf("item_id" to info.itemInternalId, "upgrade_level" to info.upgradeLevel) } })
+
+        // <<<<<<< 수정된 부분 시작 >>>>>>>
+        // 기존 방식 대신 JSON 문자열로 직렬화하여 저장
+        config.set("custom-equipment-json", gson.toJson(playerData.customEquipment))
+        // <<<<<<< 수정된 부분 끝 >>>>>>>
+
         config.set("learned-skills", playerData.learnedSkills)
         config.set("equipped-active-skills", playerData.equippedActiveSkills)
         config.set("equipped-passive-skills", playerData.equippedPassiveSkills)
@@ -166,7 +171,7 @@ object PlayerDataManager {
         val playerFile = File(playerDataFolder, "$uuid.yml")
         if (!playerFile.exists()) {
             val newPlayerData = PlayerData(uuid, playerNameIfNew)
-            newPlayerData.initializeForNewPlayer() // 신규 플레이어 데이터 초기화
+            newPlayerData.initializeForNewPlayer()
             logger.info("No data file found for $playerNameIfNew. Creating new default data.")
             return newPlayerData
         }
@@ -197,22 +202,32 @@ object PlayerDataManager {
                 } catch (e: Exception) { logger.warning("Ignoring unknown stat '$statKey' in ${uuid}.yml") }
             }
 
-            config.getConfigurationSection("custom-equipment")?.getValues(false)?.forEach { (slotKey, value) ->
-                try {
-                    val slotType = EquipmentSlotType.valueOf(slotKey.uppercase())
-                    (value as? Map<*, *>)?.let {
-                        val itemId = it["item_id"] as String
-                        val upgradeLevel = it["upgrade_level"] as Int
-                        playerData.customEquipment[slotType] = EquippedItemInfo(itemId, upgradeLevel)
-                    }
-                } catch (e: Exception) { logger.warning("Ignoring unknown equipment slot '$slotKey' in ${uuid}.yml") }
+            // <<<<<<< 수정된 부분 시작 >>>>>>>
+            // JSON 문자열로부터 장비 데이터를 불러오는 로직
+            if (config.contains("custom-equipment-json")) {
+                val equipmentJson = config.getString("custom-equipment-json", "{}")
+                val type = object : TypeToken<ConcurrentHashMap<EquipmentSlotType, EquippedItemInfo?>>() {}.type
+                val loadedEquipment: MutableMap<EquipmentSlotType, EquippedItemInfo?> = gson.fromJson(equipmentJson, type)
+                playerData.customEquipment.putAll(loadedEquipment)
+            } else {
+                // 이전 버전과의 호환성을 위한 기존 로직 유지
+                config.getConfigurationSection("custom-equipment")?.getValues(false)?.forEach { (slotKey, value) ->
+                    try {
+                        val slotType = EquipmentSlotType.valueOf(slotKey.uppercase())
+                        (value as? Map<*, *>)?.let {
+                            val itemId = it["item_id"] as String
+                            val upgradeLevel = it["upgrade_level"] as Int
+                            playerData.customEquipment[slotType] = EquippedItemInfo(itemId, upgradeLevel)
+                        }
+                    } catch (e: Exception) { logger.warning("Ignoring unknown equipment slot '$slotKey' in ${uuid}.yml") }
+                }
             }
+            // <<<<<<< 수정된 부분 끝 >>>>>>>
 
             config.getConfigurationSection("learned-skills")?.getValues(false)?.forEach { (skillId, level) ->
                 playerData.learnedSkills[skillId] = level as Int
             }
 
-            // --- 장착 스킬 로딩 로직 수정 ---
             val activeSkillSlots = listOf("SLOT_Q", "SLOT_F", "SLOT_SHIFT_Q")
             val equippedActiveSection = config.getConfigurationSection("equipped-active-skills")
             if (equippedActiveSection != null) {
@@ -231,8 +246,6 @@ object PlayerDataManager {
             while (playerData.equippedPassiveSkills.size < 3) {
                 playerData.equippedPassiveSkills.add(null)
             }
-            // --- 로직 수정 끝 ---
-
 
             config.getConfigurationSection("skillCharges")?.getValues(false)?.forEach { (skillId, charges) ->
                 playerData.skillCharges[skillId] = charges as Int

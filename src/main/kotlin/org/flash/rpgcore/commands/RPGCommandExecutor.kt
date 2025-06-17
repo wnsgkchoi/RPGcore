@@ -22,8 +22,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
     private val logger = plugin.logger
 
     private val baseSubCommands = listOf("help", "stats", "class", "equip", "skills", "infinite", "trade", "encyclopedia", "shop", "setspawn", "backpack", "trash")
-    private val adminSubCommands = listOf("giveequip", "giverecipe", "reload", "give", "setstat", "giveskill")
-    private val SETSPAWN_CHANGE_COST = 50000L
+    private val adminSubCommands = listOf("giveequip", "giverecipe", "reload", "give", "setstat", "giveskill", "xptest") // <<<<<<< "xptest" 추가
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (args.isEmpty() || args[0].equals("help", ignoreCase = true)) {
@@ -58,6 +57,16 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
                 sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[System] 이 명령어를 사용할 권한이 없습니다."))
                 return true
             }
+            // 테스트 명령어 처리 로직
+            if (subCommand == "xptest") {
+                if (sender is Player) {
+                    val amount = args.getOrNull(1)?.toIntOrNull() ?: 100
+                    sender.sendMessage("XP 테스트: ${amount} 추가 시도...")
+                    XPHelper.addTotalExperience(sender, amount)
+                    sender.sendMessage("XP 테스트 완료. 현재 총 XP: ${XPHelper.getTotalExperience(sender)}")
+                }
+                return true
+            }
             handleAdminCommand(sender, subCommand, args)
         } else {
             sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[System] &f알 수 없는 하위 명령어입니다. /rpg help 를 참고하세요."))
@@ -74,11 +83,11 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
             playerData.customSpawnLocation = newSpawnData
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a[System] &f현재 위치가 개인 귀환 지점으로 최초 설정되었습니다."))
         } else {
-            if (XPHelper.removeTotalExperience(player, SETSPAWN_CHANGE_COST.toInt())) {
+            if (XPHelper.removeTotalExperience(player, 50000)) { // SETSPAWN_CHANGE_COST
                 playerData.customSpawnLocation = newSpawnData
-                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a[System] &f개인 귀환 지점을 변경했습니다. (&eXP ${SETSPAWN_CHANGE_COST} &a소모)"))
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a[System] &f개인 귀환 지점을 변경했습니다. (&eXP 50000 &a소모)"))
             } else {
-                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[System] &f귀환 지점 변경에 필요한 XP가 부족합니다. (필요: &e${SETSPAWN_CHANGE_COST}&c)"))
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[System] &f귀환 지점 변경에 필요한 XP가 부족합니다. (필요: &e50000&c)"))
             }
         }
     }
@@ -155,7 +164,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
                 val playerData = PlayerDataManager.getPlayerData(target)
                 playerData.updateBaseStat(statType, value)
                 StatManager.fullyRecalculateAndApplyStats(target)
-                PlayerDataManager.savePlayerData(target, async = true) // 변경사항 즉시 저장
+                PlayerDataManager.savePlayerData(target, async = true)
                 sender.sendMessage("Set ${statType.name} for ${target.name} to $value. Stats recalculated and saved.")
             }
             "giveskill" -> {
@@ -183,7 +192,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
 
                 val playerData = PlayerDataManager.getPlayerData(target)
                 playerData.learnSkill(skillId, level)
-                PlayerDataManager.savePlayerData(target, async = true) // 변경사항 즉시 저장
+                PlayerDataManager.savePlayerData(target, async = true)
                 sender.sendMessage("Gave skill $skillId (Level $level) to ${target.name} and saved data.")
             }
             "give" -> {
@@ -304,7 +313,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
             when (args[0].lowercase()) {
                 "infinite" -> return listOf("join", "leave", "ranking").filter { it.startsWith(args[1], ignoreCase = true) }.sorted()
                 "trade" -> return Bukkit.getOnlinePlayers().map { it.name }.filter { it.startsWith(args[1], ignoreCase = true) && it != sender.name }.sorted()
-                "give", "giveequip", "giverecipe", "setstat", "giveskill" -> {
+                "give", "giveequip", "giverecipe", "setstat", "giveskill", "xptest" -> { // <<<<<<< "xptest" 추가
                     if (sender.isOp) {
                         return Bukkit.getOnlinePlayers().map { it.name }.filter { it.startsWith(args[1], ignoreCase = true) }.sorted()
                     }
@@ -401,6 +410,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
             "giveequip" -> "giveequip <player> <item_id> <level> [amount]"
             "giverecipe" -> "giverecipe <player> <recipe_id>"
             "reload" -> "reload"
+            "xptest" -> "xptest [amount]" // <<<<<<< 추가
             else -> subCommand
         }
     }
@@ -413,6 +423,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
             "giveequip" -> "플레이어에게 커스텀 장비를 지급합니다."
             "giverecipe" -> "플레이어에게 제작 레시피를 지급합니다."
             "reload" -> "플러그인 설정을 리로드합니다."
+            "xptest" -> "플레이어에게 테스트용 경험치를 지급합니다." // <<<<<<< 추가
             else -> "알 수 없는 관리자 명령어입니다."
         }
     }

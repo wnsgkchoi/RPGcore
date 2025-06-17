@@ -1,5 +1,5 @@
 drops:
-  - type: RPGCORE_CUSTOM_MATERIAL
+  - type: RPGCORE_MATERIAL
     id: "successor_sigil"
     minAmount: 1
     maxAmount: 4

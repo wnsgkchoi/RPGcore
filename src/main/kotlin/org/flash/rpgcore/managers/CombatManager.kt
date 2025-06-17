@@ -270,7 +270,7 @@ object CombatManager {
                 }
             }
 
-            if (!isReflection && !isDoubleStrikeProc) { // <<<<<<< 2회 타격 효과는 재귀 호출 시 다시 발동하지 않도록 함
+            if (!isReflection && !isDoubleStrikeProc) {
                 val cloakInfo = playerData.customEquipment[EquipmentSlotType.CLOAK]
                 if (cloakInfo != null) {
                     val cloakData = EquipmentManager.getEquipmentDefinition(cloakInfo.itemInternalId)
@@ -324,6 +324,11 @@ object CombatManager {
             if (playerData.currentClassId == "frenzy_dps") {
                 handleFuryStackChange(damager)
             }
+        }
+
+        // <<<<<<< 로직 추가: 마지막 공격자 정보 갱신 >>>>>>>
+        if (damager is Player && !isReflection) {
+            EntityManager.getEntityData(victim)?.lastDamager = damager.uniqueId
         }
 
         if (victim is LivingEntity && StatusEffectManager.hasStatus(victim, "PARALYZING")) {
@@ -450,7 +455,7 @@ object CombatManager {
 
                 val victimName = ChatColor.stripColor(victim.customName ?: victim.type.name.replace("_", " ").lowercase().replaceFirstChar { it.titlecase() })
                 val hpStr = "§c-${totalDamage.toInt()} §f(${max(0.0, remainingHp).toInt()}/${maxHp.toInt()})"
-                val actionBarMessage = "&e${victimName} ${hpStr} ${if (isCritical) "&l(치명타!)" else ""} ${if(isDoubleStrikeProc) "&4(2회 타격!)" else ""}"
+                val actionBarMessage = "&e${victimName} ${hpStr} ${if (isCritical) "&l(치명타!)" else ""} ${if(doubleStrikeWillProc) "&4(2회 타격!)" else ""}"
                 damager.sendActionBar(ChatColor.translateAlternateColorCodes('&', actionBarMessage))
             }
         }
@@ -459,10 +464,8 @@ object CombatManager {
             handleLifesteal(damager, finalPhysicalDamage, finalMagicalDamage)
         }
 
-        // <<<<<<< 2회 타격 재귀 호출 >>>>>>>
         if (doubleStrikeWillProc) {
             damager.sendMessage(ChatColor.translateAlternateColorCodes('&', "&4[잔상의 망토] §f공격이 한 번 더 적중합니다!"))
-            // 두 번째 타격은 별개의 치명타 판정을 거침
             val secondIsCritical = Random.nextDouble() < (if (damager is Player) StatManager.getFinalStatValue(damager, StatType.CRITICAL_CHANCE) else 0.0)
             applyFinalDamage(damager, victim, physicalDamage, magicalDamage, secondIsCritical, isReflection, true)
         }
