@@ -1,0 +1,14 @@
+recipe_id: "craft_relic_gloves_t1"
+output:
+  item_internal_name: "relic_gloves_t1"
+xp_cost: 10000
+ingredients:
+  - item_type: "RPGCORE_CUSTOM_MATERIAL"
+    item_id: "challenger_mark"
+    amount: 3
+  - item_type: "RPGCORE_CUSTOM_MATERIAL"
+    item_id: "core_of_swift_magic"
+    amount: 1
+  - item_type: "VANILLA"
+    item_id: "LEATHER"
+    amount: 8

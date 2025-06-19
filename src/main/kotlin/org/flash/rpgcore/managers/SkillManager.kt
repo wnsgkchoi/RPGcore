@@ -72,7 +72,6 @@ object SkillManager : ISkillStatProvider {
             val interruptOnMove = skillConfig.getBoolean("interrupt_on_move", true)
 
             val maxLevel = skillConfig.getInt("max_level", 1).coerceAtLeast(1)
-            val maxCharges = if (skillConfig.contains("max_charges")) skillConfig.getInt("max_charges") else null
 
             val levelDataMap = mutableMapOf<Int, SkillLevelData>()
             val levelDataSection = skillConfig.getConfigurationSection("level_data")
@@ -83,6 +82,10 @@ object SkillManager : ISkillStatProvider {
                         val currentLevelSection = levelDataSection.getConfigurationSection(levelKey)!!
                         val mpCost = currentLevelSection.getInt("mp_cost", 0)
                         val cooldownTicks = currentLevelSection.getInt("cooldown_ticks", 0)
+                        // 'max_charges'와 'max_charge'를 모두 확인하여 호환성 확보
+                        val maxChargesValue = currentLevelSection.getInt("max_charges", currentLevelSection.getInt("max_charge", 0))
+                        val maxCharges = if (maxChargesValue > 0) maxChargesValue else null
+
                         val castTimeTicks = currentLevelSection.getInt("cast_time_ticks", 0)
                         val durationTicks = if (currentLevelSection.contains("duration_ticks")) currentLevelSection.getInt("duration_ticks") else null
                         val maxChannelTicks = if (currentLevelSection.contains("max_channel_ticks")) currentLevelSection.getInt("max_channel_ticks") else null
@@ -92,15 +95,12 @@ object SkillManager : ISkillStatProvider {
                             val type = effectMap["type"] as? String ?: "UNKNOWN_EFFECT"
                             val targetSelector = effectMap["target_selector"] as? String ?: "SELF"
 
-                            // --- 수정된 부분 ---
-                            // value를 .toString()으로 변환하지 않고, 원본 타입(Any)을 그대로 유지
                             @Suppress("UNCHECKED_CAST")
                             val parameters = (effectMap["parameters"] as? Map<String, Any>) ?: emptyMap()
-                            // --- 수정 끝 ---
 
                             effectsList.add(SkillEffectData(type, targetSelector, parameters))
                         }
-                        levelDataMap[level] = SkillLevelData(level, mpCost, cooldownTicks, castTimeTicks, durationTicks, maxChannelTicks, effectsList)
+                        levelDataMap[level] = SkillLevelData(level, mpCost, cooldownTicks, maxCharges, castTimeTicks, durationTicks, maxChannelTicks, effectsList)
                     }
                 }
             }
@@ -119,7 +119,7 @@ object SkillManager : ISkillStatProvider {
                 description = description, iconMaterial = iconMaterial, customModelData = customModelData,
                 skillType = skillType, behavior = behavior, element = element,
                 isInterruptibleByDamage = isInterruptibleByDamage, interruptOnMove = interruptOnMove,
-                maxLevel = maxLevel, maxCharges = maxCharges, levelData = levelDataMap, upgradeCostPerLevel = upgradeCostMap,
+                maxLevel = maxLevel, levelData = levelDataMap, upgradeCostPerLevel = upgradeCostMap,
                 classRestrictions = classRestrictions
             )
 

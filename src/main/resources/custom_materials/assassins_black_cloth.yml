@@ -1,0 +1,5 @@
+display_name: "&c[고유 재료] 암살자의 검은 천"
+material: "BLACK_WOOL"
+custom_model_data: null
+lore:
+  - "&7어둠 속에서 모습을 감추기 위해 특수 처리된 천."

@@ -1,0 +1,76 @@
+display_name: "&b빙백탄"
+description:
+  - "&7전방에 빙백탄을 발사합니다. 빙백탄은 탄착지점"
+  - "&7주위의 모든 적에게 피해를 주고 '프리징' 스택을 부여합니다."
+class_restrictions: [ "elementalist" ]
+icon_material: "SNOWBALL"
+skill_type: "ACTIVE"
+behavior: "INSTANT"
+element: "ICE"
+max_level: 10
+level_data:
+  1:
+    mp_cost: 20
+    cooldown_ticks: 60
+    effects:
+      - type: "PROJECTILE"
+        parameters:
+          projectile_type: "SNOWBALL"
+          on_impact_effects:
+            - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { area_radius: "2.5", magical_damage_coeff_spell_power_formula: "0.8" } }
+            - { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { status_id: "FREEZING", duration_ticks: "-1" } }
+  2:
+    mp_cost: 21
+    cooldown_ticks: 60
+    effects:
+      - { type: "PROJECTILE", parameters: { projectile_type: "SNOWBALL", on_impact_effects: [ { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { area_radius: "2.6", magical_damage_coeff_spell_power_formula: "0.85" } }, { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { status_id: "FREEZING", duration_ticks: "-1" } } ] } }
+  3:
+    mp_cost: 22
+    cooldown_ticks: 60
+    effects:
+      - { type: "PROJECTILE", parameters: { projectile_type: "SNOWBALL", on_impact_effects: [ { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { area_radius: "2.7", magical_damage_coeff_spell_power_formula: "0.9" } }, { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { status_id: "FREEZING", duration_ticks: "-1" } } ] } }
+  4:
+    mp_cost: 23
+    cooldown_ticks: 60
+    effects:
+      - { type: "PROJECTILE", parameters: { projectile_type: "SNOWBALL", on_impact_effects: [ { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { area_radius: "2.8", magical_damage_coeff_spell_power_formula: "0.95" } }, { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { status_id: "FREEZING", duration_ticks: "-1" } } ] } }
+  5:
+    mp_cost: 24
+    cooldown_ticks: 60
+    effects:
+      - { type: "PROJECTILE", parameters: { projectile_type: "SNOWBALL", on_impact_effects: [ { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { area_radius: "3.0", magical_damage_coeff_spell_power_formula: "1.0" } }, { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { status_id: "FREEZING", duration_ticks: "-1" } } ] } }
+  6:
+    mp_cost: 25
+    cooldown_ticks: 60
+    effects:
+      - { type: "PROJECTILE", parameters: { projectile_type: "SNOWBALL", on_impact_effects: [ { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { area_radius: "3.1", magical_damage_coeff_spell_power_formula: "1.05" } }, { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { status_id: "FREEZING", duration_ticks: "-1" } } ] } }
+  7:
+    mp_cost: 26
+    cooldown_ticks: 60
+    effects:
+      - { type: "PROJECTILE", parameters: { projectile_type: "SNOWBALL", on_impact_effects: [ { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { area_radius: "3.2", magical_damage_coeff_spell_power_formula: "1.1" } }, { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { status_id: "FREEZING", duration_ticks: "-1" } } ] } }
+  8:
+    mp_cost: 27
+    cooldown_ticks: 60
+    effects:
+      - { type: "PROJECTILE", parameters: { projectile_type: "SNOWBALL", on_impact_effects: [ { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { area_radius: "3.3", magical_damage_coeff_spell_power_formula: "1.15" } }, { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { status_id: "FREEZING", duration_ticks: "-1" } } ] } }
+  9:
+    mp_cost: 28
+    cooldown_ticks: 60
+    effects:
+      - { type: "PROJECTILE", parameters: { projectile_type: "SNOWBALL", on_impact_effects: [ { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { area_radius: "3.4", magical_damage_coeff_spell_power_formula: "1.2" } }, { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { status_id: "FREEZING", duration_ticks: "-1" } } ] } }
+  10:
+    mp_cost: 30
+    cooldown_ticks: 60
+    effects:
+      - { type: "PROJECTILE", parameters: { projectile_type: "SNOWBALL", on_impact_effects: [ { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { area_radius: "3.5", magical_damage_coeff_spell_power_formula: "1.3" } }, { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_IMPACT", parameters: { status_id: "FREEZING", duration_ticks: "-1" } } ] } }
+upgrade_cost_per_level:
+  2: 5000
+  3: 16875
+  4: 40000
+  5: 78125
+  6: 135000
+  7: 214375
+  8: 320000
+  9: 455625
+  10: 625000

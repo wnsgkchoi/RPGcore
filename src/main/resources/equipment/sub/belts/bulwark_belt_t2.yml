@@ -1,0 +1,59 @@
+display_name: "&7산의 허리띠"
+description:
+  - "&7결코 무너지지 않는 산의 정기가 담긴 허리띠."
+  - "&7산처럼 굳건하게 서서, 감당 못할 공격조차 견뎌냅니다."
+material: "CHAIN"
+custom_model_data: 10
+equipment_type: BELT
+set_id: "bulwark_set"
+tier: 2
+max_upgrade_level: 20
+unique_effects_on_hit_taken:
+  - type: "BURST_DAMAGE_NEGATION"
+    parameters:
+      damage_threshold_percent_max_hp: "0.2" # 최대체력 20%
+      negation_percent_of_excess: "0.5"      # 초과분의 50%
+      cooldown_ticks: "200"                  # 10초
+statsPerLevel:
+  0:  { additiveStats: { MAX_HP: 130.0, DEFENSE_POWER: 20.0 } }
+  1:  { additiveStats: { MAX_HP: 136.0, DEFENSE_POWER: 21.0 } }
+  2:  { additiveStats: { MAX_HP: 142.0, DEFENSE_POWER: 22.0 } }
+  3:  { additiveStats: { MAX_HP: 148.0, DEFENSE_POWER: 23.0 } }
+  4:  { additiveStats: { MAX_HP: 154.0, DEFENSE_POWER: 24.0 } }
+  5:  { additiveStats: { MAX_HP: 162.0, DEFENSE_POWER: 26.0 } }
+  6:  { additiveStats: { MAX_HP: 170.0, DEFENSE_POWER: 28.0 } }
+  7:  { additiveStats: { MAX_HP: 178.0, DEFENSE_POWER: 30.0 } }
+  8:  { additiveStats: { MAX_HP: 186.0, DEFENSE_POWER: 32.0 } }
+  9:  { additiveStats: { MAX_HP: 194.0, DEFENSE_POWER: 34.0 } }
+  10: { additiveStats: { MAX_HP: 205.0, DEFENSE_POWER: 37.0 } }
+  11: { additiveStats: { MAX_HP: 216.0, DEFENSE_POWER: 40.0 } }
+  12: { additiveStats: { MAX_HP: 227.0, DEFENSE_POWER: 43.0 } }
+  13: { additiveStats: { MAX_HP: 238.0, DEFENSE_POWER: 46.0 } }
+  14: { additiveStats: { MAX_HP: 249.0, DEFENSE_POWER: 49.0 } }
+  15: { additiveStats: { MAX_HP: 265.0, DEFENSE_POWER: 53.0 } }
+  16: { additiveStats: { MAX_HP: 281.0, DEFENSE_POWER: 57.0 } }
+  17: { additiveStats: { MAX_HP: 297.0, DEFENSE_POWER: 61.0 } }
+  18: { additiveStats: { MAX_HP: 313.0, DEFENSE_POWER: 65.0 } }
+  19: { additiveStats: { MAX_HP: 330.0, DEFENSE_POWER: 70.0 } }
+  20: { additiveStats: { MAX_HP: 350.0, DEFENSE_POWER: 80.0 } }
+xpCostPerUpgradeLevel:
+  1: 300000
+  2: 320000
+  3: 345000
+  4: 375000
+  5: 410000
+  6: 450000
+  7: 495000
+  8: 545000
+  9: 600000
+  10: 660000
+  11: 726000
+  12: 798000
+  13: 878000
+  14: 966000
+  15: 1062000
+  16: 1168000
+  17: 1285000
+  18: 1413000
+  19: 1555000
+  20: 1710000

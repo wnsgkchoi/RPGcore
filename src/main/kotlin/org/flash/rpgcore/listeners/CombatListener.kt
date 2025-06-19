@@ -4,10 +4,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
-import org.bukkit.entity.Arrow
-import org.bukkit.entity.LivingEntity
-import org.bukkit.entity.Player
-import org.bukkit.entity.Projectile
+import org.bukkit.entity.*
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
@@ -21,6 +18,8 @@ import org.flash.rpgcore.equipment.EquipmentSlotType
 import org.flash.rpgcore.managers.*
 import org.flash.rpgcore.player.MonsterEncounterData
 import org.flash.rpgcore.skills.SkillEffectExecutor
+import org.flash.rpgcore.stats.StatManager
+import org.flash.rpgcore.stats.StatType
 import org.flash.rpgcore.utils.XPHelper
 import java.util.*
 import kotlin.random.Random
@@ -30,6 +29,32 @@ class CombatListener : Listener {
     companion object {
         const val EXPLOSIVE_ARROW_METADATA = "rpgcore_explosive_arrow"
         private val gson = Gson()
+        private val logger = RPGcore.instance.logger
+    }
+
+    private fun getVanillaXpReward(entity: LivingEntity): Int {
+        if (entity is Ageable && !entity.isAdult) {
+            if (entity.type == EntityType.ZOMBIE || entity.type == EntityType.ZOMBIE_VILLAGER || entity.type == EntityType.DROWNED || entity.type == EntityType.HUSK) return 12
+            return 0
+        }
+
+        return when (entity.type) {
+            EntityType.ZOMBIE, EntityType.SKELETON, EntityType.SPIDER, EntityType.CREEPER, EntityType.DROWNED,
+            EntityType.HUSK, EntityType.STRAY, EntityType.CAVE_SPIDER, EntityType.ENDERMAN,
+            EntityType.WITCH -> 5
+            EntityType.SLIME, EntityType.MAGMA_CUBE -> {
+                when ((entity as Slime).size) {
+                    1 -> 1
+                    2 -> 2
+                    else -> 4
+                }
+            }
+            EntityType.BLAZE, EntityType.GUARDIAN -> 10
+            EntityType.PIG, EntityType.COW, EntityType.SHEEP, EntityType.CHICKEN, EntityType.SQUID -> (1..3).random()
+            EntityType.ENDER_DRAGON -> 12000
+            EntityType.WITHER -> 50
+            else -> 0
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -100,23 +125,28 @@ class CombatListener : Listener {
 
         when (val eventDamager = event.damager) {
             is Player -> {
-                event.isCancelled = true
+                CombatManager.recordDamage(eventDamager, victim)
+                event.damage = 0.0
                 CombatManager.handleDamage(eventDamager, victim)
                 handleOnAttackSetBonuses(eventDamager)
             }
             is Arrow -> {
                 val shooter = eventDamager.shooter as? LivingEntity ?: return
+                CombatManager.recordDamage(shooter, victim)
                 if (shooter is Player) {
                     val playerData = PlayerDataManager.getPlayerData(shooter)
                     if (playerData.currentClassId != "marksman") {
-                        event.damage = 0.0
                         event.isCancelled = true
                         shooter.sendMessage("§c[알림] §f현재 클래스는 활을 사용할 수 없습니다.")
                         return
                     }
 
-                    event.isCancelled = true
+                    event.damage = 0.0
                     if (eventDamager.hasMetadata(SkillEffectExecutor.VOLLEY_ARROW_DAMAGE_KEY)) {
+                        if (victim is Player) {
+                            event.isCancelled = true
+                            return
+                        }
                         val damage = eventDamager.getMetadata(SkillEffectExecutor.VOLLEY_ARROW_DAMAGE_KEY).firstOrNull()?.asDouble() ?: 0.0
                         CombatManager.applyFinalDamage(shooter, victim, damage, 0.0, false, false)
                         eventDamager.remove()
@@ -129,7 +159,7 @@ class CombatListener : Listener {
                     handleOnAttackSetBonuses(shooter)
                 } else {
                     if (victim is Player) {
-                        event.isCancelled = true
+                        event.damage = 0.0
                         CombatManager.handleDamage(shooter, victim)
                     }
                 }
@@ -140,14 +170,24 @@ class CombatListener : Listener {
                     return
                 }
                 val shooter = eventDamager.shooter as? LivingEntity ?: return
+                CombatManager.recordDamage(shooter, victim)
                 if (shooter is Player || victim is Player) {
-                    event.isCancelled = true
+                    event.damage = 0.0
                     CombatManager.handleDamage(shooter, victim)
+                }
+            }
+            is EvokerFangs -> {
+                val owner = eventDamager.owner
+                if (owner != null && victim is Player) {
+                    CombatManager.recordDamage(owner, victim)
+                    event.damage = 0.0
+                    CombatManager.handleDamage(owner, victim)
                 }
             }
             is LivingEntity -> {
                 if (victim is Player) {
-                    event.isCancelled = true
+                    CombatManager.recordDamage(eventDamager, victim)
+                    event.damage = 0.0
                     CombatManager.handleDamage(eventDamager, victim)
                 }
             }
@@ -157,6 +197,11 @@ class CombatListener : Listener {
     @EventHandler
     fun onProjectileHit(event: ProjectileHitEvent) {
         val projectile = event.entity
+
+        if (projectile.hasMetadata(SkillEffectExecutor.VOLLEY_ARROW_DAMAGE_KEY)) {
+            projectile.remove()
+            return
+        }
 
         val onImpactJson = projectile.getMetadata(SkillEffectExecutor.PROJECTILE_ON_IMPACT_KEY).firstOrNull()?.asString()
         if (onImpactJson != null) {
@@ -190,59 +235,67 @@ class CombatListener : Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST) // <<<<<<< 우선순위 HIGHEST로 변경
+    @EventHandler(priority = EventPriority.HIGHEST)
     fun onEntityDeath(event: EntityDeathEvent) {
         val victim = event.entity
+        event.droppedExp = 0
 
         val customEntityData = EntityManager.getEntityData(victim)
+        val killer: Player?
 
-        // 커스텀 몬스터가 아니면, 이 리스너에서 아무것도 하지 않고 바닐라 로직을 따르도록 즉시 종료
-        if (customEntityData == null) {
-            return
-        }
+        val killerUUID = CombatManager.getAndClearLastDamager(victim) ?: victim.killer?.uniqueId
 
-        event.drops.clear()
-        event.droppedExp = 0
-        val killerUUID = customEntityData.lastDamager ?: victim.killer?.uniqueId
         if (killerUUID == null) {
-            EntityManager.unregisterEntity(victim) // 경험치 지급 대상이 없으면 데이터만 정리하고 종료
+            if (customEntityData != null) EntityManager.unregisterEntity(victim)
             return
         }
-        val killer = Bukkit.getPlayer(killerUUID) ?: return
-        val monsterId = customEntityData.monsterId
-        val monsterDefinition = MonsterManager.getMonsterData(monsterId) ?: return
 
-        if (InfiniteDungeonManager.isDungeonMonster(victim.uniqueId)) {
-            val session = InfiniteDungeonManager.getSessionByMonster(victim.uniqueId)
-            if (session != null) {
-                session.monsterUUIDs.remove(victim.uniqueId)
-                val wave = session.wave.toDouble()
-                val xpScale = InfiniteDungeonManager.xpScalingCoeff.first * wave + InfiniteDungeonManager.xpScalingCoeff.second
-                val finalXp = (monsterDefinition.xpReward * xpScale).toInt()
-                if (finalXp > 0) {
-                    XPHelper.addTotalExperience(killer, finalXp)
-                    killer.sendMessage("§e+${finalXp} XP")
+        killer = Bukkit.getPlayer(killerUUID)
+        if (killer == null) {
+            if (customEntityData != null) EntityManager.unregisterEntity(victim)
+            return
+        }
+
+        var xpToAward = 0
+        if (customEntityData != null) {
+            event.drops.clear()
+            val monsterDefinition = MonsterManager.getMonsterData(customEntityData.monsterId) ?: return
+
+            xpToAward = if (InfiniteDungeonManager.isDungeonMonster(victim.uniqueId)) {
+                val session = InfiniteDungeonManager.getSessionByMonster(victim.uniqueId)
+                if (session != null) {
+                    session.monsterUUIDs.remove(victim.uniqueId)
+                    val wave = session.wave.toDouble()
+                    val xpScale = InfiniteDungeonManager.xpScalingCoeff.first * wave + InfiniteDungeonManager.xpScalingCoeff.second
+                    (monsterDefinition.xpReward * xpScale).toInt()
+                } else {
+                    monsterDefinition.xpReward
                 }
-                if (session.wave > 0 && session.wave % 10 == 0) {
-                    InfiniteDungeonManager.getBossLootTableIdForWave(session.wave)?.let { tableId ->
-                        LootManager.processLoot(killer, tableId)
-                    }
-                }
+            } else {
+                monsterDefinition.xpReward
             }
-        } else {
-            if (monsterDefinition.xpReward > 0) {
-                XPHelper.addTotalExperience(killer, monsterDefinition.xpReward)
-                killer.sendMessage("§e+${monsterDefinition.xpReward} XP")
-            }
+
             monsterDefinition.dropTableId?.let { tableId -> LootManager.processLoot(killer, tableId) }
             val playerData = PlayerDataManager.getPlayerData(killer)
-            val encounterData = playerData.monsterEncyclopedia.computeIfAbsent(monsterId) { MonsterEncounterData() }
+            val encounterData = playerData.monsterEncyclopedia.computeIfAbsent(customEntityData.monsterId) { MonsterEncounterData() }
             encounterData.killCount++
-            EncyclopediaManager.checkAndApplyKillCountReward(killer, monsterId)
+            EncyclopediaManager.checkAndApplyKillCountReward(killer, customEntityData.monsterId)
+            if (monsterDefinition.isBoss) BossBarManager.removeBoss(victim)
+            EntityManager.unregisterEntity(victim)
+        } else {
+            xpToAward = getVanillaXpReward(victim)
         }
-        if (monsterDefinition.isBoss) BossBarManager.removeBoss(victim)
-        EntityManager.unregisterEntity(victim)
+
+        if (xpToAward > 0) {
+            val xpGainRate = StatManager.getFinalStatValue(killer, StatType.XP_GAIN_RATE)
+            val finalAmount = (xpToAward * (1.0 + xpGainRate)).toInt()
+            if (finalAmount > 0) {
+                XPHelper.addTotalExperience(killer, finalAmount)
+                killer.sendMessage("§e+${finalAmount} XP")
+            }
+        }
     }
+
 
     private fun handleOnAttackSetBonuses(player: Player) {
         val activeBonuses = SetBonusManager.getActiveBonuses(player)

@@ -1,0 +1,79 @@
+display_name: "&4종언의 손아귀"
+description:
+  - "&7존재 자체만으로 종말을 고하는 궁극의 살수 장비."
+  - "&7치명타는 더 이상 변수가 아닌, 당연한 결과가 됩니다."
+material: "NETHERITE_SCRAP"
+custom_model_data: 20
+equipment_type: GLOVES
+set_id: "slaughterer_set"
+tier: 3
+max_upgrade_level: 30
+unique_effects_on_hit_dealt:
+  - type: "CRIT_ATTACK_SPEED_BUFF"
+    parameters:
+      trigger_on_crit_only: "true"
+      duration_ticks: "120" # 6초
+      attack_speed_bonus: "0.15" # 15%
+statsPerLevel:
+  0:  { additiveStats: { MAX_HP: 110.0, ATTACK_POWER: 130.0, SPELL_POWER: 130.0, CRITICAL_CHANCE: 0.105 } }
+  1:  { additiveStats: { MAX_HP: 115.0, ATTACK_POWER: 135.0, SPELL_POWER: 135.0, CRITICAL_CHANCE: 0.106 } }
+  2:  { additiveStats: { MAX_HP: 120.0, ATTACK_POWER: 140.0, SPELL_POWER: 140.0, CRITICAL_CHANCE: 0.107 } }
+  3:  { additiveStats: { MAX_HP: 125.0, ATTACK_POWER: 145.0, SPELL_POWER: 145.0, CRITICAL_CHANCE: 0.108 } }
+  4:  { additiveStats: { MAX_HP: 130.0, ATTACK_POWER: 150.0, SPELL_POWER: 150.0, CRITICAL_CHANCE: 0.109 } }
+  5:  { additiveStats: { MAX_HP: 136.0, ATTACK_POWER: 156.0, SPELL_POWER: 156.0, CRITICAL_CHANCE: 0.11 } }
+  6:  { additiveStats: { MAX_HP: 142.0, ATTACK_POWER: 162.0, SPELL_POWER: 162.0, CRITICAL_CHANCE: 0.111 } }
+  7:  { additiveStats: { MAX_HP: 148.0, ATTACK_POWER: 168.0, SPELL_POWER: 168.0, CRITICAL_CHANCE: 0.112 } }
+  8:  { additiveStats: { MAX_HP: 154.0, ATTACK_POWER: 174.0, SPELL_POWER: 174.0, CRITICAL_CHANCE: 0.113 } }
+  9:  { additiveStats: { MAX_HP: 160.0, ATTACK_POWER: 180.0, SPELL_POWER: 180.0, CRITICAL_CHANCE: 0.114 } }
+  10: { additiveStats: { MAX_HP: 170.0, ATTACK_POWER: 188.0, SPELL_POWER: 188.0, CRITICAL_CHANCE: 0.116 } }
+  11: { additiveStats: { MAX_HP: 180.0, ATTACK_POWER: 196.0, SPELL_POWER: 196.0, CRITICAL_CHANCE: 0.118 } }
+  12: { additiveStats: { MAX_HP: 190.0, ATTACK_POWER: 204.0, SPELL_POWER: 204.0, CRITICAL_CHANCE: 0.12 } }
+  13: { additiveStats: { MAX_HP: 200.0, ATTACK_POWER: 212.0, SPELL_POWER: 212.0, CRITICAL_CHANCE: 0.122 } }
+  14: { additiveStats: { MAX_HP: 210.0, ATTACK_POWER: 220.0, SPELL_POWER: 220.0, CRITICAL_CHANCE: 0.124 } }
+  15: { additiveStats: { MAX_HP: 225.0, ATTACK_POWER: 230.0, SPELL_POWER: 230.0, CRITICAL_CHANCE: 0.127 } }
+  16: { additiveStats: { MAX_HP: 240.0, ATTACK_POWER: 240.0, SPELL_POWER: 240.0, CRITICAL_CHANCE: 0.13 } }
+  17: { additiveStats: { MAX_HP: 255.0, ATTACK_POWER: 250.0, SPELL_POWER: 250.0, CRITICAL_CHANCE: 0.133 } }
+  18: { additiveStats: { MAX_HP: 270.0, ATTACK_POWER: 260.0, SPELL_POWER: 260.0, CRITICAL_CHANCE: 0.136 } }
+  19: { additiveStats: { MAX_HP: 285.0, ATTACK_POWER: 270.0, SPELL_POWER: 270.0, CRITICAL_CHANCE: 0.139 } }
+  20: { additiveStats: { MAX_HP: 300.0, ATTACK_POWER: 285.0, SPELL_POWER: 285.0, CRITICAL_CHANCE: 0.143 } }
+  21: { additiveStats: { MAX_HP: 315.0, ATTACK_POWER: 300.0, SPELL_POWER: 300.0, CRITICAL_CHANCE: 0.147 } }
+  22: { additiveStats: { MAX_HP: 330.0, ATTACK_POWER: 315.0, SPELL_POWER: 315.0, CRITICAL_CHANCE: 0.151 } }
+  23: { additiveStats: { MAX_HP: 345.0, ATTACK_POWER: 330.0, SPELL_POWER: 330.0, CRITICAL_CHANCE: 0.155 } }
+  24: { additiveStats: { MAX_HP: 360.0, ATTACK_POWER: 345.0, SPELL_POWER: 345.0, CRITICAL_CHANCE: 0.159 } }
+  25: { additiveStats: { MAX_HP: 380.0, ATTACK_POWER: 365.0, SPELL_POWER: 365.0, CRITICAL_CHANCE: 0.164 } }
+  26: { additiveStats: { MAX_HP: 400.0, ATTACK_POWER: 385.0, SPELL_POWER: 385.0, CRITICAL_CHANCE: 0.169 } }
+  27: { additiveStats: { MAX_HP: 420.0, ATTACK_POWER: 405.0, SPELL_POWER: 405.0, CRITICAL_CHANCE: 0.174 } }
+  28: { additiveStats: { MAX_HP: 440.0, ATTACK_POWER: 425.0, SPELL_POWER: 425.0, CRITICAL_CHANCE: 0.179 } }
+  29: { additiveStats: { MAX_HP: 460.0, ATTACK_POWER: 445.0, SPELL_POWER: 445.0, CRITICAL_CHANCE: 0.184 } }
+  30: { additiveStats: { MAX_HP: 500.0, ATTACK_POWER: 470.0, SPELL_POWER: 470.0, CRITICAL_CHANCE: 0.2 } }
+xpCostPerUpgradeLevel:
+  1: 2500000
+  2: 2600000
+  3: 2750000
+  4: 2950000
+  5: 3200000
+  6: 3500000
+  7: 3850000
+  8: 4250000
+  9: 4700000
+  10: 5200000
+  11: 5750000
+  12: 6350000
+  13: 7000000
+  14: 7700000
+  15: 8500000
+  16: 9350000
+  17: 10250000
+  18: 11200000
+  19: 12200000
+  20: 13300000
+  21: 14500000
+  22: 15800000
+  23: 17200000
+  24: 18700000
+  25: 20300000
+  26: 22000000
+  27: 23800000
+  28: 25700000
+  29: 27700000
+  30: 30000000

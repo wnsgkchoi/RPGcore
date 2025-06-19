@@ -1,0 +1,32 @@
+display_name: "&7수호자의 결의"
+description:
+  - "&7굳건한 성벽과도 같은 유물 세트의 일부."
+  - "&7착용자의 의지에 반응하여 위기의 순간에 충격을 흡수합니다."
+material: "IRON_INGOT" 
+custom_model_data: 1 
+equipment_type: GLOVES
+set_id: "bulwark_set"
+max_upgrade_level: 10
+statsPerLevel:
+  0:  { additiveStats: { MAX_HP: 30.0, DEFENSE_POWER: 5.0 } }
+  1:  { additiveStats: { MAX_HP: 33.0, DEFENSE_POWER: 6.0 } }
+  2:  { additiveStats: { MAX_HP: 36.0, DEFENSE_POWER: 7.0 } }
+  3:  { additiveStats: { MAX_HP: 39.0, DEFENSE_POWER: 8.0 } }
+  4:  { additiveStats: { MAX_HP: 42.0, DEFENSE_POWER: 9.0 } }
+  5:  { additiveStats: { MAX_HP: 46.0, DEFENSE_POWER: 11.0, MAGIC_RESISTANCE: 3.0 } }
+  6:  { additiveStats: { MAX_HP: 50.0, DEFENSE_POWER: 13.0, MAGIC_RESISTANCE: 4.0 } }
+  7:  { additiveStats: { MAX_HP: 54.0, DEFENSE_POWER: 15.0, MAGIC_RESISTANCE: 5.0 } }
+  8:  { additiveStats: { MAX_HP: 58.0, DEFENSE_POWER: 17.0, MAGIC_RESISTANCE: 6.0 } }
+  9:  { additiveStats: { MAX_HP: 63.0, DEFENSE_POWER: 20.0, MAGIC_RESISTANCE: 7.0 } }
+  10: { additiveStats: { MAX_HP: 75.0, DEFENSE_POWER: 25.0, MAGIC_RESISTANCE: 10.0 } }
+xpCostPerUpgradeLevel:
+  1: 5000
+  2: 8000
+  3: 12000
+  4: 18000
+  5: 27000
+  6: 40000
+  7: 60000
+  8: 90000
+  9: 135000
+  10: 200000

@@ -1,0 +1,32 @@
+display_name: "&b유랑하는 바람의 허리띠"
+description:
+  - "&7시간의 흐름을 제어하는 유물 세트의 일부."
+  - "&7착용자의 발걸음에 시간의 힘이 깃들어 점점 가속합니다."
+material: "LEATHER_HORSE_ARMOR"
+custom_model_data: null
+equipment_type: BELT
+set_id: "relic_set"
+max_upgrade_level: 10
+statsPerLevel:
+  0:  { additiveStats: { MAX_MP: 30.0, COOLDOWN_REDUCTION: 0.02 } }
+  1:  { additiveStats: { MAX_MP: 32.0, COOLDOWN_REDUCTION: 0.021 } }
+  2:  { additiveStats: { MAX_MP: 34.0, COOLDOWN_REDUCTION: 0.022 } }
+  3:  { additiveStats: { MAX_MP: 36.0, COOLDOWN_REDUCTION: 0.023 } }
+  4:  { additiveStats: { MAX_MP: 38.0, COOLDOWN_REDUCTION: 0.024 } }
+  5:  { additiveStats: { MAX_MP: 42.0, COOLDOWN_REDUCTION: 0.026 } }
+  6:  { additiveStats: { MAX_MP: 46.0, COOLDOWN_REDUCTION: 0.028 } }
+  7:  { additiveStats: { MAX_MP: 50.0, COOLDOWN_REDUCTION: 0.03 } }
+  8:  { additiveStats: { MAX_MP: 54.0, COOLDOWN_REDUCTION: 0.032 } }
+  9:  { additiveStats: { MAX_MP: 60.0, COOLDOWN_REDUCTION: 0.035 } }
+  10: { additiveStats: { MAX_MP: 70.0, COOLDOWN_REDUCTION: 0.04 } }
+xpCostPerUpgradeLevel:
+  1: 5000
+  2: 8000
+  3: 12000
+  4: 18000
+  5: 27000
+  6: 40000
+  7: 60000
+  8: 90000
+  9: 135000
+  10: 200000

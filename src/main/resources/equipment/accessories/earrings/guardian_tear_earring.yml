@@ -1,0 +1,30 @@
+display_name: "§3가디언의 눈물"
+description:
+  - "§7심해 신전을 지키는 고대 가디언의 정수가 담긴 귀걸이."
+  - "§7왠지 귀에 착용하면 좋을 듯하다."
+material: PRISMARINE_CRYSTALS
+equipment_type: EARRINGS
+max_upgrade_level: 10
+statsPerLevel:
+  0: { additiveStats: { DEFENSE_POWER: 5.0, MAGIC_RESISTANCE: 5.0 }, multiplicativeStats: { DEFENSE_POWER: 0.05, MAGIC_RESISTANCE: 0.05 } }
+  1: { additiveStats: { DEFENSE_POWER: 10.0, MAGIC_RESISTANCE: 10.0 }, multiplicativeStats: { DEFENSE_POWER: 0.05, MAGIC_RESISTANCE: 0.05 } }
+  2: { additiveStats: { DEFENSE_POWER: 15.0, MAGIC_RESISTANCE: 15.0 }, multiplicativeStats: { DEFENSE_POWER: 0.05, MAGIC_RESISTANCE: 0.05 } }
+  3: { additiveStats: { DEFENSE_POWER: 20.0, MAGIC_RESISTANCE: 20.0 }, multiplicativeStats: { DEFENSE_POWER: 0.05, MAGIC_RESISTANCE: 0.05 } }
+  4: { additiveStats: { DEFENSE_POWER: 25.0, MAGIC_RESISTANCE: 25.0 }, multiplicativeStats: { DEFENSE_POWER: 0.05, MAGIC_RESISTANCE: 0.05 } }
+  5: { additiveStats: { DEFENSE_POWER: 30.0, MAGIC_RESISTANCE: 30.0 }, multiplicativeStats: { DEFENSE_POWER: 0.10, MAGIC_RESISTANCE: 0.10 } }
+  6: { additiveStats: { DEFENSE_POWER: 35.0, MAGIC_RESISTANCE: 35.0 }, multiplicativeStats: { DEFENSE_POWER: 0.10, MAGIC_RESISTANCE: 0.10 } }
+  7: { additiveStats: { DEFENSE_POWER: 40.0, MAGIC_RESISTANCE: 40.0 }, multiplicativeStats: { DEFENSE_POWER: 0.10, MAGIC_RESISTANCE: 0.10 } }
+  8: { additiveStats: { DEFENSE_POWER: 45.0, MAGIC_RESISTANCE: 45.0 }, multiplicativeStats: { DEFENSE_POWER: 0.10, MAGIC_RESISTANCE: 0.10 } }
+  9: { additiveStats: { DEFENSE_POWER: 50.0, MAGIC_RESISTANCE: 50.0 }, multiplicativeStats: { DEFENSE_POWER: 0.10, MAGIC_RESISTANCE: 0.10 } }
+  10: { additiveStats: { DEFENSE_POWER: 50.0, MAGIC_RESISTANCE: 50.0 }, multiplicativeStats: { DEFENSE_POWER: 0.30, MAGIC_RESISTANCE: 0.30 } }
+xpCostPerUpgradeLevel:
+  1: 1000
+  2: 4000
+  3: 9000
+  4: 16000
+  5: 25000
+  6: 36000
+  7: 49000
+  8: 64000
+  9: 81000
+  10: 100000

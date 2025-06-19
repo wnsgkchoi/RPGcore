@@ -1,0 +1,17 @@
+monster_id: "inf_boss_3"
+display_name: "&8심연의 감시자"
+vanilla_mob_type: "WARDEN"
+icon_material: "IRON_SWORD"
+equipment: {}
+stats:
+  MAX_HP: { min: 6000.0, max: 6000.0 }
+  ATTACK_POWER: { min: 120.0, max: 120.0 }
+  SPELL_POWER: { min: 100.0, max: 100.0 }
+  DEFENSE_POWER: { min: 60.0, max: 60.0 }
+  MAGIC_RESISTANCE: { min: 60.0, max: 60.0 } # 추가
+skills:
+  - { internal_id: "monster_sonic_boom", chance: 0.25, cooldown_ticks: 180 }
+xp_reward: 15000
+drop_table_id: "inf_boss_loot_tier3"
+is_boss_monster: true
+aggro_type: "NEAREST"

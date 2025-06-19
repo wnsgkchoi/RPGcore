@@ -1,0 +1,17 @@
+monster_id: "inf_assassin_1"
+display_name: "&7그림자 암살자"
+vanilla_mob_type: "SILVERFISH"
+icon_material: "IRON_SWORD"
+equipment:
+  main_hand: "IRON_SWORD"
+stats:
+  MAX_HP: { min: 50.0, max: 70.0 }
+  ATTACK_POWER: { min: 25.0, max: 30.0 }
+  DEFENSE_POWER: { min: 5.0, max: 10.0 }
+  MAGIC_RESISTANCE: { min: 5.0, max: 10.0 } # 추가
+skills:
+  - { internal_id: "monster_dash", chance: 0.5, cooldown_ticks: 60 }
+xp_reward: 100
+drop_table_id: null
+is_boss_monster: false
+aggro_type: "FARTHEST"

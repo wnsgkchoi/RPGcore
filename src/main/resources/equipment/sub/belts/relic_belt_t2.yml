@@ -1,0 +1,58 @@
+display_name: "&b깨어난 유랑의 허리띠"
+description:
+  - "&7잠들어 있던 유물의 힘이 완전히 깨어났습니다."
+  - "&7착용자의 모든 발걸음이 시간의 힘으로 변환됩니다."
+material: "LEATHER_HORSE_ARMOR"
+custom_model_data: 10 
+equipment_type: BELT
+set_id: "relic_set"
+tier: 2
+max_upgrade_level: 20
+unique_effects_on_move: 
+  - type: "COOLDOWN_REDUCTION_ON_MOVE"
+    parameters:
+      distance_per_trigger: "50" 
+      reduction_seconds: "1" 
+statsPerLevel:
+  0:  { additiveStats: { MAX_MP: 80.0, COOLDOWN_REDUCTION: 0.03 } }
+  1:  { additiveStats: { MAX_MP: 84.0, COOLDOWN_REDUCTION: 0.031 } }
+  2:  { additiveStats: { MAX_MP: 88.0, COOLDOWN_REDUCTION: 0.032 } }
+  3:  { additiveStats: { MAX_MP: 92.0, COOLDOWN_REDUCTION: 0.033 } }
+  4:  { additiveStats: { MAX_MP: 96.0, COOLDOWN_REDUCTION: 0.034 } }
+  5:  { additiveStats: { MAX_MP: 101.0, COOLDOWN_REDUCTION: 0.035 } }
+  6:  { additiveStats: { MAX_MP: 106.0, COOLDOWN_REDUCTION: 0.036 } }
+  7:  { additiveStats: { MAX_MP: 111.0, COOLDOWN_REDUCTION: 0.037 } }
+  8:  { additiveStats: { MAX_MP: 116.0, COOLDOWN_REDUCTION: 0.038 } }
+  9:  { additiveStats: { MAX_MP: 121.0, COOLDOWN_REDUCTION: 0.039 } }
+  10: { additiveStats: { MAX_MP: 130.0, COOLDOWN_REDUCTION: 0.04 } }
+  11: { additiveStats: { MAX_MP: 139.0, COOLDOWN_REDUCTION: 0.041 } }
+  12: { additiveStats: { MAX_MP: 148.0, COOLDOWN_REDUCTION: 0.042 } }
+  13: { additiveStats: { MAX_MP: 157.0, COOLDOWN_REDUCTION: 0.043 } }
+  14: { additiveStats: { MAX_MP: 166.0, COOLDOWN_REDUCTION: 0.044 } }
+  15: { additiveStats: { MAX_MP: 180.0, COOLDOWN_REDUCTION: 0.046 } }
+  16: { additiveStats: { MAX_MP: 194.0, COOLDOWN_REDUCTION: 0.048 } }
+  17: { additiveStats: { MAX_MP: 208.0, COOLDOWN_REDUCTION: 0.05 } }
+  18: { additiveStats: { MAX_MP: 222.0, COOLDOWN_REDUCTION: 0.052 } }
+  19: { additiveStats: { MAX_MP: 240.0, COOLDOWN_REDUCTION: 0.055 } }
+  20: { additiveStats: { MAX_MP: 260.0, COOLDOWN_REDUCTION: 0.06 } }
+xpCostPerUpgradeLevel:
+  1: 300000
+  2: 320000
+  3: 345000
+  4: 375000
+  5: 410000
+  6: 450000
+  7: 495000
+  8: 545000
+  9: 600000
+  10: 660000
+  11: 726000
+  12: 798000
+  13: 878000
+  14: 966000
+  15: 1062000
+  16: 1168000
+  17: 1285000
+  18: 1413000
+  19: 1555000
+  20: 1710000

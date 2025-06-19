@@ -1,0 +1,16 @@
+monster_id: "inf_boss_1"
+display_name: "&4거대 좀비"
+vanilla_mob_type: "GIANT"
+icon_material: "IRON_SWORD"
+equipment: {}
+stats:
+  MAX_HP: { min: 5000.0, max: 5000.0 }
+  ATTACK_POWER: { min: 100.0, max: 120.0 }
+  DEFENSE_POWER: { min: 50.0, max: 50.0 }
+  MAGIC_RESISTANCE: { min: 50.0, max: 50.0 } # 추가
+skills:
+  - { internal_id: "monster_stomp", chance: 0.2, cooldown_ticks: 200 }
+xp_reward: 10000
+drop_table_id: "inf_boss_loot_tier1"
+is_boss_monster: true
+aggro_type: "NEAREST"

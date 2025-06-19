@@ -1,0 +1,18 @@
+display_name: "§6훈련용 도끼"
+description: 
+  - "초보 전사에게 연습용으로 지급되는 기본 도끼"
+material: WOODEN_AXE
+equipment_type: WEAPON
+set_id: "basic_set"
+required_class_internal_ids: ["frenzy_dps", "spike_tank"]
+base_cooldown_ms: 500
+max_upgrade_level: 3
+statsPerLevel:
+  0: { additiveStats: { ATTACK_POWER: 1.0 } }
+  1: { additiveStats: { ATTACK_POWER: 2.0 } }
+  2: { additiveStats: { ATTACK_POWER: 3.0 } }
+  3: { additiveStats: { ATTACK_POWER: 4.0 } }
+xpCostPerUpgradeLevel:
+  1: 1000
+  2: 3000
+  3: 5000

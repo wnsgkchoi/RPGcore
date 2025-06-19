@@ -1,0 +1,32 @@
+display_name: "&7정화의 장막"
+description:
+  - "&7굳건한 성벽과도 같은 유물 세트의 일부."
+  - "&7어떠한 저주나 해로운 기운도 정화할 듯한 기운을 내뿜습니다."
+material: "GRAY_BANNER"
+custom_model_data: null
+equipment_type: CLOAK
+set_id: "bulwark_set"
+max_upgrade_level: 10
+statsPerLevel:
+  0:  { additiveStats: { DEFENSE_POWER: 3.0, MAGIC_RESISTANCE: 7.0 } }
+  1:  { additiveStats: { DEFENSE_POWER: 4.0, MAGIC_RESISTANCE: 8.0 } }
+  2:  { additiveStats: { DEFENSE_POWER: 5.0, MAGIC_RESISTANCE: 9.0 } }
+  3:  { additiveStats: { DEFENSE_POWER: 6.0, MAGIC_RESISTANCE: 10.0 } }
+  4:  { additiveStats: { DEFENSE_POWER: 7.0, MAGIC_RESISTANCE: 11.0 } }
+  5:  { additiveStats: { MAX_HP: 20.0, DEFENSE_POWER: 8.0, MAGIC_RESISTANCE: 13.0 } }
+  6:  { additiveStats: { MAX_HP: 25.0, DEFENSE_POWER: 9.0, MAGIC_RESISTANCE: 15.0 } }
+  7:  { additiveStats: { MAX_HP: 30.0, DEFENSE_POWER: 10.0, MAGIC_RESISTANCE: 17.0 } }
+  8:  { additiveStats: { MAX_HP: 35.0, DEFENSE_POWER: 11.0, MAGIC_RESISTANCE: 19.0 } }
+  9:  { additiveStats: { MAX_HP: 40.0, DEFENSE_POWER: 13.0, MAGIC_RESISTANCE: 22.0 } }
+  10: { additiveStats: { MAX_HP: 50.0, DEFENSE_POWER: 15.0, MAGIC_RESISTANCE: 30.0 } }
+xpCostPerUpgradeLevel:
+  1: 5000
+  2: 8000
+  3: 12000
+  4: 18000
+  5: 27000
+  6: 40000
+  7: 60000
+  8: 90000
+  9: 135000
+  10: 200000

@@ -14,6 +14,8 @@ import org.flash.rpgcore.utils.XPHelper
 
 object PlayerScoreboardManager {
 
+    private val plugin = RPGcore.instance
+    private val logger = plugin.logger
     private val BOARD_TITLE = "${ChatColor.GOLD}상태창"
 
     fun updateScoreboard(player: Player) {
@@ -49,9 +51,9 @@ object PlayerScoreboardManager {
 
         updateLine(board, objective, "blank1", score--, " ")
 
-        score = updateSkillLines(board, objective, "Q", "SLOT_Q", playerData, score)
-        score = updateSkillLines(board, objective, "F", "SLOT_F", playerData, score)
-        updateSkillLines(board, objective, "Shift+Q", "SLOT_SHIFT_Q", playerData, score)
+        score = updateSkillLines(board, objective, "Q", "SLOT_Q", playerData, player, score)
+        score = updateSkillLines(board, objective, "F", "SLOT_F", playerData, player, score)
+        updateSkillLines(board, objective, "Shift+Q", "SLOT_SHIFT_Q", playerData, player, score)
     }
 
     private fun updateLine(board: Scoreboard, objective: Objective, teamName: String, score: Int, text: String) {
@@ -65,7 +67,7 @@ object PlayerScoreboardManager {
         objective.getScore(entry).score = score
     }
 
-    private fun updateSkillLines(board: Scoreboard, objective: Objective, keyName: String, slotKey: String, playerData: PlayerData, currentScore: Int): Int {
+    private fun updateSkillLines(board: Scoreboard, objective: Objective, keyName: String, slotKey: String, playerData: PlayerData, player: Player, currentScore: Int): Int {
         var score = currentScore
         val skillId = playerData.getEquippedActiveSkill(slotKey)
         val skillName: String
@@ -83,24 +85,23 @@ object PlayerScoreboardManager {
                 skillStatus = "§8- 오류"
             } else {
                 skillName = skillData.displayName
-                val mpCost = skillData.levelData[currentLevel]?.mpCost ?: Int.MAX_VALUE
+                val levelData = skillData.levelData[currentLevel]
+                val mpCost = levelData?.mpCost ?: Int.MAX_VALUE
 
-                // 1. MP 부족을 최우선으로 체크
                 if (playerData.currentMp < mpCost) {
                     skillStatus = "§9- MP 부족"
                 } else {
-                    val maxCharges = skillData.maxCharges
-                    // 2. 충전식 스킬인지 확인
+                    val maxCharges = levelData?.maxCharges
                     if (maxCharges != null && maxCharges > 0) {
                         val currentCharges = playerData.getSkillCharges(skillId, maxCharges)
                         skillStatus = if (currentCharges > 0) {
-                            "§a- 사용 가능 (§e${currentCharges}/${maxCharges}§a)"
+                            "§a- 충전 횟수: ${currentCharges}"
                         } else {
-                            val remaining = playerData.getRemainingChargeCooldownMillis(skillId) / 1000.0
-                            "§c- 재충전 중 (${String.format("%.1f", remaining)}s)"
+                            "§c- 재사용 대기"
                         }
-                    } else { // 3. 일반 쿨타임 스킬
-                        skillStatus = if (playerData.isOnCooldown(skillId)) {
+                    } else {
+                        val onCooldown = playerData.isOnCooldown(skillId)
+                        skillStatus = if (onCooldown) {
                             "§c- 재사용 대기"
                         } else {
                             "§a- 사용 가능"

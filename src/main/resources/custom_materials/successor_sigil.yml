@@ -1,0 +1,6 @@
+display_name: "&e[제작 재료] 계승자의 인장"
+material: "COPPER_INGOT"
+custom_model_data: null
+lore:
+  - "&7도전자의 길을 지나, 그 힘을 계승할 자격을 증명하는 인장."
+  - "&72단계 장비 업그레이드에 사용됩니다."

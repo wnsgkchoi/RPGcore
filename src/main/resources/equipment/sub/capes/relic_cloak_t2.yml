@@ -1,0 +1,58 @@
+display_name: "&b깨어난 왜곡의 망토"
+description:
+  - "&7잠들어 있던 유물의 힘이 완전히 깨어났습니다."
+  - "&7외부의 충격이 흩날리는 시간의 먼지에 흡수되어 소멸합니다."
+material: "ELYTRA"
+custom_model_data: 10 
+equipment_type: CLOAK
+set_id: "relic_set"
+tier: 2
+max_upgrade_level: 20
+unique_effects_on_hit_taken:
+  - type: "COOLDOWN_REDUCTION_ON_HIT"
+    parameters:
+      chance: "0.10" 
+      reduction_ticks: "10" 
+statsPerLevel:
+  0:  { additiveStats: { COOLDOWN_REDUCTION: 0.045, DEFENSE_POWER: 30.0 } }
+  1:  { additiveStats: { COOLDOWN_REDUCTION: 0.046, DEFENSE_POWER: 33.0 } }
+  2:  { additiveStats: { COOLDOWN_REDUCTION: 0.047, DEFENSE_POWER: 36.0 } }
+  3:  { additiveStats: { COOLDOWN_REDUCTION: 0.048, DEFENSE_POWER: 39.0 } }
+  4:  { additiveStats: { COOLDOWN_REDUCTION: 0.049, DEFENSE_POWER: 42.0 } }
+  5:  { additiveStats: { COOLDOWN_REDUCTION: 0.051, DEFENSE_POWER: 46.0 } }
+  6:  { additiveStats: { COOLDOWN_REDUCTION: 0.053, DEFENSE_POWER: 50.0 } }
+  7:  { additiveStats: { COOLDOWN_REDUCTION: 0.055, DEFENSE_POWER: 54.0 } }
+  8:  { additiveStats: { COOLDOWN_REDUCTION: 0.057, DEFENSE_POWER: 58.0 } }
+  9:  { additiveStats: { COOLDOWN_REDUCTION: 0.059, DEFENSE_POWER: 62.0 } }
+  10: { additiveStats: { COOLDOWN_REDUCTION: 0.062, DEFENSE_POWER: 68.0 } }
+  11: { additiveStats: { COOLDOWN_REDUCTION: 0.064, DEFENSE_POWER: 74.0 } }
+  12: { additiveStats: { COOLDOWN_REDUCTION: 0.066, DEFENSE_POWER: 80.0 } }
+  13: { additiveStats: { COOLDOWN_REDUCTION: 0.068, DEFENSE_POWER: 86.0 } }
+  14: { additiveStats: { COOLDOWN_REDUCTION: 0.07, DEFENSE_POWER: 92.0 } }
+  15: { additiveStats: { COOLDOWN_REDUCTION: 0.073, DEFENSE_POWER: 100.0 } }
+  16: { additiveStats: { COOLDOWN_REDUCTION: 0.076, DEFENSE_POWER: 108.0 } }
+  17: { additiveStats: { COOLDOWN_REDUCTION: 0.079, DEFENSE_POWER: 116.0 } }
+  18: { additiveStats: { COOLDOWN_REDUCTION: 0.082, DEFENSE_POWER: 124.0 } }
+  19: { additiveStats: { COOLDOWN_REDUCTION: 0.085, DEFENSE_POWER: 135.0 } }
+  20: { additiveStats: { COOLDOWN_REDUCTION: 0.09, DEFENSE_POWER: 150.0 } }
+xpCostPerUpgradeLevel:
+  1: 300000
+  2: 320000
+  3: 345000
+  4: 375000
+  5: 410000
+  6: 450000
+  7: 495000
+  8: 545000
+  9: 600000
+  10: 660000
+  11: 726000
+  12: 798000
+  13: 878000
+  14: 966000
+  15: 1062000
+  16: 1168000
+  17: 1285000
+  18: 1413000
+  19: 1555000
+  20: 1710000

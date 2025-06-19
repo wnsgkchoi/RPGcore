@@ -1,0 +1,12 @@
+display_name: "§6훈련용 투구"
+description: 
+  - "연습용으로 지급되는 기본 투구"
+material: IRON_HELMET
+equipment_type: HELMET
+set_id: "basic_set"
+max_upgrade_level: 1
+statsPerLevel:
+  0: { additiveStats: { DEFENSE_POWER: 1.0, MAGIC_RESISTANCE: 1.0} }
+  1: { additiveStats: { DEFENSE_POWER: 2.0, MAGIC_RESISTANCE: 2.0} }
+xpCostPerUpgradeLevel:
+  1: 3000

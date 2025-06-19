@@ -15,6 +15,7 @@ data class SkillLevelData(
     val level: Int,
     val mpCost: Int,
     val cooldownTicks: Int,
+    val maxCharges: Int? = null, // RPGSkillData에서 이 위치로 이동
     val castTimeTicks: Int = 0,
     val durationTicks: Int? = null,
     val maxChannelTicks: Int? = null,
@@ -36,7 +37,7 @@ data class RPGSkillData(
     val interruptOnMove: Boolean = true,
 
     val maxLevel: Int,
-    val maxCharges: Int? = null,
+    // val maxCharges: Int? = null, // 여기서 삭제
     val levelData: Map<Int, SkillLevelData>,
     val upgradeCostPerLevel: Map<Int, Long>,
 

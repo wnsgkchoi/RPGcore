@@ -1,0 +1,18 @@
+display_name: "&7돌진"
+skill_type: "ACTIVE"
+behavior: "INSTANT"
+max_level: 1
+level_data:
+  '1':
+    mp_cost: 0
+    cooldown_ticks: 60
+    effects:
+      - type: "TELEPORT_FORWARD" # SkillEffectExecutor에 구현 필요
+        target_selector: "SELF"
+        parameters:
+          distance: "5.0"
+      - type: "DAMAGE"
+        target_selector: "AREA_ENEMY_AROUND_CASTER"
+        parameters:
+          area_radius: "2.5"
+          physical_damage_coeff_attack_power_formula: "1.5"

@@ -1,0 +1,78 @@
+display_name: "&3시공간 여행자의 허리띠"
+description:
+  - "&7시간의 흐름을 완벽히 제어하는 궁극의 유물."
+  - "&7한 걸음을 내디딜 때마다 시공간을 넘어 힘을 축적합니다."
+material: "LEATHER_HORSE_ARMOR"
+custom_model_data: 20
+equipment_type: BELT
+set_id: "relic_set"
+tier: 3
+max_upgrade_level: 30
+unique_effects_on_move:
+  - type: "COOLDOWN_REDUCTION_ON_MOVE"
+    parameters:
+      distance_per_trigger: "40"
+      reduction_seconds: "1.5"
+statsPerLevel:
+  0:  { additiveStats: { MAX_MP: 265.0, COOLDOWN_REDUCTION: 0.065 } }
+  1:  { additiveStats: { MAX_MP: 271.0, COOLDOWN_REDUCTION: 0.066 } }
+  2:  { additiveStats: { MAX_MP: 277.0, COOLDOWN_REDUCTION: 0.067 } }
+  3:  { additiveStats: { MAX_MP: 283.0, COOLDOWN_REDUCTION: 0.068 } }
+  4:  { additiveStats: { MAX_MP: 289.0, COOLDOWN_REDUCTION: 0.069 } }
+  5:  { additiveStats: { MAX_MP: 295.0, COOLDOWN_REDUCTION: 0.07 } }
+  6:  { additiveStats: { MAX_MP: 301.0, COOLDOWN_REDUCTION: 0.071 } }
+  7:  { additiveStats: { MAX_MP: 307.0, COOLDOWN_REDUCTION: 0.072 } }
+  8:  { additiveStats: { MAX_MP: 313.0, COOLDOWN_REDUCTION: 0.073 } }
+  9:  { additiveStats: { MAX_MP: 319.0, COOLDOWN_REDUCTION: 0.074 } }
+  10: { additiveStats: { MAX_MP: 327.0, COOLDOWN_REDUCTION: 0.076 } }
+  11: { additiveStats: { MAX_MP: 335.0, COOLDOWN_REDUCTION: 0.078 } }
+  12: { additiveStats: { MAX_MP: 343.0, COOLDOWN_REDUCTION: 0.08 } }
+  13: { additiveStats: { MAX_MP: 351.0, COOLDOWN_REDUCTION: 0.082 } }
+  14: { additiveStats: { MAX_MP: 359.0, COOLDOWN_REDUCTION: 0.084 } }
+  15: { additiveStats: { MAX_MP: 370.0, COOLDOWN_REDUCTION: 0.087 } }
+  16: { additiveStats: { MAX_MP: 381.0, COOLDOWN_REDUCTION: 0.09 } }
+  17: { additiveStats: { MAX_MP: 392.0, COOLDOWN_REDUCTION: 0.093 } }
+  18: { additiveStats: { MAX_MP: 403.0, COOLDOWN_REDUCTION: 0.096 } }
+  19: { additiveStats: { MAX_MP: 414.0, COOLDOWN_REDUCTION: 0.099 } }
+  20: { additiveStats: { MAX_MP: 430.0, COOLDOWN_REDUCTION: 0.103 } }
+  21: { additiveStats: { MAX_MP: 446.0, COOLDOWN_REDUCTION: 0.106 } }
+  22: { additiveStats: { MAX_MP: 462.0, COOLDOWN_REDUCTION: 0.109 } }
+  23: { additiveStats: { MAX_MP: 478.0, COOLDOWN_REDUCTION: 0.112 } }
+  24: { additiveStats: { MAX_MP: 494.0, COOLDOWN_REDUCTION: 0.115 } }
+  25: { additiveStats: { MAX_MP: 515.0, COOLDOWN_REDUCTION: 0.119 } }
+  26: { additiveStats: { MAX_MP: 536.0, COOLDOWN_REDUCTION: 0.123 } }
+  27: { additiveStats: { MAX_MP: 557.0, COOLDOWN_REDUCTION: 0.127 } }
+  28: { additiveStats: { MAX_MP: 578.0, COOLDOWN_REDUCTION: 0.131 } }
+  29: { additiveStats: { MAX_MP: 600.0, COOLDOWN_REDUCTION: 0.135 } }
+  30: { additiveStats: { MAX_MP: 650.0, COOLDOWN_REDUCTION: 0.145 } }
+xpCostPerUpgradeLevel:
+  1: 2000000
+  2: 2100000
+  3: 2250000
+  4: 2450000
+  5: 2700000
+  6: 3000000
+  7: 3350000
+  8: 3750000
+  9: 4200000
+  10: 4700000
+  11: 5250000
+  12: 5850000
+  13: 6500000
+  14: 7200000
+  15: 8000000
+  16: 8850000
+  17: 9750000
+  18: 10700000
+  19: 11700000
+  20: 12800000
+  21: 14000000
+  22: 15300000
+  23: 16700000
+  24: 18200000
+  25: 19800000
+  26: 21500000
+  27: 23300000
+  28: 25200000
+  29: 27200000
+  30: 29300000

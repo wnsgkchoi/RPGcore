@@ -1,12 +1,43 @@
 player-uuid: 888dec2b-fec3-48c4-86d2-0cec9bf0b12d
 player-name: chyomoo0820
-last-login-timestamp: 1748767345734
-current-hp: 20.0
-current-mp: 50.0
+last-login-timestamp: 1750264047633
+current-hp: 253.49999999999983
+current-mp: 73.80000000000001
+current-class-id: spike_tank
+learned-recipes: []
 base-stats:
-  MAX_HP: 20.0
-  MAX_MP: 50.0
-  ATTACK_POWER: 5.0
-  DEFENSE_POWER: 5.0
-  SPELL_POWER: 5.0
+  MAX_HP: 174.0
+  MAX_MP: 95.0
+  ATTACK_POWER: 100.0
+  DEFENSE_POWER: 451.0
+  SPELL_POWER: 154.0
   MAGIC_RESISTANCE: 5.0
+  ATTACK_SPEED: 1.0
+  CRITICAL_CHANCE: 0.0
+  COOLDOWN_REDUCTION: 0.0
+  PHYSICAL_LIFESTEAL: 0.0
+  SPELL_LIFESTEAL: 0.0
+  XP_GAIN_RATE: 0.0
+  ITEM_DROP_RATE: 0.0
+custom-equipment-json: '{"BELT":{"itemInternalId":"bulwark_belt_t3","upgradeLevel":0},"GLOVES":{"itemInternalId":"bulwark_gloves_t3","upgradeLevel":0},"CLOAK":{"itemInternalId":"bulwark_cloak_t3","upgradeLevel":0}}'
+learned-skills:
+  taunt: 1
+  shield_charge: 1
+  mode_switching: 1
+  reflection_aura: 1
+  arrow_spree: 1
+  instant_charge: 1
+  explosive_arrow: 1
+  precision_charging: 1
+equipped-active-skills:
+  SLOT_Q: taunt
+  SLOT_F: shield_charge
+  SLOT_SHIFT_Q: mode_switching
+equipped-passive-skills:
+- null
+- null
+- null
+skillCharges: {}
+skillChargeCooldowns: {}
+monster-encyclopedia: '{"inf_melee_2":{"killCount":0,"minStatsObserved":{"MAX_HP":131.5,"DEFENSE_POWER":6.574999999999999,"ATTACK_POWER":32.15342210608423,"MAGIC_RESISTANCE":6.574999999999999,"SPELL_POWER":6.574999999999999},"maxStatsObserved":{"MAX_HP":131.5,"DEFENSE_POWER":6.574999999999999,"ATTACK_POWER":32.15342210608423,"MAGIC_RESISTANCE":6.574999999999999,"SPELL_POWER":6.574999999999999},"isDiscovered":true}}'
+claimed-encyclopedia-rewards: []

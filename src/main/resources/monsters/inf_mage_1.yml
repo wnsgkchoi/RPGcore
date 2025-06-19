@@ -1,0 +1,17 @@
+monster_id: "inf_mage_1"
+display_name: "&b무한던전 저주술사"
+vanilla_mob_type: "EVOKER"
+icon_material: "BLAZE_ROD"
+equipment: {}
+stats:
+  MAX_HP: { min: 70.0, max: 90.0 }
+  ATTACK_POWER: { min: 5.0, max: 5.0 }
+  SPELL_POWER: { min: 20.0, max: 25.0 }
+  DEFENSE_POWER: { min: 5.0, max: 10.0 }
+  MAGIC_RESISTANCE: { min: 5.0, max: 10.0 } # 추가
+skills:
+  - { internal_id: "monster_fireball", chance: 0.3, cooldown_ticks: 100 } # 스킬은 예시이며, 실제 스킬 파일 필요
+xp_reward: 80
+drop_table_id: null
+is_boss_monster: false
+aggro_type: "LOWEST_HP"

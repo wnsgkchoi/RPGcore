@@ -81,6 +81,7 @@ class SkillKeyListener : Listener {
         val skill = SkillManager.getSkill(skillId) ?: return
         val level = playerData.getLearnedSkillLevel(skillId)
         if (level == 0) return
+
         val levelData = skill.levelData[level] ?: return
 
         if (playerData.currentMp < levelData.mpCost) {
@@ -92,64 +93,41 @@ class SkillKeyListener : Listener {
             return
         }
 
-        // 쿨타임 계산 먼저 수행
-        var cooldownReduction = StatManager.getFinalStatValue(player, StatType.COOLDOWN_REDUCTION)
-
-        // <<<<<<< 허리띠 버프 효과 적용 로직 시작 >>>>>>>
-        val beltBuff = StatusEffectManager.getActiveStatus(player, "next_skill_cdr_buff")
-        if (beltBuff != null) {
-            val reductionSeconds = beltBuff.parameters["reduction_seconds"]?.toString()?.toDoubleOrNull() ?: 0.0
-            if (reductionSeconds > 0) {
-                val reductionPercentage = reductionSeconds / (levelData.cooldownTicks / 20.0)
-                cooldownReduction += reductionPercentage
-                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&b[유랑하는 바람의 허리띠] §f효과로 재사용 대기시간이 감소합니다!"))
-                StatusEffectManager.removeStatus(player, "next_skill_cdr_buff")
-            }
-        }
-        // <<<<<<< 허리띠 버프 효과 적용 로직 끝 >>>>>>>
-
-        val finalCooldownTicks = (levelData.cooldownTicks * (1.0 - cooldownReduction)).toLong()
-
-        val maxCharges = skill.maxCharges
+        val maxCharges = levelData.maxCharges
         if (maxCharges != null && maxCharges > 0) {
+            // 충전식 스킬 로직
             val currentCharges = playerData.getSkillCharges(skillId, maxCharges)
             if (currentCharges > 0) {
+                if (currentCharges == maxCharges) {
+                    val cooldown = levelData.cooldownTicks.toLong() * 50
+                    playerData.startChargeCooldown(skillId, System.currentTimeMillis() + cooldown)
+                }
                 playerData.useSkillCharge(skillId)
-                playerData.currentMp -= levelData.mpCost
-
-                if (levelData.castTimeTicks > 0) CastingManager.startCasting(player, skill, level) else SkillEffectExecutor.execute(player, skillId)
-
-                if (playerData.getSkillCharges(skillId, maxCharges) == 0) {
-                    if (!handleCooldownResetEffect(player)) {
-                        playerData.startChargeCooldown(skillId, System.currentTimeMillis() + finalCooldownTicks * 50)
-                    } else {
-                        player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&b[신속의 손길] §f재사용 대기시간이 초기화되었습니다!"))
-                    }
-                }
             } else {
-                if (playerData.isOnChargeCooldown(skillId)) {
-                    val remaining = playerData.getRemainingChargeCooldownMillis(skillId) / 1000.0
-                    player.sendMessage("§c재충전 중입니다. (${String.format("%.1f", remaining)}초)")
-                } else {
-                    player.sendMessage("§c스킬을 사용할 수 없습니다 (횟수 부족).")
-                }
+                val remaining = playerData.getRemainingChargeCooldownMillis(skillId) / 1000.0
+                player.sendMessage("§c재충전 중입니다. (${String.format("%.1f", remaining)}초)")
+                return
             }
         } else {
+            // 일반 쿨타임 스킬 로직
             if (playerData.isOnCooldown(skillId)) {
                 val remaining = playerData.getRemainingCooldownMillis(skillId) / 1000.0
                 player.sendMessage("§c아직 쿨타임입니다. (${String.format("%.1f", remaining)}초)")
                 return
             }
-            playerData.currentMp -= levelData.mpCost
-
-            if (!handleCooldownResetEffect(player)) {
-                playerData.startSkillCooldown(skillId, System.currentTimeMillis() + finalCooldownTicks * 50)
-            } else {
-                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&b[신속의 손길] §f재사용 대기시간이 초기화되었습니다!"))
-            }
-
-            if (levelData.castTimeTicks > 0) CastingManager.startCasting(player, skill, level) else SkillEffectExecutor.execute(player, skillId)
+            val cooldownReduction = StatManager.getFinalStatValue(player, StatType.COOLDOWN_REDUCTION)
+            val finalCooldownTicks = (levelData.cooldownTicks * (1.0 - cooldownReduction)).toLong()
+            playerData.startSkillCooldown(skillId, System.currentTimeMillis() + finalCooldownTicks * 50)
         }
+
+        playerData.currentMp -= levelData.mpCost
+        if (handleCooldownResetEffect(player)) {
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&b[신속의 손길] §f재사용 대기시간이 초기화되었습니다!"))
+            // 여기서 쿨타임/충전량 초기화 로직 추가 가능
+        }
+
+        if (levelData.castTimeTicks > 0) CastingManager.startCasting(player, skill, level) else SkillEffectExecutor.execute(player, skillId)
+
         PlayerScoreboardManager.updateScoreboard(player)
     }
 

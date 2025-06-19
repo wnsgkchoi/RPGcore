@@ -9,18 +9,15 @@ object XPHelper : IXPHelper {
     private val logger = RPGcore.instance.logger
 
     override fun getTotalExperience(player: Player): Int {
-        logger.info("[XPHelper DEBUG] getTotalExperience called for ${player.name}")
         var totalExp = 0
         for (i in 0 until player.level) {
             totalExp += getExpToNextLevel(i)
         }
         totalExp += (player.exp * getExpToNextLevel(player.level)).toInt()
-        logger.info("[XPHelper DEBUG] Calculated total experience: $totalExp")
         return totalExp
     }
 
     override fun setTotalExperience(player: Player, amount: Int) {
-        logger.info("[XPHelper DEBUG] setTotalExperience called for ${player.name} with amount $amount")
         require(amount >= 0) { "Experience amount cannot be negative." }
 
         player.level = 0
@@ -37,24 +34,19 @@ object XPHelper : IXPHelper {
         }
         player.level = level
         player.exp = if (expToNextLevel == 0) 0f else exp.toFloat() / expToNextLevel.toFloat()
-        logger.info("[XPHelper DEBUG] Set player ${player.name} to Level: $level, Exp: ${player.exp}")
 
         RPGcore.instance.server.scheduler.runTask(RPGcore.instance, Runnable {
             PlayerScoreboardManager.updateScoreboard(player)
-            logger.info("[XPHelper DEBUG] Scoreboard update task executed for ${player.name}")
         })
     }
 
     override fun addTotalExperience(player: Player, amount: Int) {
-        logger.info("[XPHelper DEBUG] addTotalExperience called for ${player.name} with amount $amount")
         require(amount >= 0) { "Amount to add must be non-negative." }
         val currentTotal = getTotalExperience(player)
-        logger.info("[XPHelper DEBUG] Current total XP for ${player.name} is $currentTotal. New total will be ${currentTotal + amount}")
         setTotalExperience(player, currentTotal + amount)
     }
 
     override fun removeTotalExperience(player: Player, amount: Int): Boolean {
-        logger.info("[XPHelper DEBUG] removeTotalExperience called for ${player.name} with amount $amount")
         require(amount >= 0) { "Amount to remove must be non-negative." }
         val currentTotal = getTotalExperience(player)
         if (currentTotal >= amount) {

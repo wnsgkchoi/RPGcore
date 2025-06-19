@@ -1,0 +1,15 @@
+display_name: "&8발구르기"
+skill_type: "ACTIVE"
+behavior: "INSTANT"
+max_level: 1
+level_data:
+  '1':
+    mp_cost: 0
+    cooldown_ticks: 200
+    effects:
+      - type: "DAMAGE"
+        target_selector: "AREA_ENEMY_AROUND_CASTER"
+        parameters:
+          area_radius: "5.0"
+          physical_damage_coeff_attack_power_formula: "7.0"
+          knockback_strength: "1.5" # 넉백 효과

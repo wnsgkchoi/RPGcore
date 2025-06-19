@@ -1,0 +1,15 @@
+display_name: "&5포획"
+skill_type: "ACTIVE"
+behavior: "INSTANT"
+max_level: 1
+level_data:
+  '1':
+    mp_cost: 0
+    cooldown_ticks: 160
+    effects:
+      - type: "DAMAGE"
+        target_selector: "AREA_ENEMY_AROUND_CASTER"
+        parameters:
+          area_radius: "8.0"
+          physical_damage_coeff_attack_power_formula: "5.0" # 약한 피해
+          knockback_strength: "-2.0" # 플레이어를 끌어당김

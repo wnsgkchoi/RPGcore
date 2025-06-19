@@ -1,0 +1,6 @@
+drops:
+  - type: RPGCORE_MATERIAL
+    id: "successor_sigil"
+    minAmount: 1
+    maxAmount: 4
+    chance: 0.5

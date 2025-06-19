@@ -52,12 +52,11 @@ class RPGcore : JavaPlugin() {
         server.pluginManager.registerEvents(ClassGUIListener(), this)
         server.pluginManager.registerEvents(EquipmentGUIListener(), this)
         server.pluginManager.registerEvents(TradeXPInputListener(), this)
-        server.pluginManager.registerEvents(VanillaXPChangeListener(), this)
+        server.pluginManager.registerEvents(CombatListener(), this)
         server.pluginManager.registerEvents(SkillManagementGUIListener(), this)
         server.pluginManager.registerEvents(SkillLibraryGUIListener(), this)
         server.pluginManager.registerEvents(CraftingCategoryGUIListener(), this)
         server.pluginManager.registerEvents(CraftingRecipeGUIListener(), this)
-        server.pluginManager.registerEvents(CombatListener(), this)
         server.pluginManager.registerEvents(SkillKeyListener(), this)
         server.pluginManager.registerEvents(BowChargeListener(), this)
         server.pluginManager.registerEvents(MonsterAIListener(), this)
@@ -123,9 +122,12 @@ class RPGcore : JavaPlugin() {
                             SkillManager.getSkill("gale_rush")?.let { skill ->
                                 val level = playerData.getLearnedSkillLevel(skill.internalId)
                                 val params = skill.levelData[level]?.effects?.find { it.type == "MANAGE_GALE_RUSH_STACK" }?.parameters
-                                val expireTicks = params?.get("stack_expire_ticks")?.toString()?.toLongOrNull() ?: 60L
+                                val expireTicks = params?.get("stack_expire_ticks")?.toString()?.toLongOrNull() ?: 100L
+                                val decayAmount = params?.get("stack_decay_amount")?.toString()?.toIntOrNull() ?: 1
+
                                 if (System.currentTimeMillis() - playerData.lastGaleRushActionTime > expireTicks * 50L) {
-                                    playerData.galeRushStacks = 0
+                                    playerData.galeRushStacks = (playerData.galeRushStacks - decayAmount).coerceAtLeast(0)
+                                    playerData.lastGaleRushActionTime = System.currentTimeMillis() // 다음 감소를 위해 시간 초기화
                                     needsUpdate = true
                                 }
                             }
@@ -166,21 +168,26 @@ class RPGcore : JavaPlugin() {
                             }
                         }
 
-                        playerData.equippedActiveSkills.values.filterNotNull().forEach { skillId ->
-                            if (!playerData.isOnCooldown(skillId) && playerData.skillCooldowns.containsKey(skillId)) {
-                                playerData.skillCooldowns.remove(skillId)
-                                needsUpdate = true
-                            }
-                        }
+                        playerData.skillCooldowns.entries.removeIf { it.value < System.currentTimeMillis() && needsUpdate.let { true } }
 
                         playerData.skillChargeCooldowns.keys.toList().forEach { skillId ->
                             if (!playerData.isOnChargeCooldown(skillId)) {
                                 val skill = SkillManager.getSkill(skillId)
-                                if (skill?.maxCharges != null) {
-                                    playerData.skillCharges[skillId] = skill.maxCharges
-                                    playerData.skillChargeCooldowns.remove(skillId)
-                                    player.sendMessage("§b[${skill.displayName}] §f모든 횟수가 충전되었습니다!")
-                                    needsUpdate = true
+                                val level = playerData.getLearnedSkillLevel(skillId)
+                                val maxCharges = skill?.levelData?.get(level)?.maxCharges
+                                if (maxCharges != null) {
+                                    val currentCharges = playerData.getSkillCharges(skillId, maxCharges)
+                                    if (currentCharges < maxCharges) {
+                                        playerData.skillCharges[skillId] = currentCharges + 1
+                                        player.sendMessage("§b[${skill.displayName}] §f충전 완료! (§e${currentCharges + 1}/${maxCharges}§b)")
+                                        if (currentCharges + 1 < maxCharges) {
+                                            val cooldown = skill.levelData[level]?.cooldownTicks ?: 200
+                                            playerData.startChargeCooldown(skillId, System.currentTimeMillis() + cooldown * 50)
+                                        } else {
+                                            playerData.skillChargeCooldowns.remove(skillId)
+                                        }
+                                        needsUpdate = true
+                                    }
                                 }
                             }
                         }

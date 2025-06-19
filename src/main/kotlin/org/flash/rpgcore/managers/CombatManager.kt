@@ -23,7 +23,18 @@ object CombatManager {
     private val logger = plugin.logger
 
     private val lastPlayerDamageTime: MutableMap<UUID, Long> = ConcurrentHashMap()
+    private val lastDamagerMap: MutableMap<UUID, UUID> = ConcurrentHashMap()
     private const val PLAYER_INVINCIBILITY_MILLIS = 500L
+
+    fun recordDamage(damager: LivingEntity, victim: LivingEntity) {
+        if (damager is Player) {
+            lastDamagerMap[victim.uniqueId] = damager.uniqueId
+        }
+    }
+
+    fun getAndClearLastDamager(victim: LivingEntity): UUID? {
+        return lastDamagerMap.remove(victim.uniqueId)
+    }
 
     fun applyEnvironmentalDamage(victim: Player, damage: Double) {
         if (damage <= 0) return
@@ -117,6 +128,8 @@ object CombatManager {
 
     fun applySkillDamage(caster: Player, target: LivingEntity, effectData: SkillEffectData) {
         if (target is Player) return
+
+        recordDamage(caster, target)
 
         val params = effectData.parameters
         val playerData = PlayerDataManager.getPlayerData(caster)
@@ -326,7 +339,6 @@ object CombatManager {
             }
         }
 
-        // <<<<<<< 로직 추가: 마지막 공격자 정보 갱신 >>>>>>>
         if (damager is Player && !isReflection) {
             EntityManager.getEntityData(victim)?.lastDamager = damager.uniqueId
         }
@@ -424,29 +436,36 @@ object CombatManager {
             val message = if(isDoubleStrikeProc) "&4(2회 타격!)" else ""
             victim.sendMessage("§c${damagerName}(으)로부터 ${totalDamage.toInt()}의 피해를 입었습니다! ${message} (남은 체력: ${playerData.currentHp.toInt()})")
             if (damager is Player) {
-                val actionBarMessage = "&e${victim.name} &f에게 &c${totalDamage.toInt()}&f의 피해! ${if (isCritical) "&l(치명타!)" else ""} ${if(isDoubleStrikeProc) "&4(2회 타격!)" else ""}"
+                val victimName = ChatColor.stripColor(victim.customName ?: victim.type.name.replace("_", " ").lowercase().replaceFirstChar { it.titlecase() })
+                val hpStr = "§c-${totalDamage.toInt()} §f(${max(0.0, newHp).toInt()}/${StatManager.getFinalStatValue(victim, StatType.MAX_HP).toInt()})"
+                val actionBarMessage = "&e${victimName} ${hpStr} ${if (isCritical) "&l(치명타!)" else ""} ${if(doubleStrikeWillProc) "&4(2회 타격!)" else ""}"
                 damager.sendActionBar(ChatColor.translateAlternateColorCodes('&', actionBarMessage))
             }
             if (playerData.currentHp <= 0) { victim.health = 0.0 }
             PlayerScoreboardManager.updateScoreboard(victim)
         } else {
-            var remainingHp: Double
-            var maxHp: Double
-
             val customMobData = EntityManager.getEntityData(victim)
             if (customMobData != null) {
                 customMobData.currentHp -= totalDamage
-                remainingHp = customMobData.currentHp
-                maxHp = customMobData.maxHp
-                if (remainingHp <= 0) victim.health = 0.0
-                if (BossBarManager.isBoss(victim.uniqueId)) BossBarManager.updateBossHp(victim, remainingHp, maxHp)
+                val newHp = customMobData.currentHp
+                val maxHp = customMobData.maxHp
+
+                val vanillaMaxHealth = victim.getAttribute(Attribute.MAX_HEALTH)?.value ?: 2048.0
+                victim.health = max(0.0, (newHp / maxHp) * vanillaMaxHealth)
+
+                if (newHp <= 0) {
+                    victim.health = 0.0
+                }
+                if (BossBarManager.isBoss(victim.uniqueId)) {
+                    BossBarManager.updateBossHp(victim, newHp, maxHp)
+                }
             } else {
                 victim.health = max(0.0, victim.health - totalDamage)
-                remainingHp = victim.health
-                maxHp = victim.getAttribute(Attribute.MAX_HEALTH)?.value ?: 20.0
             }
 
             if (damager is Player) {
+                val remainingHp = if (customMobData != null) customMobData.currentHp else victim.health
+                val maxHp = if (customMobData != null) customMobData.maxHp else victim.getAttribute(Attribute.MAX_HEALTH)?.value ?: victim.health
                 if (magicalDamage == 0.0 && physicalDamage > 0.0 && !isReflection) {
                     val direction = victim.location.toVector().subtract(damager.location.toVector()).normalize()
                     direction.y = 0.35
@@ -525,6 +544,8 @@ object CombatManager {
     }
 
     fun handleChargedShotDamage(caster: Player, target: LivingEntity, chargeLevel: Int, vanillaDamage: Double) {
+        if (target is Player) return
+
         val skill = SkillManager.getSkill("precision_charging") ?: return
         val playerData = PlayerDataManager.getPlayerData(caster)
         val skillLevel = playerData.getLearnedSkillLevel(skill.internalId)

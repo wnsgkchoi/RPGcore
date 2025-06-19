@@ -97,15 +97,19 @@ object SkillLoreHelper {
             // 질풍검객
             "gale_rush" -> {
                 val p = levelSpecificData.effects.find {it.type == "MANAGE_GALE_RUSH_STACK"}?.parameters ?: return skillData.description
-                "&7스킬 적중 시 스택(최대 &e${p["max_stack"]}스택)을 쌓는다. 하나의 스택마다 치명타 공격이 &e${p["bonus_armor_pen_percent_per_stack"]}% &7만큼 추가로 방어력을 무시하며, 치명타의 최종 데미지가 &e${p["bonus_crit_multiplier_per_stack"]}%&7 만큼 증가한다. 추가로 스킬의 쿨타임이 1스택 당 &e${p["cdr_per_stack_percent"]}% &7만큼 감소한다. 스택은 스킬을 사용하지 않으면 &e${(p["stack_expire_ticks"]?.toString()?.toIntOrNull() ?: 0)/20}초 &7후에 사라진다."
+                val expireSeconds = (p["stack_expire_ticks"]?.toString()?.toIntOrNull() ?: 0) / 20
+                val decayAmount = p["stack_decay_amount"]?.toString()?.toIntOrNull() ?: 1
+                "&7스킬 적중 시 스택(최대 &e${p["max_stack"]}스택)을 쌓는다. 하나의 스택마다 치명타 공격이 &e${p["bonus_armor_pen_percent_per_stack"]}% &7만큼 추가로 방어력을 무시하며, 치명타의 최종 데미지가 &e${p["bonus_crit_multiplier_per_stack"]}%&7 만큼 증가한다. 추가로 스킬의 쿨타임이 1스택 당 &e${p["cdr_per_stack_percent"]}% &7만큼 감소한다. 스택은 &e${expireSeconds}초&7마다 &e${decayAmount}개&7씩 사라진다."
             }
             "wind_slash" -> {
                 val p = levelSpecificData.effects.find { it.type == "DAMAGE" }?.parameters ?: return skillData.description
-                "&7전방 &e${p["path_length"]}칸&7을 빠르게 이동하며 경로 상의 적에게 공격력의 &c${(p["physical_damage_coeff_attack_power_formula"]?.toString()?.toDoubleOrNull()?.times(100)?.toInt()) ?: 0}%&7 피해를 줍니다."
+                val maxCharges = levelSpecificData.maxCharges ?: 1
+                "&7최대 &e${maxCharges}회&7까지 충전 가능. 전방 &e${p["path_length"]}칸&7을 빠르게 이동하며 경로 상의 적에게 공격력의 &c${(p["physical_damage_coeff_attack_power_formula"]?.toString()?.toDoubleOrNull()?.times(100)?.toInt()) ?: 0}%&7 피해를 줍니다."
             }
             "backstep" -> {
                 val p = levelSpecificData.effects.find { it.type == "DAMAGE" }?.parameters ?: return skillData.description
-                "&7뒤로 &e${p["distance"]?.toString()?.replace("-", "")}칸&7 물러나며, 원래 있던 위치 주변 &e${p["area_radius"]}칸&7에 공격력의 &c${(p["physical_damage_coeff_attack_power_formula"]?.toString()?.toDoubleOrNull()?.times(100)?.toInt()) ?: 0}%&7 피해를 줍니다."
+                val maxCharges = levelSpecificData.maxCharges ?: 1
+                "&7최대 &e${maxCharges}회&7까지 충전 가능. 뒤로 &e${p["distance"]?.toString()?.replace("-", "")}칸&7 물러나며, 원래 있던 위치 주변 &e${p["area_radius"]}칸&7에 공격력의 &c${(p["physical_damage_coeff_attack_power_formula"]?.toString()?.toDoubleOrNull()?.times(100)?.toInt()) ?: 0}%&7 피해를 줍니다."
             }
             "windflow" -> {
                 val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description

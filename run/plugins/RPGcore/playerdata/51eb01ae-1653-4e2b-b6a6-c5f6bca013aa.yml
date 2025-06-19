@@ -1,26 +1,26 @@
 player-uuid: 51eb01ae-1653-4e2b-b6a6-c5f6bca013aa
 player-name: TiredFlash
-last-login-timestamp: 1750128778476
-current-hp: 5000.0
+last-login-timestamp: 1750264050629
+current-hp: 8500.0
 current-mp: 50485.0
-current-class-id: elementalist
+current-class-id: marksman
 learned-recipes:
 - rotten_sword
 base-stats:
-  MAX_HP: 5000.0
+  MAX_HP: 50000.0
   MAX_MP: 50000.0
-  ATTACK_POWER: 5000.0
-  DEFENSE_POWER: 5000.0
+  ATTACK_POWER: 50000.0
+  DEFENSE_POWER: 50000.0
   SPELL_POWER: 5000.0
-  MAGIC_RESISTANCE: 5000.0
+  MAGIC_RESISTANCE: 50000.0
   ATTACK_SPEED: 1.0
   CRITICAL_CHANCE: 0.0
-  COOLDOWN_REDUCTION: 0.0
+  COOLDOWN_REDUCTION: 1.0
   PHYSICAL_LIFESTEAL: 0.0
   SPELL_LIFESTEAL: 0.0
   XP_GAIN_RATE: 0.0
   ITEM_DROP_RATE: 0.0
-custom-equipment-json: '{"CLOAK":{"itemInternalId":"relic_cloak_t3","upgradeLevel":0},"GLOVES":{"itemInternalId":"relic_gloves_t3","upgradeLevel":0},"BELT":{"itemInternalId":"relic_belt_t3","upgradeLevel":0}}'
+custom-equipment-json: '{"BELT":{"itemInternalId":"relic_belt_t3","upgradeLevel":0},"GLOVES":{"itemInternalId":"relic_gloves_t3","upgradeLevel":0},"CLOAK":{"itemInternalId":"relic_cloak_t3","upgradeLevel":0}}'
 learned-skills:
   rage_whirlwind: 2
   last_stand: 1
@@ -33,21 +33,31 @@ learned-skills:
   burning_stack_mastery: 1
   freezing_stack_mastery: 1
   paralyzing_stack_mastery: 1
+  wind_slash: 1
+  backstep: 1
+  windflow: 1
+  gale_rush: 1
+  arrow_spree: 1
+  instant_charge: 1
+  explosive_arrow: 1
+  precision_charging: 1
 equipped-active-skills:
-  SLOT_Q: fireball
-  SLOT_F: iceball
-  SLOT_SHIFT_Q: lightning_strike
+  SLOT_Q: arrow_spree
+  SLOT_F: instant_charge
+  SLOT_SHIFT_Q: explosive_arrow
 equipped-passive-skills:
 - null
 - null
 - null
-skillCharges: {}
+skillCharges:
+  wind_slash: 3
+  backstep: 2
 skillChargeCooldowns: {}
-monster-encyclopedia: '{}'
+monster-encyclopedia: '{"inf_mage_1":{"killCount":18,"minStatsObserved":{},"maxStatsObserved":{},"isDiscovered":false},"inf_assassin_1":{"killCount":10,"minStatsObserved":{},"maxStatsObserved":{},"isDiscovered":false},"inf_melee_2":{"killCount":9,"minStatsObserved":{},"maxStatsObserved":{},"isDiscovered":false},"inf_melee_1":{"killCount":13,"minStatsObserved":{},"maxStatsObserved":{},"isDiscovered":false},"inf_ranged_1":{"killCount":24,"minStatsObserved":{},"maxStatsObserved":{},"isDiscovered":false}}'
 claimed-encyclopedia-rewards: []
 backpack:
   page_0:
-  - DataVersion: 4325
+  - DataVersion: 4435
     id: minecraft:cooked_salmon
     count: 1
     components:
@@ -63,7 +73,7 @@ backpack:
       minecraft:tooltip_display: '{hidden_components:["minecraft:attribute_modifiers"]}'
       minecraft:custom_data: '{PublicBukkitValues:{"rpgcore:rpgcore_item_id":"dried_salmon","rpgcore:rpgcore_item_upgrade_level":10}}'
     schema_version: 1
-  - DataVersion: 4325
+  - DataVersion: 4435
     id: minecraft:golden_apple
     count: 14
     schema_version: 1

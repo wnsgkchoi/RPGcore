@@ -1,0 +1,80 @@
+sets:
+  basic_set: # 이 부분이 setId가 됩니다.
+    display_name: "&b초심자 세트"
+    category: "MAIN"
+    required_pieces: 5
+    bonus_stats_by_tier:
+      1:
+        additiveStats:
+          DEFENSE_POWER: 5
+          MAX_HP: 15.0
+          XP_GAIN_RATE: 0.02
+        multiplicativeStats:
+          DEFENSE_POWER: 0.02
+  ## 아래부터 무한 던전에서 얻을 수 있는 세트
+  relic_set:
+    display_name: "&b가속의 유물"
+    category: "SUB"
+    required_pieces: 3
+    bonus_effects_by_tier:
+      1:
+        - type: "ON_ATTACK_COOLDOWN_REDUCTION"
+          parameters:
+            chance: "0.03"
+            reduction_ticks: "10" # 0.5초
+      2:
+        - type: "ON_ATTACK_COOLDOWN_REDUCTION"
+          parameters:
+            chance: "0.04"
+            reduction_ticks: "15" # 0.75초
+      3:
+        - type: "ON_ATTACK_COOLDOWN_REDUCTION"
+          parameters:
+            chance: "0.05"
+            reduction_ticks: "20" # 1초
+  bulwark_set:
+    display_name: "&7강철의 보루"
+    category: "SUB"
+    required_pieces: 3
+    bonus_effects_by_tier:
+      1:
+        - type: "OUT_OF_COMBAT_SHIELD"
+          parameters:
+            shield_percent_max_hp: "0.10" 
+            check_interval_ticks: "100"   
+            cooldown_ticks: "300"         
+      2:
+        - type: "OUT_OF_COMBAT_SHIELD"
+          parameters:
+            shield_percent_max_hp: "0.15"
+            check_interval_ticks: "100"
+            cooldown_ticks: "240"        
+      3:
+        - type: "OUT_OF_COMBAT_SHIELD"
+          parameters:
+            shield_percent_max_hp: "0.20"
+            check_interval_ticks: "100"
+            cooldown_ticks: "200"         
+        - type: "DAMAGE_REDUCTION_WHILE_SHIELDED"
+          parameters:
+            reduction_percent: "5"
+  slaughterer_set:
+    display_name: "&c그림자 학살자"
+    category: "SUB"
+    required_pieces: 3
+    bonus_effects_by_tier:
+      1:
+        - type: "CRITICAL_BOOST"
+          parameters:
+            crit_chance: "0.05"  # +5%
+            crit_damage: "0.15"  # +15%
+      2:
+        - type: "CRITICAL_BOOST"
+          parameters:
+            crit_chance: "0.07"
+            crit_damage: "0.25"
+      3:
+        - type: "CRITICAL_BOOST"
+          parameters:
+            crit_chance: "0.10"
+            crit_damage: "0.40"

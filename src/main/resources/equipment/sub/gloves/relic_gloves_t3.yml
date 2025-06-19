@@ -1,0 +1,77 @@
+display_name: "&3시간 지배자의 손길"
+description:
+  - "&7시간의 흐름을 완벽히 제어하는 궁극의 유물."
+  - "&7의지만으로 시간의 제약을 파괴하고 마력을 폭주 시킵니다."
+material: "LEATHER"
+custom_model_data: 20
+equipment_type: GLOVES
+set_id: "relic_set"
+tier: 3
+max_upgrade_level: 30
+unique_effects_on_skill_use:
+  - type: "COOLDOWN_RESET"
+    parameters:
+      chance: "0.07"
+statsPerLevel:
+  0:  { additiveStats: { MAX_MP: 220.0, COOLDOWN_REDUCTION: 0.095 } }
+  1:  { additiveStats: { MAX_MP: 226.0, COOLDOWN_REDUCTION: 0.096 } }
+  2:  { additiveStats: { MAX_MP: 232.0, COOLDOWN_REDUCTION: 0.097 } }
+  3:  { additiveStats: { MAX_MP: 238.0, COOLDOWN_REDUCTION: 0.098 } }
+  4:  { additiveStats: { MAX_MP: 244.0, COOLDOWN_REDUCTION: 0.099 } }
+  5:  { additiveStats: { MAX_MP: 250.0, COOLDOWN_REDUCTION: 0.1 } }
+  6:  { additiveStats: { MAX_MP: 256.0, COOLDOWN_REDUCTION: 0.101 } }
+  7:  { additiveStats: { MAX_MP: 262.0, COOLDOWN_REDUCTION: 0.102 } }
+  8:  { additiveStats: { MAX_MP: 268.0, COOLDOWN_REDUCTION: 0.103 } }
+  9:  { additiveStats: { MAX_MP: 274.0, COOLDOWN_REDUCTION: 0.104 } }
+  10: { additiveStats: { MAX_MP: 282.0, COOLDOWN_REDUCTION: 0.106 } }
+  11: { additiveStats: { MAX_MP: 290.0, COOLDOWN_REDUCTION: 0.108 } }
+  12: { additiveStats: { MAX_MP: 298.0, COOLDOWN_REDUCTION: 0.11 } }
+  13: { additiveStats: { MAX_MP: 306.0, COOLDOWN_REDUCTION: 0.112 } }
+  14: { additiveStats: { MAX_MP: 314.0, COOLDOWN_REDUCTION: 0.114 } }
+  15: { additiveStats: { MAX_MP: 325.0, COOLDOWN_REDUCTION: 0.117 } }
+  16: { additiveStats: { MAX_MP: 336.0, COOLDOWN_REDUCTION: 0.12 } }
+  17: { additiveStats: { MAX_MP: 347.0, COOLDOWN_REDUCTION: 0.123 } }
+  18: { additiveStats: { MAX_MP: 358.0, COOLDOWN_REDUCTION: 0.126 } }
+  19: { additiveStats: { MAX_MP: 369.0, COOLDOWN_REDUCTION: 0.129 } }
+  20: { additiveStats: { MAX_MP: 385.0, COOLDOWN_REDUCTION: 0.133 } }
+  21: { additiveStats: { MAX_MP: 401.0, COOLDOWN_REDUCTION: 0.136 } }
+  22: { additiveStats: { MAX_MP: 417.0, COOLDOWN_REDUCTION: 0.139 } }
+  23: { additiveStats: { MAX_MP: 433.0, COOLDOWN_REDUCTION: 0.142 } }
+  24: { additiveStats: { MAX_MP: 449.0, COOLDOWN_REDUCTION: 0.145 } }
+  25: { additiveStats: { MAX_MP: 470.0, COOLDOWN_REDUCTION: 0.149 } }
+  26: { additiveStats: { MAX_MP: 491.0, COOLDOWN_REDUCTION: 0.153 } }
+  27: { additiveStats: { MAX_MP: 512.0, COOLDOWN_REDUCTION: 0.157 } }
+  28: { additiveStats: { MAX_MP: 533.0, COOLDOWN_REDUCTION: 0.161 } }
+  29: { additiveStats: { MAX_MP: 555.0, COOLDOWN_REDUCTION: 0.165 } }
+  30: { additiveStats: { MAX_MP: 600.0, COOLDOWN_REDUCTION: 0.175 } }
+xpCostPerUpgradeLevel:
+  1: 2000000
+  2: 2100000
+  3: 2250000
+  4: 2450000
+  5: 2700000
+  6: 3000000
+  7: 3350000
+  8: 3750000
+  9: 4200000
+  10: 4700000
+  11: 5250000
+  12: 5850000
+  13: 6500000
+  14: 7200000
+  15: 8000000
+  16: 8850000
+  17: 9750000
+  18: 10700000
+  19: 11700000
+  20: 12800000
+  21: 14000000
+  22: 15300000
+  23: 16700000
+  24: 18200000
+  25: 19800000
+  26: 21500000
+  27: 23300000
+  28: 25200000
+  29: 27200000
+  30: 29300000

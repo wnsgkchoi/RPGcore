@@ -1,0 +1,33 @@
+display_name: "§6부패의 검"
+description: 
+  - "§7너무 많이 부식된 검"
+material: NETHERITE_SWORD
+equipment_type: WEAPON
+required_class_internal_ids: ["frenzy_dps", "spike_tank"] # 실제 클래스 ID로 변경 필요
+base_cooldown_ms: 500
+max_upgrade_level: 10
+
+statsPerLevel:
+  0: { additiveStats: { ATTACK_POWER: 2.0, SPELL_POWER: 1.0 }, multiplicativeStats: {} }
+  1: { additiveStats: { ATTACK_POWER: 4.0, SPELL_POWER: 2.0 }, multiplicativeStats: {} }
+  2: { additiveStats: { ATTACK_POWER: 6.0, SPELL_POWER: 3.0 }, multiplicativeStats: {} }
+  3: { additiveStats: { ATTACK_POWER: 9.0, SPELL_POWER: 4.0 }, multiplicativeStats: {} }
+  4: { additiveStats: { ATTACK_POWER: 12.0, SPELL_POWER: 5.0 }, multiplicativeStats: {} }
+  5: { additiveStats: { ATTACK_POWER: 16.0, SPELL_POWER: 7.0 }, multiplicativeStats: {} }
+  6: { additiveStats: { ATTACK_POWER: 20.0, SPELL_POWER: 9.0 }, multiplicativeStats: {} }
+  7: { additiveStats: { ATTACK_POWER: 25.0, SPELL_POWER: 11.0 }, multiplicativeStats: {} }
+  8: { additiveStats: { ATTACK_POWER: 30.0, SPELL_POWER: 13.0 }, multiplicativeStats: {} }
+  9: { additiveStats: { ATTACK_POWER: 38.0, SPELL_POWER: 15.0 }, multiplicativeStats: {} }
+  10: { additiveStats: { ATTACK_POWER: 50.0, SPELL_POWER: 20.0 }, multiplicativeStats: { ATTACK_POWER: 0.30, SPELL_POWER: 0.30 } } # atk_pct, magic_pct 반영
+
+xpCostPerUpgradeLevel:
+  1: 1000
+  2: 4000
+  3: 9000
+  4: 16000
+  5: 25000
+  6: 36000
+  7: 49000
+  8: 64000
+  9: 81000
+  10: 100000

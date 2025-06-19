@@ -1,0 +1,90 @@
+display_name: "&c분노의 광휘"
+description:
+  - "&7자신 주변에 검기를 발사하여 주변의 적에게"
+  - "&7물리 피해를 주고 밀쳐냅니다."
+class_restrictions: [ "frenzy_dps" ]
+icon_material: "NETHERITE_AXE"
+skill_type: "ACTIVE"
+behavior: "INSTANT"
+max_level: 10
+level_data:
+  1:
+    mp_cost: 15
+    cooldown_ticks: 160
+    effects:
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "3.0", physical_damage_coeff_attack_power_formula: "1.2", knockback_strength: "0.5" } }
+      - { type: "SPAWN_PARTICLE", target_selector: "SELF", parameters: { particle_id: "SWEEP_ATTACK", count: "50", offset_x: "3.0", offset_y: "1.0", offset_z: "3.0", extra: "0.1" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PLAYER_ATTACK_SWEEP", volume: "1.0", pitch: "0.8" } }
+  2:
+    mp_cost: 16
+    cooldown_ticks: 150
+    effects:
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "3.2", physical_damage_coeff_attack_power_formula: "1.28", knockback_strength: "0.55" } }
+      - { type: "SPAWN_PARTICLE", target_selector: "SELF", parameters: { particle_id: "SWEEP_ATTACK", count: "50", offset_x: "3.2", offset_y: "1.0", offset_z: "3.2", extra: "0.1" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PLAYER_ATTACK_SWEEP", volume: "1.0", pitch: "0.8" } }
+  3:
+    mp_cost: 17
+    cooldown_ticks: 140
+    effects:
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "3.4", physical_damage_coeff_attack_power_formula: "1.36", knockback_strength: "0.6" } }
+      - { type: "SPAWN_PARTICLE", target_selector: "SELF", parameters: { particle_id: "SWEEP_ATTACK", count: "50", offset_x: "3.4", offset_y: "1.0", offset_z: "3.4", extra: "0.1" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PLAYER_ATTACK_SWEEP", volume: "1.0", pitch: "0.8" } }
+  4:
+    mp_cost: 18
+    cooldown_ticks: 130
+    effects:
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "3.8", physical_damage_coeff_attack_power_formula: "1.44", knockback_strength: "0.7" } }
+      - { type: "SPAWN_PARTICLE", target_selector: "SELF", parameters: { particle_id: "SWEEP_ATTACK", count: "50", offset_x: "3.8", offset_y: "1.0", offset_z: "3.8", extra: "0.1" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PLAYER_ATTACK_SWEEP", volume: "1.0", pitch: "0.8" } }
+  5:
+    mp_cost: 20
+    cooldown_ticks: 120
+    effects:
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "4.2", physical_damage_coeff_attack_power_formula: "1.52", knockback_strength: "0.8" } }
+      - { type: "SPAWN_PARTICLE", target_selector: "SELF", parameters: { particle_id: "SWEEP_ATTACK", count: "50", offset_x: "4.2", offset_y: "1.0", offset_z: "4.2", extra: "0.1" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PLAYER_ATTACK_SWEEP", volume: "1.0", pitch: "0.8" } }
+  6:
+    mp_cost: 22
+    cooldown_ticks: 110
+    effects:
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "4.6", physical_damage_coeff_attack_power_formula: "1.6", knockback_strength: "0.9" } }
+      - { type: "SPAWN_PARTICLE", target_selector: "SELF", parameters: { particle_id: "SWEEP_ATTACK", count: "50", offset_x: "4.6", offset_y: "1.0", offset_z: "4.6", extra: "0.1" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PLAYER_ATTACK_SWEEP", volume: "1.0", pitch: "0.8" } }
+  7:
+    mp_cost: 24
+    cooldown_ticks: 100
+    effects:
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "5.0", physical_damage_coeff_attack_power_formula: "1.7", knockback_strength: "1.0" } }
+      - { type: "SPAWN_PARTICLE", target_selector: "SELF", parameters: { particle_id: "SWEEP_ATTACK", count: "50", offset_x: "5.0", offset_y: "1.0", offset_z: "5.0", extra: "0.1" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PLAYER_ATTACK_SWEEP", volume: "1.0", pitch: "0.8" } }
+  8:
+    mp_cost: 26
+    cooldown_ticks: 90
+    effects:
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "5.4", physical_damage_coeff_attack_power_formula: "1.8", knockback_strength: "1.1" } }
+      - { type: "SPAWN_PARTICLE", target_selector: "SELF", parameters: { particle_id: "SWEEP_ATTACK", count: "50", offset_x: "5.4", offset_y: "1.0", offset_z: "5.4", extra: "0.1" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PLAYER_ATTACK_SWEEP", volume: "1.0", pitch: "0.8" } }
+  9:
+    mp_cost: 28
+    cooldown_ticks: 80
+    effects:
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "5.8", physical_damage_coeff_attack_power_formula: "1.9", knockback_strength: "1.15" } }
+      - { type: "SPAWN_PARTICLE", target_selector: "SELF", parameters: { particle_id: "SWEEP_ATTACK", count: "50", offset_x: "5.8", offset_y: "1.0", offset_z: "5.8", extra: "0.1" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PLAYER_ATTACK_SWEEP", volume: "1.0", pitch: "0.8" } }
+  10:
+    mp_cost: 30
+    cooldown_ticks: 60
+    effects:
+      - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "6.0", physical_damage_coeff_attack_power_formula: "2.0", knockback_strength: "1.2" } }
+      - { type: "SPAWN_PARTICLE", target_selector: "SELF", parameters: { particle_id: "SWEEP_ATTACK", count: "50", offset_x: "6.0", offset_y: "1.0", offset_z: "6.0", extra: "0.1" } }
+      - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_PLAYER_ATTACK_SWEEP", volume: "1.0", pitch: "0.8" } }
+upgrade_cost_per_level:
+  2: 5000
+  3: 16875
+  4: 40000
+  5: 78125
+  6: 135000
+  7: 214375
+  8: 320000
+  9: 455625
+  10: 625000

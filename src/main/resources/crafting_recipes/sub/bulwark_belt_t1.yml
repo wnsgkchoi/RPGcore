@@ -1,0 +1,8 @@
+recipe_id: "craft_bulwark_belt_t1"
+output:
+  item_internal_name: "bulwark_belt_t1"
+xp_cost: 12000
+ingredients:
+  - { item_type: "RPGCORE_CUSTOM_MATERIAL", item_id: "challenger_mark", amount: 3 }
+  - { item_type: "RPGCORE_CUSTOM_MATERIAL", item_id: "indomitable_rock_heart", amount: 1 }
+  - { item_type: "VANILLA", item_id: "OBSIDIAN", amount: 4 }

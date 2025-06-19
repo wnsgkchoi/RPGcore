@@ -1,0 +1,32 @@
+display_name: "&b시간 왜곡의 망토"
+description:
+  - "&7시간의 흐름을 제어하는 유물 세트의 일부."
+  - "&7외부의 충격을 받으면 엉겨 붙은 시간의 먼지가 흩날립니다."
+material: "ELYTRA"
+custom_model_data: null
+equipment_type: CLOAK
+set_id: "relic_set"
+max_upgrade_level: 10
+statsPerLevel:
+  0:  { additiveStats: { COOLDOWN_REDUCTION: 0.02, DEFENSE_POWER: 5.0 } }
+  1:  { additiveStats: { COOLDOWN_REDUCTION: 0.021, DEFENSE_POWER: 6.0 } }
+  2:  { additiveStats: { COOLDOWN_REDUCTION: 0.022, DEFENSE_POWER: 7.0 } }
+  3:  { additiveStats: { COOLDOWN_REDUCTION: 0.023, DEFENSE_POWER: 8.0 } }
+  4:  { additiveStats: { COOLDOWN_REDUCTION: 0.024, DEFENSE_POWER: 9.0 } }
+  5:  { additiveStats: { COOLDOWN_REDUCTION: 0.026, DEFENSE_POWER: 11.0 } }
+  6:  { additiveStats: { COOLDOWN_REDUCTION: 0.028, DEFENSE_POWER: 13.0 } }
+  7:  { additiveStats: { COOLDOWN_REDUCTION: 0.03, DEFENSE_POWER: 15.0 } }
+  8:  { additiveStats: { COOLDOWN_REDUCTION: 0.032, DEFENSE_POWER: 17.0 } }
+  9:  { additiveStats: { COOLDOWN_REDUCTION: 0.035, DEFENSE_POWER: 20.0 } }
+  10: { additiveStats: { COOLDOWN_REDUCTION: 0.04, DEFENSE_POWER: 25.0 } }
+xpCostPerUpgradeLevel:
+  1: 5000
+  2: 8000
+  3: 12000
+  4: 18000
+  5: 27000
+  6: 40000
+  7: 60000
+  8: 90000
+  9: 135000
+  10: 200000

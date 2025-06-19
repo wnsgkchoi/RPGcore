@@ -1,0 +1,5 @@
+display_name: "&7[고유 재료] 성벽의 그림자 실타래"
+material: "STRING"
+custom_model_data: null
+lore:
+  - "&7무너진 성벽의 그림자에서 추출한, 강철보다 질긴 실타래."

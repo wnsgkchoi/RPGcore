@@ -1,0 +1,5 @@
+display_name: "&c[고유 재료] 예리한 숫돌"
+material: "FLINT"
+custom_model_data: null
+lore:
+  - "&7스치기만 해도 모든 것을 베어버릴 듯한 예리함을 품은 돌."

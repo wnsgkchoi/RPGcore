@@ -1,0 +1,5 @@
+display_name: "&7[고유 재료] 수호자의 강철 파편"
+material: "RAW_IRON"
+custom_model_data: null
+lore:
+  - "&7어떠한 공격에도 부서지지 않았다는 강철의 파편."

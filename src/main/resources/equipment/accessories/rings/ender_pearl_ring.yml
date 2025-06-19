@@ -1,0 +1,29 @@
+display_name: "§6[디버거] §c엔더 진주 반지"
+description:
+  - "§4엔더 진주 버그를 발견한 사람에게 주는 헌정 반지"
+material: ENDER_PEARL
+equipment_type: RING
+max_upgrade_level: 10
+statsPerLevel:
+  0: { additiveStats: { MAX_HP: 10.0, DEFENSE_POWER: 5.0, MAGIC_RESISTANCE: 5.0 } }
+  1: { additiveStats: { MAX_HP: 20.0, DEFENSE_POWER: 10.0, MAGIC_RESISTANCE: 10.0 } }
+  2: { additiveStats: { MAX_HP: 30.0, DEFENSE_POWER: 15.0, MAGIC_RESISTANCE: 15.0 } }
+  3: { additiveStats: { MAX_HP: 40.0, DEFENSE_POWER: 20.0, MAGIC_RESISTANCE: 20.0 } }
+  4: { additiveStats: { MAX_HP: 50.0, DEFENSE_POWER: 25.0, MAGIC_RESISTANCE: 25.0 } }
+  5: { additiveStats: { MAX_HP: 60.0, DEFENSE_POWER: 30.0, MAGIC_RESISTANCE: 30.0 } }
+  6: { additiveStats: { MAX_HP: 70.0, DEFENSE_POWER: 35.0, MAGIC_RESISTANCE: 35.0 } }
+  7: { additiveStats: { MAX_HP: 80.0, DEFENSE_POWER: 40.0, MAGIC_RESISTANCE: 40.0 } }
+  8: { additiveStats: { MAX_HP: 90.0, DEFENSE_POWER: 45.0, MAGIC_RESISTANCE: 45.0 } }
+  9: { additiveStats: { MAX_HP: 100.0, DEFENSE_POWER: 50.0, MAGIC_RESISTANCE: 50.0 } }
+  10: { additiveStats: { MAX_HP: 100.0, DEFENSE_POWER: 50.0, MAGIC_RESISTANCE: 50.0 }, multiplicativeStats: { MAX_HP: 0.50, DEFENSE_POWER: 0.50, MAGIC_RESISTANCE: 0.50 } }
+xpCostPerUpgradeLevel:
+  1: 1000
+  2: 8000
+  3: 27000
+  4: 64000
+  5: 125000
+  6: 216000
+  7: 343000
+  8: 512000
+  9: 729000
+  10: 1000000

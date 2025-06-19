@@ -1,0 +1,8 @@
+recipe_id: "upgrade_relic_belt_t3"
+output:
+  item_internal_name: "relic_belt_t3"
+xp_cost: 2000000
+ingredients:
+  - { item_type: "RPGCORE_CUSTOM_EQUIPMENT", item_id: "relic_belt_t2", required_upgrade_level: 20, amount: 1 }
+  - { item_type: "RPGCORE_CUSTOM_MATERIAL", item_id: "conqueror_essence", amount: 5 }
+  - { item_type: "VANILLA", item_id: "NETHERITE_BLOCK", amount: 1 }
