@@ -21,7 +21,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
     private val plugin = RPGcore.instance
     private val logger = plugin.logger
 
-    private val baseSubCommands = listOf("help", "stats", "class", "equip", "skills", "infinite", "trade", "encyclopedia", "shop", "setspawn", "backpack", "trash")
+    private val baseSubCommands = listOf("help", "stats", "class", "equip", "skills", "infinite", "trade", "encyclopedia", "shop", "setspawn", "backpack", "trash", "alchemy")
     private val adminSubCommands = listOf("giveequip", "giverecipe", "reload", "give", "setstat", "giveskill", "xptest") // <<<<<<< "xptest" 추가
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
@@ -51,6 +51,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
                 "setspawn" -> handleSetSpawn(player)
                 "infinite" -> handleInfiniteCommand(player, args)
                 "trade" -> handleTradeCommand(player, args)
+                "alchemy" -> AlchemyGUI(player).open()
             }
         } else if (adminSubCommands.contains(subCommand)) {
             if (!sender.isOp) {
@@ -282,7 +283,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
                 DungeonManager.loadDungeons()
                 EncyclopediaManager.loadRewards()
                 ShopManager.loadShopItems()
-                FoodManager.loadFoodEffects()
+                AlchemyManager.load()
 
                 Bukkit.getOnlinePlayers().forEach { player ->
                     StatManager.fullyRecalculateAndApplyStats(player)

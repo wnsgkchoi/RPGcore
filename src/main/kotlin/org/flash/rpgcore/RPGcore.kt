@@ -30,6 +30,11 @@ class RPGcore : JavaPlugin() {
         instance = this
         logger.info("[RPGcore] 플러그인이 활성화되었습니다. (v${description.version})")
 
+        Bukkit.getWorlds().forEach { world ->
+            world.setGameRuleValue("keepInventory", "true")
+            logger.info("[RPGcore] Gamerule 'keepInventory' set to 'true' for world: ${world.name}")
+        }
+
         PlayerDataManager.initializeOnlinePlayers()
         ClassManager.loadClasses()
         EquipmentManager.loadEquipmentDefinitions()
@@ -42,10 +47,11 @@ class RPGcore : JavaPlugin() {
         DungeonManager.loadDungeons()
         EncyclopediaManager.loadRewards()
         ShopManager.loadShopItems()
-        FoodManager.loadFoodEffects()
         StatusEffectManager.start()
         BossBarManager.start()
         InfiniteDungeonManager.start()
+        AlchemyManager.load()
+        ItemManager.load()
 
         server.pluginManager.registerEvents(PlayerConnectionListener(), this)
         server.pluginManager.registerEvents(StatGUIListener(), this)
@@ -69,6 +75,8 @@ class RPGcore : JavaPlugin() {
         server.pluginManager.registerEvents(FoodListener(), this)
         server.pluginManager.registerEvents(BackpackGUIListener(), this)
         server.pluginManager.registerEvents(TrashGUIListener(), this)
+        server.pluginManager.registerEvents(DurabilityListener(), this)
+        server.pluginManager.registerEvents(AlchemyGUIListener(), this)
 
         val rpgCommandExecutor = RPGCommandExecutor()
         getCommand("rpg")?.setExecutor(rpgCommandExecutor)

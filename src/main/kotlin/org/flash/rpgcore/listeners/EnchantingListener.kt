@@ -11,10 +11,20 @@ class EnchantingListener : Listener {
 
     // 바닐라 아이템 중 인챈트를 금지할 무기 종류 Set
     private val blockedVanillaWeapons = setOf(
+        // 무기류
         Material.WOODEN_SWORD, Material.STONE_SWORD, Material.IRON_SWORD,
         Material.GOLDEN_SWORD, Material.DIAMOND_SWORD, Material.NETHERITE_SWORD,
-        Material.BOW, Material.CROSSBOW,
-        Material.MACE, Material.TRIDENT
+        Material.BOW, Material.CROSSBOW, Material.TRIDENT, Material.MACE,
+        // 방어구류
+        Material.LEATHER_HELMET, Material.LEATHER_CHESTPLATE, Material.LEATHER_LEGGINGS, Material.LEATHER_BOOTS,
+        Material.CHAINMAIL_HELMET, Material.CHAINMAIL_CHESTPLATE, Material.CHAINMAIL_LEGGINGS, Material.CHAINMAIL_BOOTS,
+        Material.IRON_HELMET, Material.IRON_CHESTPLATE, Material.IRON_LEGGINGS, Material.IRON_BOOTS,
+        Material.GOLDEN_HELMET, Material.GOLDEN_CHESTPLATE, Material.GOLDEN_LEGGINGS, Material.GOLDEN_BOOTS,
+        Material.DIAMOND_HELMET, Material.DIAMOND_CHESTPLATE, Material.DIAMOND_LEGGINGS, Material.DIAMOND_BOOTS,
+        Material.NETHERITE_HELMET, Material.NETHERITE_CHESTPLATE, Material.NETHERITE_LEGGINGS, Material.NETHERITE_BOOTS,
+        Material.TURTLE_HELMET,
+        // 기타
+        Material.ELYTRA, Material.SHIELD
     )
 
     @EventHandler

@@ -61,7 +61,7 @@ object CraftingManager {
         loadedRecipes.clear()
         if (!craftingRecipesDirectory.exists()) craftingRecipesDirectory.mkdirs()
 
-        craftingRecipesDirectory.walkTopDown().filter { it.isFile && it.extension == "yml" }.forEach { file ->
+        craftingRecipesDirectory.listFiles { _, name -> name.endsWith(".yml") }?.forEach { file ->
             try {
                 val config = YamlConfiguration.loadConfiguration(file)
                 val recipeId = file.nameWithoutExtension

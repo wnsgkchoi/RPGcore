@@ -43,6 +43,8 @@ object CombatManager {
             return
         }
         val playerData = PlayerDataManager.getPlayerData(victim)
+        // BUG-FIX: 마지막 피격 시간을 여기서도 갱신해야 함
+        lastPlayerDamageTime[victim.uniqueId] = System.currentTimeMillis()
         playerData.lastDamagedTime = System.currentTimeMillis()
 
         victim.world.playSound(victim.location, Sound.ENTITY_PLAYER_HURT, 1.0f, 1.0f)

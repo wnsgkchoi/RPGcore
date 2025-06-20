@@ -1,7 +1,7 @@
 player-uuid: 51eb01ae-1653-4e2b-b6a6-c5f6bca013aa
 player-name: TiredFlash
-last-login-timestamp: 1750264050629
-current-hp: 8500.0
+last-login-timestamp: 1750409911101
+current-hp: 50000.0
 current-mp: 50485.0
 current-class-id: marksman
 learned-recipes:
@@ -20,7 +20,7 @@ base-stats:
   SPELL_LIFESTEAL: 0.0
   XP_GAIN_RATE: 0.0
   ITEM_DROP_RATE: 0.0
-custom-equipment-json: '{"BELT":{"itemInternalId":"relic_belt_t3","upgradeLevel":0},"GLOVES":{"itemInternalId":"relic_gloves_t3","upgradeLevel":0},"CLOAK":{"itemInternalId":"relic_cloak_t3","upgradeLevel":0}}'
+custom-equipment-json: '{"CLOAK":{"itemInternalId":"relic_cloak_t3","upgradeLevel":0},"GLOVES":{"itemInternalId":"relic_gloves_t3","upgradeLevel":0},"BELT":{"itemInternalId":"relic_belt_t3","upgradeLevel":0}}'
 learned-skills:
   rage_whirlwind: 2
   last_stand: 1
@@ -68,9 +68,9 @@ backpack:
         +20",underlined:0b}],text:""},{extra:[{bold:0b,color:"blue",italic:0b,obfuscated:0b,strikethrough:0b,text:"공격력:
         +30%",underlined:0b}],text:""},{extra:[{bold:0b,color:"blue",italic:0b,obfuscated:0b,strikethrough:0b,text:"주문력:
         +30%",underlined:0b}],text:""}]'
+      minecraft:tooltip_display: '{hidden_components:["minecraft:attribute_modifiers"]}'
       minecraft:custom_name: '{extra:[{bold:0b,color:"gold",italic:0b,obfuscated:0b,strikethrough:0b,text:"굳어버린
         연어",underlined:0b}],text:""}'
-      minecraft:tooltip_display: '{hidden_components:["minecraft:attribute_modifiers"]}'
       minecraft:custom_data: '{PublicBukkitValues:{"rpgcore:rpgcore_item_id":"dried_salmon","rpgcore:rpgcore_item_upgrade_level":10}}'
     schema_version: 1
   - DataVersion: 4435

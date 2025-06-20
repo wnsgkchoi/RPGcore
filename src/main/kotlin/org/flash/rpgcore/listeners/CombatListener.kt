@@ -275,7 +275,18 @@ class CombatListener : Listener {
                 monsterDefinition.xpReward
             }
 
-            monsterDefinition.dropTableId?.let { tableId -> LootManager.processLoot(killer, tableId) }
+            // BUG-FIX: 보스 몬스터 드롭 테이블 처리 로직 수정
+            if (monsterDefinition.isBoss && InfiniteDungeonManager.isDungeonMonster(victim.uniqueId)) {
+                val session = InfiniteDungeonManager.getSessionByMonster(victim.uniqueId)
+                if (session != null) {
+                    InfiniteDungeonManager.getBossLootTableIdForWave(session.wave)?.let { tableId ->
+                        LootManager.processLoot(killer, tableId)
+                    }
+                }
+            } else {
+                monsterDefinition.dropTableId?.let { tableId -> LootManager.processLoot(killer, tableId) }
+            }
+
             val playerData = PlayerDataManager.getPlayerData(killer)
             val encounterData = playerData.monsterEncyclopedia.computeIfAbsent(customEntityData.monsterId) { MonsterEncounterData() }
             encounterData.killCount++

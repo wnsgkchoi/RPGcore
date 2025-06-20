@@ -55,6 +55,8 @@ data class PlayerData(
     val encyclopediaStatBonuses: MutableMap<StatType, Double> = mutableMapOf(),
     val claimedEncyclopediaRewards: MutableSet<String> = ConcurrentHashMap.newKeySet(),
 
+    // --- 연금술 데이터 (신규 추가) ---
+    val potionEssences: MutableMap<String, Int> = ConcurrentHashMap(), // 예: {"lesser_hp_essence": 150}
 
     // --- 클래스 고유 매커니즘 및 장비 효과 데이터 ---
     var furyStacks: Int = 0,

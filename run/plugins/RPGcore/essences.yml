@@ -1,0 +1,35 @@
+# 각 음식에서 추출할 수 있는 정수의 종류와 양(ml)을 정의합니다.
+# Material 이름:
+#   essence_id: (PlayerData에 저장될 정수의 ID)
+#   amount: (추출량)
+
+# === 하급 생명의 정수 ===
+WHEAT: { essence_id: "lesser_hp_essence", amount: 1 }
+CARROT: { essence_id: "lesser_hp_essence", amount: 2 }
+BEETROOT: { essence_id: "lesser_hp_essence", amount: 1 }
+APPLE: { essence_id: "lesser_hp_essence", amount: 3 }
+COOKED_CHICKEN: { essence_id: "lesser_hp_essence", amount: 2 }
+COOKED_PORKCHOP: { essence_id: "lesser_hp_essence", amount: 3 }
+COOKED_BEEF: { essence_id: "lesser_hp_essence", amount: 3 }
+BREAD: { essence_id: "lesser_hp_essence", amount: 4 }
+PUMPKIN_PIE: { essence_id: "lesser_hp_essence", amount: 5 }
+MUSHROOM_STEW: { essence_id: "lesser_hp_essence", amount: 5 }
+RABBIT_STEW: { essence_id: "lesser_hp_essence", amount: 6 }
+
+# === 하급 마나의 정수 ===
+MELON_SLICE: { essence_id: "lesser_mp_essence", amount: 1 }
+SWEET_BERRIES: { essence_id: "lesser_mp_essence", amount: 1 }
+POTATO: { essence_id: "lesser_mp_essence", amount: 2 }
+BAKED_POTATO: { essence_id: "lesser_mp_essence", amount: 3 }
+COOKIE: { essence_id: "lesser_mp_essence", amount: 2 }
+CHORUS_FRUIT: { essence_id: "lesser_mp_essence", amount: 4 }
+
+# === 중급 생명의 정수 ===
+GOLDEN_CARROT: { essence_id: "medium_hp_essence", amount: 1 }
+GOLDEN_APPLE: { essence_id: "medium_hp_essence", amount: 2 }
+
+# === 중급 마나의 정수 ===
+GLISTERING_MELON_SLICE: { essence_id: "medium_mp_essence", amount: 1 }
+
+# === 상급 생명의 정수 (직접 추출) ===
+GHAST_TEAR: { essence_id: "superior_hp_essence", amount: 1 }

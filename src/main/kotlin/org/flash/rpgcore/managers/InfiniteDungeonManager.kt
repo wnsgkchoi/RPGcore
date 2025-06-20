@@ -112,7 +112,10 @@ object InfiniteDungeonManager {
 
     private fun locationFromConfig(path: String, key: String, config: YamlConfiguration): Location? {
         val worldName = config.getString("$path.$key.world") ?: return null
-        val world = Bukkit.getWorld(worldName) ?: return null
+        val world = Bukkit.getWorld(worldName) ?: run {
+            logger.warning("[InfiniteDungeonManager] World '$worldName' specified in config is not loaded or does not exist!")
+            return null
+        }
         return Location(
             world,
             config.getDouble("$path.$key.x"),
@@ -125,7 +128,10 @@ object InfiniteDungeonManager {
 
     private fun locationFromConfigMap(map: Map<*, *>): Location? {
         val worldName = map["world"] as? String ?: return null
-        val world = Bukkit.getWorld(worldName) ?: return null
+        val world = Bukkit.getWorld(worldName) ?: run {
+            logger.warning("[InfiniteDungeonManager] World '$worldName' specified in map is not loaded or does not exist!")
+            return null
+        }
         return Location(
             world,
             map["x"] as? Double ?: 0.0,
@@ -162,13 +168,27 @@ object InfiniteDungeonManager {
             return
         }
 
+        if (availableArena.playerSpawn.world == null) {
+            logger.severe("[InfiniteDungeon] CRITICAL: Arena '${availableArena.id}' has a null world. Cannot teleport player ${player.name}.")
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[오류] &f던전 월드를 찾을 수 없습니다. 관리자에게 문의하세요."))
+            return
+        }
+
         logger.info("[InfiniteDungeon] Join successful for ${player.name}. Assigning to arena '${availableArena.id}'.")
         val session = DungeonSession(player, availableArena.id, player.location)
         activeSessions[player.uniqueId] = session
 
-        player.teleport(availableArena.playerSpawn)
-        player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a[던전] &f무한 던전에 입장했습니다."))
-        startNextWave(session)
+        player.teleportAsync(availableArena.playerSpawn).thenAccept { success ->
+            if (success) {
+                logger.info("[InfiniteDungeon] Teleport successful for ${player.name} to arena ${availableArena.id}.")
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a[던전] &f무한 던전에 입장했습니다."))
+                startNextWave(session)
+            } else {
+                logger.severe("[InfiniteDungeon] Teleport FAILED for ${player.name} to arena ${availableArena.id}. Leaving player from session.")
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[오류] &f던전으로 이동하는 데 실패했습니다. 다시 시도해주세요."))
+                leave(player, false)
+            }
+        }
     }
 
     private fun startNextWave(session: DungeonSession) {
@@ -263,7 +283,7 @@ object InfiniteDungeonManager {
             val cooldownEndTime = System.currentTimeMillis() + reEntryCooldownSeconds * 1000
             playerCooldowns[player.uniqueId] = cooldownEndTime
         } else {
-            player.teleport(session.originalLocation)
+            player.teleportAsync(session.originalLocation)
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&e[던전] &f던전에서 퇴장했습니다. (최종 기록: Wave $finalWave)"))
         }
         logger.info("[InfiniteDungeon] Player ${player.name} left the dungeon. Final wave: $finalWave. Death: $isDeath.")
