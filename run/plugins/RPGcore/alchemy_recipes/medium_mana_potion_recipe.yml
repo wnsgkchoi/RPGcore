@@ -1,3 +1,4 @@
+category: "POTION"
 output: { item_id: "medium_mana_potion", amount: 1 }
 required_essences: { medium_mp_essence: 5 }
 required_items:

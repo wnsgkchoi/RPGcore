@@ -1,6 +1,6 @@
 monster_id: "inf_boss_1"
-display_name: "&4거대 좀비"
-vanilla_mob_type: "GIANT"
+display_name: "&4광란의 파괴자"
+vanilla_mob_type: "RAVAGER"
 icon_material: "IRON_SWORD"
 equipment: {}
 stats:

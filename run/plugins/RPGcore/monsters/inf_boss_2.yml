@@ -1,7 +1,7 @@
 monster_id: "inf_boss_2"
-display_name: "&5타락한 골렘"
-vanilla_mob_type: "IRON_GOLEM"
-icon_material: "IRON_SWORD"
+display_name: "&5타락한 피글린"
+vanilla_mob_type: "PIGLIN_BRUTE"
+icon_material: "NETHERITE_AXE"
 equipment: {}
 stats:
   MAX_HP: { min: 4000.0, max: 4000.0 }
@@ -11,6 +11,6 @@ stats:
 skills:
   - { internal_id: "monster_pull", chance: 0.3, cooldown_ticks: 160 }
 xp_reward: 12000
-drop_table_id: "inf_boss_loot_tier2"
+drop_table_id: "inf_boss_loot_tier1"
 is_boss_monster: true
 aggro_type: "NEAREST"

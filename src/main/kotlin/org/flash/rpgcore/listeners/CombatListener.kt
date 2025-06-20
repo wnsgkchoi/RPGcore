@@ -39,9 +39,11 @@ class CombatListener : Listener {
         }
 
         return when (entity.type) {
+            EntityType.PIG, EntityType.COW, EntityType.SHEEP, EntityType.CHICKEN, EntityType.SQUID -> (1..3).random()
             EntityType.ZOMBIE, EntityType.SKELETON, EntityType.SPIDER, EntityType.CREEPER, EntityType.DROWNED,
             EntityType.HUSK, EntityType.STRAY, EntityType.CAVE_SPIDER, EntityType.ENDERMAN,
-            EntityType.WITCH -> 5
+            EntityType.WITCH, EntityType.PIGLIN, EntityType.SILVERFISH, EntityType.PHANTOM, EntityType.BOGGED,
+            EntityType.ENDERMITE, EntityType.SHULKER -> 5
             EntityType.SLIME, EntityType.MAGMA_CUBE -> {
                 when ((entity as Slime).size) {
                     1 -> 1
@@ -49,10 +51,12 @@ class CombatListener : Listener {
                     else -> 4
                 }
             }
-            EntityType.BLAZE, EntityType.GUARDIAN -> 10
-            EntityType.PIG, EntityType.COW, EntityType.SHEEP, EntityType.CHICKEN, EntityType.SQUID -> (1..3).random()
+            EntityType.BLAZE, EntityType.GUARDIAN, EntityType.HOGLIN, EntityType.VINDICATOR, EntityType.VEX, EntityType.PILLAGER,
+            EntityType.WITHER_SKELETON, EntityType.ZOGLIN, EntityType.BREEZE -> 10
+            EntityType.RAVAGER, EntityType.ELDER_GUARDIAN, EntityType.EVOKER, EntityType.ILLUSIONER -> 20
+            EntityType.PIGLIN_BRUTE -> (50..100).random()
+            EntityType.WARDEN, EntityType.WITHER, EntityType.CREAKING -> 100
             EntityType.ENDER_DRAGON -> 12000
-            EntityType.WITHER -> 50
             else -> 0
         }
     }

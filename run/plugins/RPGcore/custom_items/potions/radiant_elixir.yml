@@ -1,5 +1,5 @@
 display_name: "&5찬란한 영약"
 material: "POTION"
 potion_color: "255, 150, 255"
-lore: ["&7즉시 모든 HP와 MP를 회복합니다."]
+lore: ["&7즉시 모든 HP와 MP를 100% 회복합니다."]
 effects: { hp_restore_percent_max: 1.0, mp_restore_percent_max: 1.0 }

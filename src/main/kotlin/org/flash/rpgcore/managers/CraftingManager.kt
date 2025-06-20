@@ -61,7 +61,8 @@ object CraftingManager {
         loadedRecipes.clear()
         if (!craftingRecipesDirectory.exists()) craftingRecipesDirectory.mkdirs()
 
-        craftingRecipesDirectory.listFiles { _, name -> name.endsWith(".yml") }?.forEach { file ->
+        // [수정] 하위 폴더까지 모두 읽도록 변경
+        craftingRecipesDirectory.walkTopDown().filter { it.isFile && it.extension == "yml" }.forEach { file ->
             try {
                 val config = YamlConfiguration.loadConfiguration(file)
                 val recipeId = file.nameWithoutExtension
@@ -131,7 +132,6 @@ object CraftingManager {
                 return false
             }
 
-            // 가상 인벤토리에서 소모 처리 (다음 재료 확인을 위해)
             var amountToConsumeForNextCheck = ingredient.amount
             for(item in itemsToConsume) {
                 if (amountToConsumeForNextCheck == 0) break

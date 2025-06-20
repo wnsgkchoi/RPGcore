@@ -1,3 +1,4 @@
+category: "POTION"
 output:
   item_id: "refined_mana_potion"
   amount: 1

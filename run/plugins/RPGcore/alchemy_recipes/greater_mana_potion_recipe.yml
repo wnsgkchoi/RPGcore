@@ -1,3 +1,4 @@
+category: "POTION"
 output: { item_id: "greater_mana_potion", amount: 1 }
 required_essences: { superior_mp_essence: 3 }
 required_items:

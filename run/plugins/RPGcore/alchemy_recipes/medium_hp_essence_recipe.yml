@@ -1,3 +1,4 @@
+category: "ESSENCE_UPGRADE"
 output: { item_id: "medium_hp_essence", amount: 1 }
 required_essences: { lesser_hp_essence: 8 }
 required_items:

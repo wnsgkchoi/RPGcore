@@ -1,3 +1,4 @@
+category: "POTION"
 output: { item_id: "radiant_elixir", amount: 1 }
 required_essences: { superior_hp_essence: 10, superior_mp_essence: 10 }
 required_items:

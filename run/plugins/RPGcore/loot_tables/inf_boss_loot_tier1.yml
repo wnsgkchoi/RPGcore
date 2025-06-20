@@ -23,9 +23,9 @@ drops:
       - { type: RPGCORE_RECIPE, id: "craft_relic_gloves_t1", chance: 0.111 }
       - { type: RPGCORE_RECIPE, id: "craft_relic_cloak_t1", chance: 0.111 }
       - { type: RPGCORE_RECIPE, id: "craft_relic_belt_t1", chance: 0.111 }
-      - { type: RPGCORE_RECIPE, id: "craft_slaughter_gloves_t1", chance: 0.111 }
-      - { type: RPGCORE_RECIPE, id: "craft_slaughter_cloak_t1", chance: 0.112 }
-      - { type: RPGCORE_RECIPE, id: "craft_slaughter_belt_t1", chance: 0.111 }
+      - { type: RPGCORE_RECIPE, id: "craft_slaughterer_gloves_t1", chance: 0.111 }
+      - { type: RPGCORE_RECIPE, id: "craft_slaughterer_cloak_t1", chance: 0.112 }
+      - { type: RPGCORE_RECIPE, id: "craft_slaughterer_belt_t1", chance: 0.111 }
       - { type: RPGCORE_RECIPE, id: "craft_bulwark_gloves_t1", chance: 0.111 }
       - { type: RPGCORE_RECIPE, id: "craft_bulwark_cloak_t1", chance: 0.111 }
       - { type: RPGCORE_RECIPE, id: "craft_bulwark_belt_t1", chance: 0.111 }

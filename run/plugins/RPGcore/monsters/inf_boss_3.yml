@@ -12,6 +12,6 @@ stats:
 skills:
   - { internal_id: "monster_sonic_boom", chance: 0.25, cooldown_ticks: 180 }
 xp_reward: 15000
-drop_table_id: "inf_boss_loot_tier3"
+drop_table_id: "inf_boss_loot_tier1"
 is_boss_monster: true
 aggro_type: "NEAREST"

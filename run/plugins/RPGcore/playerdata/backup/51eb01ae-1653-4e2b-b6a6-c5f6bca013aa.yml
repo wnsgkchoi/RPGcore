@@ -1,13 +1,11 @@
 player-uuid: 51eb01ae-1653-4e2b-b6a6-c5f6bca013aa
 player-name: TiredFlash
-last-login-timestamp: 1750433113849
-current-hp: 1328.2732710900436
-current-mp: 480.0
+last-login-timestamp: 1750432405719
+current-hp: 1875.5
+current-mp: 1200.0
 current-class-id: elementalist
 learned-recipes:
 - craft_slaughter_belt_t1
-potion-essences:
-  medium_hp_essence: 241
 custom-spawn:
   world: world
   x: 471.69999998807907
@@ -20,7 +18,7 @@ base-stats:
   MAX_MP: 1000.0
   ATTACK_POWER: 100.0
   DEFENSE_POWER: 100.0
-  SPELL_POWER: 5000000.0
+  SPELL_POWER: 100.0
   MAGIC_RESISTANCE: 100.0
   ATTACK_SPEED: 1.0
   CRITICAL_CHANCE: 0.0
@@ -29,7 +27,7 @@ base-stats:
   SPELL_LIFESTEAL: 0.0
   XP_GAIN_RATE: 0.0
   ITEM_DROP_RATE: 1.0
-custom-equipment-json: '{"BOOTS":{"itemInternalId":"basic_boots","upgradeLevel":1},"HELMET":{"itemInternalId":"basic_helmet","upgradeLevel":1},"CLOAK":{"itemInternalId":"update_cape","upgradeLevel":10},"BELT":{"itemInternalId":"nether_fungus_belt","upgradeLevel":15},"NECKLACE":{"itemInternalId":"frost_wolf_tooth_necklace","upgradeLevel":25},"CHESTPLATE":{"itemInternalId":"basic_chestplate","upgradeLevel":1},"LEGGINGS":{"itemInternalId":"basic_leggings","upgradeLevel":1},"WEAPON":{"itemInternalId":"basic_staff","upgradeLevel":3}}'
+custom-equipment-json: '{"LEGGINGS":{"itemInternalId":"basic_leggings","upgradeLevel":1},"WEAPON":{"itemInternalId":"basic_staff","upgradeLevel":3},"BOOTS":{"itemInternalId":"basic_boots","upgradeLevel":1},"HELMET":{"itemInternalId":"basic_helmet","upgradeLevel":1},"NECKLACE":{"itemInternalId":"frost_wolf_tooth_necklace","upgradeLevel":25},"CLOAK":{"itemInternalId":"update_cape","upgradeLevel":10},"BELT":{"itemInternalId":"nether_fungus_belt","upgradeLevel":15},"CHESTPLATE":{"itemInternalId":"basic_chestplate","upgradeLevel":1}}'
 learned-skills:
   fireball: 5
   iceball: 5
@@ -48,7 +46,7 @@ equipped-passive-skills:
 - null
 skillCharges: {}
 skillChargeCooldowns: {}
-monster-encyclopedia: '{"inf_boss_1":{"killCount":1,"minStatsObserved":{},"maxStatsObserved":{},"isDiscovered":false},"inf_boss_2":{"killCount":1,"minStatsObserved":{},"maxStatsObserved":{},"isDiscovered":false},"inf_ranged_1":{"killCount":85,"minStatsObserved":{},"maxStatsObserved":{},"isDiscovered":false},"inf_mage_1":{"killCount":96,"minStatsObserved":{},"maxStatsObserved":{},"isDiscovered":false},"inf_assassin_1":{"killCount":67,"minStatsObserved":{"MAX_HP":201.07932660913028,"DEFENSE_POWER":32.60464197195788,"ATTACK_POWER":93.48948133047163,"MAGIC_RESISTANCE":26.69696540233708,"SPELL_POWER":16.7},"maxStatsObserved":{"MAX_HP":201.07932660913028,"DEFENSE_POWER":32.60464197195788,"ATTACK_POWER":93.48948133047163,"MAGIC_RESISTANCE":26.69696540233708,"SPELL_POWER":16.7},"isDiscovered":true},"inf_melee_2":{"killCount":47,"minStatsObserved":{},"maxStatsObserved":{},"isDiscovered":false},"inf_melee_1":{"killCount":45,"minStatsObserved":{},"maxStatsObserved":{},"isDiscovered":false}}'
+monster-encyclopedia: '{"inf_boss_1":{"killCount":1,"minStatsObserved":{},"maxStatsObserved":{},"isDiscovered":false},"inf_boss_2":{"killCount":1,"minStatsObserved":{},"maxStatsObserved":{},"isDiscovered":false},"inf_ranged_1":{"killCount":55,"minStatsObserved":{},"maxStatsObserved":{},"isDiscovered":false},"inf_mage_1":{"killCount":65,"minStatsObserved":{},"maxStatsObserved":{},"isDiscovered":false},"inf_assassin_1":{"killCount":42,"minStatsObserved":{"MAX_HP":201.07932660913028,"DEFENSE_POWER":32.60464197195788,"ATTACK_POWER":93.48948133047163,"MAGIC_RESISTANCE":26.69696540233708,"SPELL_POWER":16.7},"maxStatsObserved":{"MAX_HP":201.07932660913028,"DEFENSE_POWER":32.60464197195788,"ATTACK_POWER":93.48948133047163,"MAGIC_RESISTANCE":26.69696540233708,"SPELL_POWER":16.7},"isDiscovered":true},"inf_melee_2":{"killCount":31,"minStatsObserved":{},"maxStatsObserved":{},"isDiscovered":false},"inf_melee_1":{"killCount":32,"minStatsObserved":{},"maxStatsObserved":{},"isDiscovered":false}}'
 claimed-encyclopedia-rewards: []
 backpack:
   page_0:
@@ -61,13 +59,13 @@ backpack:
     id: minecraft:cooked_salmon
     count: 1
     components:
+      minecraft:unbreakable: '{}'
       minecraft:lore: '[{color:"white",text:"§7주변 연어들이 전부 사라지는 것을 보고 그대로 굳어버린 듯한 연어"},{color:"white",text:"§7왠지
         휘두를 수 있을 듯하다."},"",{color:"gray",extra:[{color:"red",text:"+50"},{color:"red",text:"
         (+30%)"}],text:"공격력 "},{color:"gray",extra:[{color:"light_purple",text:"+20"},{color:"light_purple",text:"
         (+30%)"}],text:"마력 "}]'
-      minecraft:unbreakable: '{}'
-      minecraft:custom_name: '{color:"gold",text:"§6굳어버린 연어"}'
       minecraft:tooltip_display: '{hidden_components:["minecraft:attribute_modifiers"]}'
+      minecraft:custom_name: '{color:"gold",text:"§6굳어버린 연어"}'
       minecraft:custom_data: '{PublicBukkitValues:{"rpgcore:atk":50,"rpgcore:atk_pct":0.3d,"rpgcore:def":0,"rpgcore:def_pct":0.0d,"rpgcore:enh_level":10,"rpgcore:equip_id":"dried_salmon","rpgcore:hp":0,"rpgcore:hp_pct":0.0d,"rpgcore:mp":0,"rpgcore:mp_pct":0.0d,"rpgcore:spa":20,"rpgcore:spa_pct":0.3d,"rpgcore:spd":0,"rpgcore:spd_pct":0.0d}}'
     schema_version: 1
   - null
@@ -323,9 +321,9 @@ backpack:
         시 ",underlined:0b},{color:"aqua",italic:0b,text:"6.0초"},{color:"gray",italic:0b,text:"
         동안 공격 속도가 "},{color:"green",italic:0b,text:"15%"},{color:"gray",italic:0b,text:"
         증가합니다."}],text:""}]'
-      minecraft:tooltip_display: '{hidden_components:["minecraft:attribute_modifiers"]}'
       minecraft:custom_name: '{extra:[{bold:0b,color:"dark_red",italic:0b,obfuscated:0b,strikethrough:0b,text:"종언의
         손아귀",underlined:0b}],text:""}'
+      minecraft:tooltip_display: '{hidden_components:["minecraft:attribute_modifiers"]}'
       minecraft:custom_model_data: '{floats:[20.0f]}'
       minecraft:custom_data: '{PublicBukkitValues:{"rpgcore:rpgcore_item_id":"slaughterer_gloves_t3","rpgcore:rpgcore_item_upgrade_level":0}}'
     schema_version: 1
@@ -342,9 +340,9 @@ backpack:
         ",underlined:0b},{color:"red",italic:0b,text:"80%"},{color:"gray",italic:0b,text:"
         이상인 대상에게 "},{color:"green",italic:0b,text:"15%"},{color:"gray",italic:0b,text:"의
         추가 피해를 입힙니다."}],text:""}]'
-      minecraft:tooltip_display: '{hidden_components:["minecraft:attribute_modifiers"]}'
       minecraft:custom_name: '{extra:[{bold:0b,color:"dark_red",italic:0b,obfuscated:0b,strikethrough:0b,text:"차원
         포식자의 허리띠",underlined:0b}],text:""}'
+      minecraft:tooltip_display: '{hidden_components:["minecraft:attribute_modifiers"]}'
       minecraft:custom_model_data: '{floats:[20.0f]}'
       minecraft:custom_data: '{PublicBukkitValues:{"rpgcore:rpgcore_item_id":"slaughterer_belt_t3","rpgcore:rpgcore_item_upgrade_level":0}}'
     schema_version: 1
@@ -359,9 +357,9 @@ backpack:
         효과]",underlined:0b}],text:""},{extra:[{bold:0b,color:"gray",italic:0b,obfuscated:0b,strikethrough:0b,text:"모든
         공격 시 ",underlined:0b},{color:"aqua",italic:0b,text:"7%"},{color:"gray",italic:0b,text:"
         확률로 피해가 2회 적용됩니다."}],text:""}]'
-      minecraft:tooltip_display: '{hidden_components:["minecraft:attribute_modifiers"]}'
       minecraft:custom_name: '{extra:[{bold:0b,color:"dark_red",italic:0b,obfuscated:0b,strikethrough:0b,text:"무한한
         살의의 망토",underlined:0b}],text:""}'
+      minecraft:tooltip_display: '{hidden_components:["minecraft:attribute_modifiers"]}'
       minecraft:custom_model_data: '{floats:[20.0f]}'
       minecraft:custom_data: '{PublicBukkitValues:{"rpgcore:rpgcore_item_id":"slaughterer_cloak_t3","rpgcore:rpgcore_item_upgrade_level":0}}'
     schema_version: 1

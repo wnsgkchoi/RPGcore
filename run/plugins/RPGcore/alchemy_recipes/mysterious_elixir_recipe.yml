@@ -1,3 +1,4 @@
+category: "POTION"
 output: { item_id: "mysterious_elixir", amount: 1 }
 required_essences: { medium_hp_essence: 8, medium_mp_essence: 8 }
 required_items:

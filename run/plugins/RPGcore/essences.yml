@@ -33,3 +33,6 @@ GLISTERING_MELON_SLICE: { essence_id: "medium_mp_essence", amount: 1 }
 
 # === 상급 생명의 정수 (직접 추출) ===
 GHAST_TEAR: { essence_id: "superior_hp_essence", amount: 1 }
+
+# === 상급 마나의 정수 ===
+NETHER_STAR: { essence_id: "superior_mp_essence", amount: 1 }

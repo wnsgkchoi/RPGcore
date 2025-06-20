@@ -129,6 +129,7 @@ object PlayerDataManager {
         config.set("current-mp", playerData.currentMp)
         config.set("current-class-id", playerData.currentClassId)
         config.set("learned-recipes", playerData.learnedRecipes.toList())
+        config.set("potion-essences", playerData.potionEssences)
 
         playerData.customSpawnLocation?.let {
             config.set("custom-spawn.world", it.worldName)
@@ -140,11 +141,7 @@ object PlayerDataManager {
         }
 
         config.set("base-stats", playerData.baseStats.mapKeys { it.key.name })
-
-        // <<<<<<< 수정된 부분 시작 >>>>>>>
-        // 기존 방식 대신 JSON 문자열로 직렬화하여 저장
         config.set("custom-equipment-json", gson.toJson(playerData.customEquipment))
-        // <<<<<<< 수정된 부분 끝 >>>>>>>
 
         config.set("learned-skills", playerData.learnedSkills)
         config.set("equipped-active-skills", playerData.equippedActiveSkills)
@@ -260,6 +257,12 @@ object PlayerDataManager {
             val type = object : TypeToken<ConcurrentHashMap<String, MonsterEncounterData>>() {}.type
             playerData.monsterEncyclopedia.putAll(gson.fromJson(encyclopediaJson, type))
             playerData.claimedEncyclopediaRewards.addAll(config.getStringList("claimed-encyclopedia-rewards"))
+
+            config.getConfigurationSection("potion-essences")?.getValues(false)?.forEach { (essenceId, amount) ->
+                if (amount is Int) {
+                    playerData.potionEssences[essenceId] = amount
+                }
+            }
 
             config.getConfigurationSection("backpack")?.getKeys(false)?.forEach { pageKey ->
                 val page = pageKey.removePrefix("page_").toIntOrNull()
