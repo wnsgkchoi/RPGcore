@@ -43,7 +43,6 @@ object CombatManager {
             return
         }
         val playerData = PlayerDataManager.getPlayerData(victim)
-        // BUG-FIX: 마지막 피격 시간을 여기서도 갱신해야 함
         lastPlayerDamageTime[victim.uniqueId] = System.currentTimeMillis()
         playerData.lastDamagedTime = System.currentTimeMillis()
 
@@ -89,10 +88,16 @@ object CombatManager {
             val baseCooldown = equippedWeaponInfo?.let { EquipmentManager.getEquipmentDefinition(it.itemInternalId)?.baseCooldownMs } ?: 1000
             val actualCooldown = (baseCooldown / attackSpeed).toLong()
 
+            // BUG-FIX: 휩쓸기 공격을 위한 유예 시간(50ms) 추가
             if (System.currentTimeMillis() - playerData.lastBasicAttackTime < actualCooldown) {
-                return
+                // 마지막 공격 이후 50ms가 지나지 않았다면 같은 공격(휩쓸기)으로 간주하여 통과
+                if (System.currentTimeMillis() - playerData.lastBasicAttackTime > 50) {
+                    return
+                }
+            } else {
+                // 정상적인 공격이거나 휩쓸기의 첫 타격일 경우 공격 시간 갱신
+                playerData.lastBasicAttackTime = System.currentTimeMillis()
             }
-            playerData.lastBasicAttackTime = System.currentTimeMillis()
         }
 
         if (damager is Player && StatusEffectManager.hasStatus(damager, "last_stand_buff")) {

@@ -62,8 +62,13 @@ class FoodListener : Listener {
                     player.playSound(player.location, Sound.ENTITY_GENERIC_DRINK, 1.0f, 1.0f)
                 }
 
+                // BUG-FIX: 이벤트 취소 후에는 플레이어 인벤토리에서 직접 아이템을 수정해야 함
                 if (player.gameMode != GameMode.CREATIVE) {
-                    item.amount -= 1
+                    val hand = event.hand
+                    val itemInHand = player.inventory.getItem(hand)
+                    if (itemInHand.isSimilar(item)) {
+                        itemInHand.amount -= 1
+                    }
                 }
 
                 // 마신 후 빈 유리병 반환

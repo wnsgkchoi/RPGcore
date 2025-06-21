@@ -15,6 +15,8 @@ import java.util.concurrent.ConcurrentHashMap
 
 object StatusEffectManager : IStatusEffectProvider {
     private val plugin = RPGcore.instance
+    private val logger = plugin.logger
+
     data class ActiveStatusEffect(
         val targetId: UUID,
         val casterId: UUID,
@@ -68,10 +70,20 @@ object StatusEffectManager : IStatusEffectProvider {
         val effect = ActiveStatusEffect(target.uniqueId, caster.uniqueId, statusId, expiration, parameters)
 
         val targetEffects = activeEffects.computeIfAbsent(target.uniqueId) { ConcurrentHashMap.newKeySet() }
-        targetEffects.removeIf { it.statusId == statusId }
+        // BUG-FIX: 대소문자를 구분하지 않고 기존 효과를 제거하도록 수정
+        targetEffects.removeIf { it.statusId.equals(statusId, ignoreCase = true) }
         targetEffects.add(effect)
 
-        if (hasStatus(target, "BURNING") && hasStatus(target, "FREEZING") && hasStatus(target, "PARALYZING")) {
+        // Explosion Check
+        val hasBurning = hasStatus(target, "BURNING")
+        val hasFreezing = hasStatus(target, "FREEZING")
+        val hasParalyzing = hasStatus(target, "PARALYZING")
+
+        logger.info("[Elemental Explosion Debug] Applying status '${statusId}' to ${target.name}. Current statuses: ${targetEffects.joinToString { it.statusId }}. Check Result: B=$hasBurning, F=$hasFreezing, P=$hasParalyzing")
+
+
+        if (hasBurning && hasFreezing && hasParalyzing) {
+            logger.info("[Elemental Explosion Debug] All three stacks detected on ${target.name}! Triggering explosion.")
             CombatManager.applyElementalExplosionDamage(caster, target)
             removeStatus(target, "BURNING")
             removeStatus(target, "FREEZING")

@@ -28,7 +28,7 @@ object TargetSelector {
                 val radius = params["area_radius"]?.toString()?.toDoubleOrNull() ?: 5.0
                 caster.getNearbyEntities(radius, radius, radius)
                     .filterIsInstance<LivingEntity>()
-                    .filter { it != caster && it.hasLineOfSight(caster) && isHostile(it, caster) }
+                    .filter { it != caster && isHostile(it, caster) }
             }
             "AREA_ENEMY_AROUND_IMPACT" -> {
                 val radius = params["area_radius"]?.toString()?.toDoubleOrNull() ?: 5.0
@@ -76,7 +76,8 @@ object TargetSelector {
         }
     }
 
-    private fun isHostile(entity: LivingEntity, perspective: LivingEntity): Boolean {
+    // BUG-FIX: 다른 패키지에서 참조할 수 있도록 private에서 internal로 변경
+    internal fun isHostile(entity: LivingEntity, perspective: LivingEntity): Boolean {
         return when (perspective) {
             is Player -> entity is Monster || entity is Slime || entity is Ghast || entity is Phantom || EntityManager.getEntityData(entity) != null
             else -> entity is Player

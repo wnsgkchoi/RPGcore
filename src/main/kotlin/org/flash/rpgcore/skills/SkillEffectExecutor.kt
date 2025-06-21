@@ -288,9 +288,10 @@ object SkillEffectExecutor {
 
                 caster.velocity = direction.clone().multiply(speed / 20.0)
 
+                // BUG-FIX: TargetSelector.isHostile을 사용하여 적대적인 대상만 필터링합니다.
                 val targets = caster.world.getNearbyEntities(caster.location, 1.5, 1.5, 1.5)
                     .filterIsInstance<LivingEntity>()
-                    .filter { it != caster && !hitEntities.contains(it.uniqueId) }
+                    .filter { it != caster && !hitEntities.contains(it.uniqueId) && TargetSelector.isHostile(it, caster) }
 
                 if (targets.isNotEmpty()) {
                     targets.forEach {
@@ -306,9 +307,10 @@ object SkillEffectExecutor {
                 dashingPlayers.remove(caster.uniqueId)
 
                 val finalLocation = caster.location
+                // BUG-FIX: TargetSelector.isHostile을 사용하여 적대적인 대상만 필터링합니다.
                 val aoeTargets = finalLocation.world.getNearbyEntities(finalLocation, aoeRadius, aoeRadius, aoeRadius)
                     .filterIsInstance<LivingEntity>()
-                    .filter { it != caster }
+                    .filter { it != caster && TargetSelector.isHostile(it, caster) }
                 val aoeDamageEffect = SkillEffectData("DAMAGE", "AREA_ENEMY_AROUND_IMPACT", mapOf("physical_damage_coeff_attack_power_formula" to aoeDamageCoeff.toString()))
                 aoeTargets.forEach {
                     CombatManager.applySkillDamage(caster, it, aoeDamageEffect)
@@ -361,8 +363,8 @@ object SkillEffectExecutor {
 
                     val arrow = caster.world.spawn(spawnLoc, Arrow::class.java)
                     arrow.shooter = caster
-                    arrow.velocity = direction.multiply(2.5) // 속도 약간 증가
-                    arrow.setGravity(true) // 중력 적용하여 자연스럽게 낙하
+                    arrow.velocity = direction.multiply(2.5)
+                    arrow.setGravity(true)
                     arrow.setMetadata(VOLLEY_ARROW_DAMAGE_KEY, FixedMetadataValue(plugin, damagePerArrow))
                 }
             }.runTaskLater(plugin, Random.nextLong(0, 25))

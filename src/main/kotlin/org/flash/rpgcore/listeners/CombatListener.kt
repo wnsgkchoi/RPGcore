@@ -119,6 +119,11 @@ class CombatListener : Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun onEntityDamageByEntity(event: EntityDamageByEntityEvent) {
+        // BUG-FIX: 피해자가 ArmorStand일 경우, 플러그인의 모든 커스텀 로직을 무시하고 바닐라 행동을 따르도록 즉시 리턴
+        if (event.entity is ArmorStand) {
+            return
+        }
+
         val victim = event.entity as? LivingEntity ?: return
 
         if (victim is Player) {
@@ -209,6 +214,7 @@ class CombatListener : Listener {
 
         val onImpactJson = projectile.getMetadata(SkillEffectExecutor.PROJECTILE_ON_IMPACT_KEY).firstOrNull()?.asString()
         if (onImpactJson != null) {
+            event.isCancelled = true
             val skillId = projectile.getMetadata(SkillEffectExecutor.PROJECTILE_SKILL_ID_KEY).firstOrNull()?.asString() ?: return
             val casterIdStr = projectile.getMetadata(SkillEffectExecutor.PROJECTILE_CASTER_UUID_KEY).firstOrNull()?.asString() ?: return
             val caster = Bukkit.getEntity(UUID.fromString(casterIdStr)) as? LivingEntity ?: return
@@ -226,6 +232,7 @@ class CombatListener : Listener {
         }
 
         if (projectile.hasMetadata(EXPLOSIVE_ARROW_METADATA)) {
+            event.isCancelled = true
             val shooter = projectile.shooter as? Player ?: return
             StatusEffectManager.removeStatus(shooter, "explosive_arrow_mode")
             val skill = SkillManager.getSkill("explosive_arrow") ?: return
@@ -279,7 +286,6 @@ class CombatListener : Listener {
                 monsterDefinition.xpReward
             }
 
-            // BUG-FIX: 보스 몬스터 드롭 테이블 처리 로직 수정
             if (monsterDefinition.isBoss && InfiniteDungeonManager.isDungeonMonster(victim.uniqueId)) {
                 val session = InfiniteDungeonManager.getSessionByMonster(victim.uniqueId)
                 if (session != null) {

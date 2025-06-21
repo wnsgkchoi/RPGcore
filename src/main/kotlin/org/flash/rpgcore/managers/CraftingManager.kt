@@ -61,10 +61,10 @@ object CraftingManager {
         loadedRecipes.clear()
         if (!craftingRecipesDirectory.exists()) craftingRecipesDirectory.mkdirs()
 
-        // [수정] 하위 폴더까지 모두 읽도록 변경
         craftingRecipesDirectory.walkTopDown().filter { it.isFile && it.extension == "yml" }.forEach { file ->
             try {
                 val config = YamlConfiguration.loadConfiguration(file)
+                // BUG-FIX: 파일 이름을 유일한 레시피 ID로 사용합니다.
                 val recipeId = file.nameWithoutExtension
 
                 val ingredients = config.getMapList("ingredients").map { ingMap ->
@@ -76,12 +76,12 @@ object CraftingManager {
                 }
 
                 val recipe = CraftingRecipe(
-                    recipeId = recipeId,
+                    recipeId = recipeId, // YAML 내부의 'recipe_id' 대신 파일명을 ID로 사용
                     outputItemId = config.getString("output.item_internal_name")!!,
                     xpCost = config.getLong("xp_cost", 0),
                     ingredients = ingredients
                 )
-                loadedRecipes[recipeId] = recipe
+                loadedRecipes[recipeId] = recipe // Key와 객체의 ID를 파일명으로 통일
             } catch (e: Exception) {
                 logger.severe("[CraftingManager] 제작 레시피 파일 '${file.name}' 로드 중 오류 발생: ${e.message}")
             }

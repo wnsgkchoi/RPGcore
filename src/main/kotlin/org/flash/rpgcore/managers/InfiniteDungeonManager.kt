@@ -2,6 +2,7 @@ package org.flash.rpgcore.managers
 
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
+import org.bukkit.GameRule
 import org.bukkit.Location
 import org.bukkit.attribute.Attribute
 import org.bukkit.configuration.file.YamlConfiguration
@@ -30,10 +31,10 @@ object InfiniteDungeonManager {
     private val playerCooldowns = ConcurrentHashMap<UUID, Long>()
     private val pendingRespawns = ConcurrentHashMap<UUID, Location>()
 
-    private var reEntryCooldownSeconds = 600L
-    private var prepareTimeSeconds = 5L
+    private var reEntryCooldownSeconds = 60L
+    private var prepareTimeSeconds = 3L
     private var statScalingCoeff = Triple(0.015, 0.3, 1.0)
-    var xpScalingCoeff = Pair(0.2, 1.0)
+    var xpScalingCoeff = Pair(1.2, 2.0)
     private var normalMonsterPool = mapOf<String, List<String>>()
     private var bossMonsterPool = listOf<String>()
     private var spawnCountCoeff = Pair(0.5, 2.0)
@@ -82,8 +83,8 @@ object InfiniteDungeonManager {
             config.getDouble("stat_scaling.c", 1.0)
         )
         xpScalingCoeff = Pair(
-            config.getDouble("xp_scaling.a", 0.2),
-            config.getDouble("xp_scaling.b", 1.0)
+            config.getDouble("xp_scaling.a", 1.2),
+            config.getDouble("xp_scaling.b", 2.0)
         )
         spawnCountCoeff = Pair(
             config.getDouble("wave_settings.spawn_count.a", 0.5),
@@ -103,6 +104,8 @@ object InfiniteDungeonManager {
             val monsterSpawnLocs = config.getMapList("$arenaPath.monster_spawn_locations").mapNotNull { locationFromConfigMap(it) }
             if (playerSpawnLoc != null && monsterSpawnLocs.isNotEmpty()) {
                 arenas.add(Arena(key, playerSpawnLoc, monsterSpawnLocs))
+                playerSpawnLoc.world.setGameRule(GameRule.MOB_GRIEFING, false)
+                logger.info("[InfiniteDungeonManager] Game rule 'mobGriefing' set to false for world: ${playerSpawnLoc.world.name}")
             } else {
                 logger.warning("[InfiniteDungeonManager] Arena '$key' in infinite_dungeon.yml has invalid location data.")
             }
@@ -172,6 +175,18 @@ object InfiniteDungeonManager {
             logger.severe("[InfiniteDungeon] CRITICAL: Arena '${availableArena.id}' has a null world. Cannot teleport player ${player.name}.")
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[오류] &f던전 월드를 찾을 수 없습니다. 관리자에게 문의하세요."))
             return
+        }
+
+        // BUG-FIX: Multiverse 권한 확인 로직 추가
+        val multiverse = Bukkit.getPluginManager().getPlugin("Multiverse-Core")
+        if (multiverse != null && multiverse.isEnabled) {
+            val worldName = availableArena.playerSpawn.world.name
+            val permissionNode = "multiverse.access.$worldName"
+            if (!player.hasPermission(permissionNode)) {
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[던전] &f던전 월드로 이동할 권한이 없습니다."))
+                logger.warning("[InfiniteDungeonManager] Player ${player.name} failed to join dungeon. Missing permission: $permissionNode")
+                return
+            }
         }
 
         logger.info("[InfiniteDungeon] Join successful for ${player.name}. Assigning to arena '${availableArena.id}'.")
@@ -335,9 +350,13 @@ object InfiniteDungeonManager {
     }
 
     fun getBossLootTableIdForWave(wave: Int): String? {
-        return bossLootTables.keys.sortedDescending().find { it <= wave }?.let { bossLootTables[it] }
+        return when {
+            wave == 10 -> "inf_boss_loot_tier1"
+            wave == 20 -> "inf_boss_loot_tier2"
+            wave >= 30 && wave % 10 == 0 -> "inf_boss_loot_tier3"
+            else -> null
+        }
     }
-
     fun isPlayerInDungeon(player: Player): Boolean {
         return activeSessions.containsKey(player.uniqueId)
     }
