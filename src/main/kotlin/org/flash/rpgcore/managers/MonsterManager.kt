@@ -7,6 +7,7 @@ import org.bukkit.attribute.Attribute
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.LivingEntity
+import org.bukkit.entity.PiglinBrute
 import org.bukkit.inventory.ItemStack
 import org.flash.rpgcore.RPGcore
 import org.flash.rpgcore.monsters.CustomMonsterData
@@ -27,7 +28,6 @@ object MonsterManager {
         val monstersDir = File(plugin.dataFolder, "monsters")
         if (!monstersDir.exists()) {
             monstersDir.mkdirs()
-            // 예시 몬스터 파일 생성
             plugin.saveResource("monsters/goblin_warrior.yml", false)
             plugin.saveResource("monsters/goblin_archer.yml", false)
         }
@@ -48,8 +48,8 @@ object MonsterManager {
                     MonsterSkillInfo(
                         internalId = skillMap["internal_id"] as String,
                         chance = skillMap["chance"] as Double,
-                        cooldownTicks = skillMap["cooldown_ticks"] as Int,
-                        condition = skillMap["condition"] as? Map<String, String>
+                        cooldownTicks = (skillMap["cooldown_ticks"] as Int).toLong(),
+                        condition = skillMap["condition"] as? Map<String, Any>
                     )
                 }
 
@@ -62,7 +62,7 @@ object MonsterManager {
                     monsterId = monsterId,
                     displayName = config.getString("display_name", monsterId)!!,
                     vanillaMobType = EntityType.valueOf(config.getString("vanilla_mob_type", "ZOMBIE")!!.uppercase()),
-                    iconMaterial = config.getString("icon_material", "ZOMBIE_HEAD")!!.uppercase(), // icon_material 로드
+                    iconMaterial = config.getString("icon_material", "ZOMBIE_HEAD")!!.uppercase(),
                     equipment = equipmentMap,
                     stats = statsMap,
                     skills = skillsList,
@@ -88,6 +88,11 @@ object MonsterManager {
         }
 
         val entity = location.world?.spawnEntity(location, data.vanillaMobType) as? LivingEntity ?: return null
+
+        // BUG-FIX: PiglinBrute 좀비화 방지
+        if (entity is PiglinBrute) {
+            entity.isImmuneToZombification = true
+        }
 
         entity.customName = ChatColor.translateAlternateColorCodes('&', data.displayName)
         entity.isCustomNameVisible = true

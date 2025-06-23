@@ -4,7 +4,7 @@ package org.flash.rpgcore.monsters
 data class MonsterSkillInfo(
     val internalId: String,
     val chance: Double,
-    val cooldownTicks: Int,
+    val cooldownTicks: Long,
     // condition: { type: "HP_BELOW", value: "0.5" } 와 같은 형식
-    val condition: Map<String, String>? = null
+    val condition: Map<String, Any>? = null
 )

@@ -31,10 +31,11 @@ object InfiniteDungeonManager {
     private val playerCooldowns = ConcurrentHashMap<UUID, Long>()
     private val pendingRespawns = ConcurrentHashMap<UUID, Location>()
 
-    private var reEntryCooldownSeconds = 60L
-    private var prepareTimeSeconds = 3L
+    private var reEntryCooldownSeconds = 600L
+    private var prepareTimeSeconds = 5L
     private var statScalingCoeff = Triple(0.015, 0.3, 1.0)
-    var xpScalingCoeff = Pair(1.2, 2.0)
+    // BUG-FIX: XP 스케일링 계수를 Pair에서 Triple로 변경
+    var xpScalingCoeff = Triple(0.02, 0.2, 1.0)
     private var normalMonsterPool = mapOf<String, List<String>>()
     private var bossMonsterPool = listOf<String>()
     private var spawnCountCoeff = Pair(0.5, 2.0)
@@ -82,9 +83,11 @@ object InfiniteDungeonManager {
             config.getDouble("stat_scaling.b", 0.3),
             config.getDouble("stat_scaling.c", 1.0)
         )
-        xpScalingCoeff = Pair(
-            config.getDouble("xp_scaling.a", 1.2),
-            config.getDouble("xp_scaling.b", 2.0)
+        // BUG-FIX: 2차 함수 계수 c를 추가로 읽어오도록 수정
+        xpScalingCoeff = Triple(
+            config.getDouble("xp_scaling.a", 0.02),
+            config.getDouble("xp_scaling.b", 0.2),
+            config.getDouble("xp_scaling.c", 1.0)
         )
         spawnCountCoeff = Pair(
             config.getDouble("wave_settings.spawn_count.a", 0.5),
@@ -177,7 +180,6 @@ object InfiniteDungeonManager {
             return
         }
 
-        // BUG-FIX: Multiverse 권한 확인 로직 추가
         val multiverse = Bukkit.getPluginManager().getPlugin("Multiverse-Core")
         if (multiverse != null && multiverse.isEnabled) {
             val worldName = availableArena.playerSpawn.world.name
@@ -351,12 +353,13 @@ object InfiniteDungeonManager {
 
     fun getBossLootTableIdForWave(wave: Int): String? {
         return when {
-            wave == 10 -> "inf_boss_loot_tier1"
-            wave == 20 -> "inf_boss_loot_tier2"
-            wave >= 30 && wave % 10 == 0 -> "inf_boss_loot_tier3"
+            wave == 10 -> bossLootTables[10]
+            wave == 20 -> bossLootTables[20]
+            wave >= 30 && wave % 10 == 0 -> bossLootTables[30]
             else -> null
         }
     }
+
     fun isPlayerInDungeon(player: Player): Boolean {
         return activeSessions.containsKey(player.uniqueId)
     }

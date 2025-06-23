@@ -9,6 +9,16 @@ import org.flash.rpgcore.utils.XPHelper
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
+// BUG-FIX: TradeSession 데이터 클래스를 TradeManager 객체 밖으로 이동하여 최상위 클래스로 변경
+data class TradeSession(
+    val sessionID: UUID = UUID.randomUUID(),
+    val requester: UUID,
+    val target: UUID,
+    var requesterXP: Long? = null,
+    var targetXP: Long? = null,
+    var state: TradeManager.TradeSessionState = TradeManager.TradeSessionState.PENDING_TARGET_RESPONSE
+)
+
 object TradeManager {
 
     private val plugin = RPGcore.instance
@@ -18,24 +28,11 @@ object TradeManager {
         PENDING_TARGET_RESPONSE, // 거래 요청 후 상대방의 y/n 응답 대기
         AWAITING_REQUESTER_XP,   // 양측 수락 후 요청자 XP 입력 대기 (요청자가 먼저 입력하도록 유도)
         AWAITING_TARGET_XP,      // 요청자 XP 입력 후 대상자 XP 입력 대기
-        // BOTH_XP_ENTERED        // 양측 XP 입력 완료 (바로 교환 실행)
     }
 
-    data class TradeSession(
-        val sessionID: UUID = UUID.randomUUID(),
-        val requester: UUID,
-        val target: UUID,
-        var requesterXP: Long? = null,
-        var targetXP: Long? = null,
-        var state: TradeSessionState = TradeSessionState.PENDING_TARGET_RESPONSE
-    )
+    // TradeSession 클래스가 외부로 이동했으므로, 여기서는 제거합니다.
 
-    // 현재 진행 중인 거래 요청 및 세션 관리
-    // Key: 세션에 참여 중인 플레이어의 UUID, Value: 해당 플레이어가 속한 TradeSession
-    // 한 플레이어는 동시에 하나의 거래만 참여 가능
     val activePlayerSessions: MutableMap<UUID, TradeSession> = ConcurrentHashMap()
-    // 타임아웃 관리를 위한 요청 시간 기록 (선택적)
-    // private val requestTimeouts: MutableMap<UUID, Long> = ConcurrentHashMap() // targetUUID -> requestTime
 
 
     fun requestTrade(requester: Player, target: Player) {
@@ -54,7 +51,6 @@ object TradeManager {
 
         requester.sendMessage(ChatColor.translateAlternateColorCodes('&', "&e[거래] &f${target.name}님에게 XP 거래를 요청했습니다. 응답을 기다립니다..."))
         target.sendMessage(ChatColor.translateAlternateColorCodes('&', "&e[거래] &f${requester.name}님이 XP 거래를 요청했습니다. 수락하시려면 채팅에 '&ay&e', 거부하시려면 '&cn&e'을(를) 입력하세요. (30초 제한)"))
-        // TODO: 30초 타임아웃 로직 추가 (요청 취소)
         logger.info("[TradeManager] Trade requested from ${requester.name} to ${target.name}. Session ID: ${newSession.sessionID}")
     }
 
@@ -62,8 +58,6 @@ object TradeManager {
         val session = activePlayerSessions[respondingPlayer.uniqueId]
 
         if (session == null || session.target != respondingPlayer.uniqueId || session.state != TradeSessionState.PENDING_TARGET_RESPONSE) {
-            // 응답할 거래가 없거나, 응답자가 대상이 아니거나, 이미 응답한 상태
-            // respondingPlayer.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[거래] &f응답할 거래 요청이 없거나 이미 처리되었습니다."))
             return
         }
 
@@ -93,7 +87,6 @@ object TradeManager {
     fun handleXPInput(inputPlayer: Player, amount: Long) {
         val session = activePlayerSessions[inputPlayer.uniqueId]
         if (session == null) {
-            // inputPlayer.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[거래] &fXP를 입력할 거래가 진행 중이지 않습니다."))
             return
         }
 
@@ -133,10 +126,8 @@ object TradeManager {
             session.targetXP = amount
             inputPlayer.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a[거래] &fXP &e${amount}&a를 설정했습니다."))
             logger.info("[TradeManager] Target ${inputPlayer.name} set ${amount} XP for session ${session.sessionID}. Proceeding to execute.")
-            // 양쪽 모두 입력 완료, 거래 실행
             executeTrade(session)
         } else {
-            // 잘못된 순서 또는 상태
             inputPlayer.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[거래] &f지금은 XP를 입력할 차례가 아니거나 잘못된 거래 상태입니다."))
         }
     }
@@ -151,11 +142,10 @@ object TradeManager {
             cancelSession(session, "&c[거래] &f거래 실행 중 오류가 발생했습니다 (플레이어 또는 XP 정보 없음).")
             return
         }
-        // 다시 한번 XP 확인 (그 사이 XP 변동 가능성)
         if (XPHelper.getTotalExperience(requester) < requesterXP) {
             requester.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[거래] &f거래 실행 직전 XP가 부족하여(&e${XPHelper.getTotalExperience(requester)}&c) 거래가 취소되었습니다. (필요: &e${requesterXP}&c)"))
             target.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[거래] &f${requester.name}님의 XP 부족으로 거래가 취소되었습니다."))
-            cancelSession(session, null) // 메시지는 이미 보냈으므로 내부 로그용
+            cancelSession(session, null)
             return
         }
         if (XPHelper.getTotalExperience(target) < targetXP) {
@@ -181,11 +171,8 @@ object TradeManager {
             target.playSound(target.location, Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.5f)
             logger.info("[TradeManager] Trade successful for session ${session.sessionID}. ${requester.name} (-${requesterXP}, +${targetXP}), ${target.name} (-${targetXP}, +${requesterXP})")
         } else {
-            // XP 차감 실패 시 롤백 (이미 차감된 XP가 있다면 돌려줘야 함 - XPHelper가 boolean 반환하므로 가능)
-            // 이 시나리오는 거의 발생 안 함 (위에서 이미 체크)
             requester.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[거래] &fXP 정산 중 오류가 발생하여 거래가 취소되었습니다."))
             target.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[거래] &fXP 정산 중 오류가 발생하여 거래가 취소되었습니다."))
-            // TODO: 정교한 롤백 로직 (만약 한쪽만 차감 성공했다면)
             logger.severe("[TradeManager] XP deduction failed during trade execution for session ${session.sessionID}. Manual check might be needed.")
         }
         clearSession(session)
@@ -205,7 +192,6 @@ object TradeManager {
         activePlayerSessions.remove(session.target)
     }
 
-    // 플레이어가 채팅 입력을 통해 거래 요청에 응답하거나 XP를 입력해야 하는지 확인하는 함수
     fun isPlayerInvolvedInActiveTradeAction(player: Player): Boolean {
         val session = activePlayerSessions[player.uniqueId] ?: return false
         return when (session.state) {

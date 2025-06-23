@@ -3,6 +3,7 @@ package org.flash.rpgcore
 import org.bukkit.Bukkit
 import org.bukkit.attribute.Attribute
 import org.bukkit.entity.LivingEntity
+import org.bukkit.entity.Mob
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitRunnable
@@ -85,7 +86,7 @@ class RPGcore : JavaPlugin() {
 
         object : BukkitRunnable() {
             private var tickCounter = 0
-            private val TARGETING_RADIUS = 32.0
+            private val TARGETING_RADIUS = 50.0
             private val TARGETING_RADIUS_SQUARED = TARGETING_RADIUS * TARGETING_RADIUS
             private val ARENA_LEASH_RADIUS_SQUARED = 40.0 * 40.0
 
@@ -206,7 +207,7 @@ class RPGcore : JavaPlugin() {
                     }
                 }
 
-                if (tickCounter % 20 == 0) {
+                if (tickCounter % 20 == 0) { // 1초마다 AI 갱신
                     for (entityData in EntityManager.getAllEntityData()) {
                         val monster = server.getEntity(entityData.entityUUID) as? LivingEntity ?: continue
                         if (monster.isDead) continue
@@ -242,12 +243,29 @@ class RPGcore : JavaPlugin() {
 
                         if (currentTarget != null) {
                             val monsterDef = MonsterManager.getMonsterData(entityData.monsterId) ?: continue
-                            if (monsterDef.skills.isEmpty()) continue
+                            var skillCasted = false
 
-                            for (skillInfo in monsterDef.skills.shuffled()) {
-                                if (isSkillReady(monster, entityData, skillInfo)) {
-                                    MonsterSkillManager.castSkill(monster, currentTarget, skillInfo)
-                                    break
+                            if (monsterDef.skills.isNotEmpty()) {
+                                for (skillInfo in monsterDef.skills.shuffled()) {
+                                    if (isSkillReady(monster, entityData, skillInfo, currentTarget)) {
+                                        MonsterSkillManager.castSkill(monster, currentTarget, skillInfo)
+                                        skillCasted = true
+                                        break
+                                    }
+                                }
+                            }
+
+                            // BUG-FIX: 스킬을 사용하지 않았을 경우, 기본 AI(이동 및 공격) 실행
+                            if (!skillCasted) {
+                                val basicAttackCooldown = 2000L
+                                if (System.currentTimeMillis() - entityData.lastBasicAttackTime > basicAttackCooldown) {
+                                    val meleeRangeSquared = 4.0 * 4.0
+                                    if (monster.location.distanceSquared(currentTarget.location) <= meleeRangeSquared) {
+                                        CombatManager.handleDamage(monster, currentTarget)
+                                        entityData.lastBasicAttackTime = System.currentTimeMillis()
+                                    } else {
+                                        (monster as? Mob)?.pathfinder?.moveTo(currentTarget, 1.0)
+                                    }
                                 }
                             }
                         }
@@ -274,7 +292,7 @@ class RPGcore : JavaPlugin() {
                 }
             }
 
-            private fun isSkillReady(monster: LivingEntity, entityData: CustomEntityData, skillInfo: MonsterSkillInfo): Boolean {
+            private fun isSkillReady(monster: LivingEntity, entityData: CustomEntityData, skillInfo: MonsterSkillInfo, target: LivingEntity): Boolean {
                 val cooldown = entityData.skillCooldowns[skillInfo.internalId] ?: 0L
                 if (System.currentTimeMillis() < cooldown) return false
 
@@ -282,11 +300,20 @@ class RPGcore : JavaPlugin() {
 
                 val condition = skillInfo.condition ?: return true
 
+                // BUG-FIX: 거리 조건 확인 로직 추가
                 return when (condition["type"]?.toString()?.uppercase()) {
                     "HP_BELOW" -> {
                         val value = condition["value"]?.toString()?.toDoubleOrNull() ?: return false
                         val hpRatio = entityData.currentHp / entityData.maxHp
                         if (value < 1.0) hpRatio <= value else entityData.currentHp <= value
+                    }
+                    "DISTANCE_ABOVE" -> {
+                        val value = condition["value"]?.toString()?.toDoubleOrNull() ?: return false
+                        monster.location.distanceSquared(target.location) >= value * value
+                    }
+                    "DISTANCE_BELOW" -> {
+                        val value = condition["value"]?.toString()?.toDoubleOrNull() ?: return false
+                        monster.location.distanceSquared(target.location) <= value * value
                     }
                     else -> true
                 }

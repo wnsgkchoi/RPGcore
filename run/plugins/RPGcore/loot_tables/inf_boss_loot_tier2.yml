@@ -4,3 +4,15 @@ drops:
     minAmount: 1
     maxAmount: 4
     chance: 0.5
+  - type: MULTIPLE_DROP
+    chance: 0.3
+    drops:
+      - { type: RPGCORE_RECIPE, id: "upgrade_relic_gloves_t2", chance: 0.111 }
+      - { type: RPGCORE_RECIPE, id: "upgrade_relic_cloak_t2", chance: 0.111 }
+      - { type: RPGCORE_RECIPE, id: "upgrade_relic_belt_t2", chance: 0.111 }
+      - { type: RPGCORE_RECIPE, id: "upgrade_slaughterer_gloves_t2", chance: 0.111 }
+      - { type: RPGCORE_RECIPE, id: "upgrade_slaughterer_cloak_t2", chance: 0.111 }
+      - { type: RPGCORE_RECIPE, id: "upgrade_slaughterer_belt_t2", chance: 0.111 }
+      - { type: RPGCORE_RECIPE, id: "upgrade_bulwark_gloves_t2", chance: 0.111 }
+      - { type: RPGCORE_RECIPE, id: "upgrade_bulwark_cloak_t2", chance: 0.111 }
+      - { type: RPGCORE_RECIPE, id: "upgrade_bulwark_belt_t2", chance: 0.111 }

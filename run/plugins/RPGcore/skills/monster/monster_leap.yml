@@ -1,0 +1,19 @@
+display_name: "&6도약 공격"
+skill_type: "ACTIVE"
+behavior: "INSTANT"
+max_level: 1
+level_data:
+  '1':
+    mp_cost: 0
+    cooldown_ticks: 200 # 10초
+    effects:
+      - type: "LEAP_TOWARDS_TARGET"
+        target_selector: "SINGLE_ENEMY"
+        parameters:
+          leap_strength: 1.2
+          min_distance: 5.0 # 최소 5블록 이상 떨어져 있을 때만 사용
+      - type: "DAMAGE"
+        target_selector: "AREA_ENEMY_AROUND_CASTER" # 착지 지점 주변
+        parameters:
+          area_radius: 3.5
+          physical_damage_coeff_attack_power_formula: "6.0"

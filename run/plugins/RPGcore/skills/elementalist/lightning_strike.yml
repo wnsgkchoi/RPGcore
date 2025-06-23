@@ -14,7 +14,7 @@ level_data:
     cooldown_ticks: 60
     effects:
       - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "10.0", magical_damage_coeff_spell_power_formula: "0.7" } }
-      - { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { status_id: "PARALYZING", duration_ticks: "-1" } }
+      - { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "10.0",status_id: "PARALYZING", duration_ticks: "-1" } }
       - { type: "SPAWN_PARTICLE", target_selector: "SELF", parameters: { particle_id: "ELECTRIC_SPARK", count: "75", offset_x: "4.0", offset_y: "1.5", offset_z: "4.0", extra: "0.1" } } # << 시각 효과 추가
       - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_LIGHTNING_BOLT_THUNDER", volume: "0.7", pitch: "1.8" } }
   2:
@@ -22,7 +22,7 @@ level_data:
     cooldown_ticks: 60
     effects:
       - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "10.2", magical_damage_coeff_spell_power_formula: "0.75" } }
-      - { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { status_id: "PARALYZING", duration_ticks: "-1" } }
+      - { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "10.2",status_id: "PARALYZING", duration_ticks: "-1" } }
       - { type: "SPAWN_PARTICLE", target_selector: "SELF", parameters: { particle_id: "ELECTRIC_SPARK", count: "75", offset_x: "4.2", offset_y: "1.5", offset_z: "4.2", extra: "0.1" } }
       - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_LIGHTNING_BOLT_THUNDER", volume: "0.7", pitch: "1.8" } }
   3:
@@ -30,7 +30,7 @@ level_data:
     cooldown_ticks: 60
     effects:
       - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "10.4", magical_damage_coeff_spell_power_formula: "0.8" } }
-      - { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { status_id: "PARALYZING", duration_ticks: "-1" } }
+      - { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "10.4",status_id: "PARALYZING", duration_ticks: "-1" } }
       - { type: "SPAWN_PARTICLE", target_selector: "SELF", parameters: { particle_id: "ELECTRIC_SPARK", count: "75", offset_x: "4.4", offset_y: "1.5", offset_z: "4.4", extra: "0.1" } }
       - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_LIGHTNING_BOLT_THUNDER", volume: "0.7", pitch: "1.8" } }
   4:
@@ -38,7 +38,7 @@ level_data:
     cooldown_ticks: 60
     effects:
       - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "10.6", magical_damage_coeff_spell_power_formula: "0.85" } }
-      - { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { status_id: "PARALYZING", duration_ticks: "-1" } }
+      - { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "10.6", status_id: "PARALYZING", duration_ticks: "-1" } }
       - { type: "SPAWN_PARTICLE", target_selector: "SELF", parameters: { particle_id: "ELECTRIC_SPARK", count: "75", offset_x: "4.6", offset_y: "1.5", offset_z: "4.6", extra: "0.1" } }
       - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_LIGHTNING_BOLT_THUNDER", volume: "0.7", pitch: "1.8" } }
   5:
@@ -46,7 +46,7 @@ level_data:
     cooldown_ticks: 60
     effects:
       - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "11.0", magical_damage_coeff_spell_power_formula: "0.9" } }
-      - { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { status_id: "PARALYZING", duration_ticks: "-1" } }
+      - { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "11.0", status_id: "PARALYZING", duration_ticks: "-1" } }
       - { type: "SPAWN_PARTICLE", target_selector: "SELF", parameters: { particle_id: "ELECTRIC_SPARK", count: "75", offset_x: "5.0", offset_y: "1.5", offset_z: "5.0", extra: "0.1" } }
       - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_LIGHTNING_BOLT_THUNDER", volume: "0.7", pitch: "1.8" } }
   6:
@@ -54,7 +54,7 @@ level_data:
     cooldown_ticks: 60
     effects:
       - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "11.2", magical_damage_coeff_spell_power_formula: "0.95" } }
-      - { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { status_id: "PARALYZING", duration_ticks: "-1" } }
+      - { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "11.2", status_id: "PARALYZING", duration_ticks: "-1" } }
       - { type: "SPAWN_PARTICLE", target_selector: "SELF", parameters: { particle_id: "ELECTRIC_SPARK", count: "75", offset_x: "5.2", offset_y: "1.5", offset_z: "5.2", extra: "0.1" } }
       - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_LIGHTNING_BOLT_THUNDER", volume: "0.7", pitch: "1.8" } }
   7:
@@ -62,7 +62,7 @@ level_data:
     cooldown_ticks: 60
     effects:
       - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "11.4", magical_damage_coeff_spell_power_formula: "1.0" } }
-      - { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { status_id: "PARALYZING", duration_ticks: "-1" } }
+      - { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "11.4", status_id: "PARALYZING", duration_ticks: "-1" } }
       - { type: "SPAWN_PARTICLE", target_selector: "SELF", parameters: { particle_id: "ELECTRIC_SPARK", count: "75", offset_x: "5.4", offset_y: "1.5", offset_z: "5.4", extra: "0.1" } }
       - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_LIGHTNING_BOLT_THUNDER", volume: "0.7", pitch: "1.8" } }
   8:
@@ -70,7 +70,7 @@ level_data:
     cooldown_ticks: 60
     effects:
       - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "11.6", magical_damage_coeff_spell_power_formula: "1.05" } }
-      - { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { status_id: "PARALYZING", duration_ticks: "-1" } }
+      - { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "11.6", status_id: "PARALYZING", duration_ticks: "-1" } }
       - { type: "SPAWN_PARTICLE", target_selector: "SELF", parameters: { particle_id: "ELECTRIC_SPARK", count: "75", offset_x: "5.6", offset_y: "1.5", offset_z: "5.6", extra: "0.1" } }
       - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_LIGHTNING_BOLT_THUNDER", volume: "0.7", pitch: "1.8" } }
   9:
@@ -78,7 +78,7 @@ level_data:
     cooldown_ticks: 60
     effects:
       - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "11.8", magical_damage_coeff_spell_power_formula: "1.1" } }
-      - { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { status_id: "PARALYZING", duration_ticks: "-1" } }
+      - { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "11.8", status_id: "PARALYZING", duration_ticks: "-1" } }
       - { type: "SPAWN_PARTICLE", target_selector: "SELF", parameters: { particle_id: "ELECTRIC_SPARK", count: "75", offset_x: "5.8", offset_y: "1.5", offset_z: "5.8", extra: "0.1" } }
       - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_LIGHTNING_BOLT_THUNDER", volume: "0.7", pitch: "1.8" } }
   10:
@@ -86,7 +86,7 @@ level_data:
     cooldown_ticks: 60
     effects:
       - { type: "DAMAGE", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "12.0", magical_damage_coeff_spell_power_formula: "1.2" } }
-      - { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { status_id: "PARALYZING", duration_ticks: "-1" } }
+      - { type: "APPLY_CUSTOM_STATUS", target_selector: "AREA_ENEMY_AROUND_CASTER", parameters: { area_radius: "12.0", status_id: "PARALYZING", duration_ticks: "-1" } }
       - { type: "SPAWN_PARTICLE", target_selector: "SELF", parameters: { particle_id: "ELECTRIC_SPARK", count: "75", offset_x: "6.0", offset_y: "1.5", offset_z: "6.0", extra: "0.1" } }
       - { type: "PLAY_SOUND", target_selector: "SELF", parameters: { sound_id: "ENTITY_LIGHTNING_BOLT_THUNDER", volume: "0.7", pitch: "1.8" } }
 upgrade_cost_per_level:

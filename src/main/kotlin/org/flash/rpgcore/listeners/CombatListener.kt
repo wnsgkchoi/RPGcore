@@ -4,6 +4,8 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
+import org.bukkit.Sound
+import org.bukkit.attribute.Attribute
 import org.bukkit.entity.*
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -55,7 +57,7 @@ class CombatListener : Listener {
             EntityType.WITHER_SKELETON, EntityType.ZOGLIN, EntityType.BREEZE -> 10
             EntityType.RAVAGER, EntityType.ELDER_GUARDIAN, EntityType.EVOKER, EntityType.ILLUSIONER -> 20
             EntityType.PIGLIN_BRUTE -> (50..100).random()
-            EntityType.WARDEN, EntityType.WITHER, EntityType.CREAKING -> 100
+            EntityType.WARDEN, EntityType.WITHER -> 100
             EntityType.ENDER_DRAGON -> 12000
             else -> 0
         }
@@ -119,12 +121,29 @@ class CombatListener : Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun onEntityDamageByEntity(event: EntityDamageByEntityEvent) {
-        // BUG-FIX: 피해자가 ArmorStand일 경우, 플러그인의 모든 커스텀 로직을 무시하고 바닐라 행동을 따르도록 즉시 리턴
         if (event.entity is ArmorStand) {
             return
         }
 
         val victim = event.entity as? LivingEntity ?: return
+
+        // BUG-FIX: 투사체 반사 로직 추가
+        if (event.damager is Projectile && victim is LivingEntity && StatusEffectManager.hasStatus(victim, "projectile_reflection")) {
+            val projectile = event.damager as Projectile
+            val shooter = projectile.shooter as? LivingEntity
+            if (shooter != null) {
+                event.isCancelled = true
+
+                val reflectionVector = shooter.location.toVector().subtract(victim.location.toVector()).normalize()
+                val newProjectile = victim.world.spawn(victim.location.add(0.0, 1.0, 0.0), projectile.javaClass)
+                newProjectile.shooter = victim
+                newProjectile.velocity = reflectionVector.multiply(1.5) // 반사되는 투사체는 더 빠르게
+
+                victim.world.playSound(victim.location, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1.0f, 1.5f)
+                projectile.remove()
+                return
+            }
+        }
 
         if (victim is Player) {
             val playerData = PlayerDataManager.getPlayerData(victim)
@@ -277,7 +296,9 @@ class CombatListener : Listener {
                 if (session != null) {
                     session.monsterUUIDs.remove(victim.uniqueId)
                     val wave = session.wave.toDouble()
-                    val xpScale = InfiniteDungeonManager.xpScalingCoeff.first * wave + InfiniteDungeonManager.xpScalingCoeff.second
+                    // BUG-FIX: 2차 함수 경험치 공식 적용
+                    val xpCoeff = InfiniteDungeonManager.xpScalingCoeff
+                    val xpScale = (xpCoeff.first * wave * wave) + (xpCoeff.second * wave) + xpCoeff.third
                     (monsterDefinition.xpReward * xpScale).toInt()
                 } else {
                     monsterDefinition.xpReward

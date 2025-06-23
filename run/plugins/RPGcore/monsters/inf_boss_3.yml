@@ -8,10 +8,12 @@ stats:
   ATTACK_POWER: { min: 120.0, max: 120.0 }
   SPELL_POWER: { min: 100.0, max: 100.0 }
   DEFENSE_POWER: { min: 60.0, max: 60.0 }
-  MAGIC_RESISTANCE: { min: 60.0, max: 60.0 } # 추가
+  MAGIC_RESISTANCE: { min: 60.0, max: 60.0 }
 skills:
+  # 2가지 스킬을 모두 사용하도록 수정
   - { internal_id: "monster_sonic_boom", chance: 0.25, cooldown_ticks: 180 }
+  - { internal_id: "monster_reflect_projectiles", chance: 0.2, cooldown_ticks: 400 }
 xp_reward: 15000
-drop_table_id: "inf_boss_loot_tier1"
+drop_table_id: null
 is_boss_monster: true
 aggro_type: "NEAREST"

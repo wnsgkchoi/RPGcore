@@ -1,0 +1,14 @@
+display_name: "&b투사체 반사"
+skill_type: "ACTIVE"
+behavior: "BUFF"
+max_level: 1
+level_data:
+  '1':
+    mp_cost: 0
+    cooldown_ticks: 400 # 20초
+    effects:
+      - type: "APPLY_CUSTOM_STATUS"
+        target_selector: "SELF"
+        parameters:
+          status_id: "projectile_reflection"
+          duration_ticks: 100 # 5초 동안 지속

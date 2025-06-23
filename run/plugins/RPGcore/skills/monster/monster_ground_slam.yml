@@ -1,0 +1,18 @@
+display_name: "&c지면 강타"
+skill_type: "ACTIVE"
+behavior: "INSTANT"
+max_level: 1
+level_data:
+  '1':
+    mp_cost: 0
+    cooldown_ticks: 240 # 12초
+    effects:
+      - type: "DELAYED_AOE_AT_TARGET"
+        target_selector: "SINGLE_ENEMY" # 어그로 대상을 타겟으로 지정
+        parameters:
+          delay_ticks: 30 # 1.5초 후 폭발
+          area_radius: 4.0
+          indicator_particle: "LAVA" # 경고 파티클
+          explosion_particle: "EXPLOSION_LARGE"
+          explosion_sound: "ENTITY_GENERIC_EXPLODE"
+          magical_damage_coeff_spell_power_formula: "8.0"

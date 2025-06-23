@@ -1,20 +1,21 @@
 # 무한 던전 시스템 설정 파일
 
 # 재입장 대기시간 (초)
-re_entry_cooldown_seconds: 600
+re_entry_cooldown_seconds: 60
 # 웨이브 클리어 후 다음 웨이브까지 대기 시간 (초)
-prepare_time_seconds: 5
+prepare_time_seconds: 3
 
 # 몬스터 스탯 스케일링 2차 함수 계수 (결과 = 기본스탯 * (a*wave^2 + b*wave + c))
 stat_scaling:
   a: 0.015
-  b: 0.3
-  c: 1.0
+  b: 0.25
+  c: 0.4
 
 # 경험치 보상 스케일링 1차 함수 계수 (결과 = 기본경험치 * (a*wave + b))
 xp_scaling:
-  a: 0.2
-  b: 1.0
+  a: 0.02
+  b: 0.5
+  c: 3.0
 
 # 웨이브별 몬스터 스폰 설정
 wave_settings:
@@ -30,8 +31,8 @@ wave_settings:
   
   # 웨이브별 몬스터 수 공식 (결과 = a*wave + b)
   spawn_count:
-    a: 0.5
-    b: 2
+    a: 0.25
+    b: 15
 
 # 보스 처치 시 웨이브 레벨에 따른 보상 테이블 ID
 boss_loot_tables:

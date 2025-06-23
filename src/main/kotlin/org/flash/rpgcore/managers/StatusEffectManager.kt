@@ -47,6 +47,7 @@ object StatusEffectManager : IStatusEffectProvider {
         }.runTaskTimer(plugin, 0L, 10L)
     }
 
+    // 플레이어가 시전자인 경우
     fun applyStatus(caster: Player, target: LivingEntity, statusId: String, durationTicks: Int, parameters: Map<String, Any> = emptyMap()) {
         var finalDurationTicks = durationTicks
 
@@ -70,25 +71,33 @@ object StatusEffectManager : IStatusEffectProvider {
         val effect = ActiveStatusEffect(target.uniqueId, caster.uniqueId, statusId, expiration, parameters)
 
         val targetEffects = activeEffects.computeIfAbsent(target.uniqueId) { ConcurrentHashMap.newKeySet() }
-        // BUG-FIX: 대소문자를 구분하지 않고 기존 효과를 제거하도록 수정
         targetEffects.removeIf { it.statusId.equals(statusId, ignoreCase = true) }
         targetEffects.add(effect)
 
-        // Explosion Check
         val hasBurning = hasStatus(target, "BURNING")
         val hasFreezing = hasStatus(target, "FREEZING")
         val hasParalyzing = hasStatus(target, "PARALYZING")
 
-        logger.info("[Elemental Explosion Debug] Applying status '${statusId}' to ${target.name}. Current statuses: ${targetEffects.joinToString { it.statusId }}. Check Result: B=$hasBurning, F=$hasFreezing, P=$hasParalyzing")
-
-
         if (hasBurning && hasFreezing && hasParalyzing) {
-            logger.info("[Elemental Explosion Debug] All three stacks detected on ${target.name}! Triggering explosion.")
             CombatManager.applyElementalExplosionDamage(caster, target)
             removeStatus(target, "BURNING")
             removeStatus(target, "FREEZING")
             removeStatus(target, "PARALYZING")
         }
+    }
+
+    // BUG-FIX: 몬스터 등 Player가 아닌 LivingEntity가 시전자인 경우를 위한 오버로딩 함수 추가
+    fun applyStatus(caster: LivingEntity, target: LivingEntity, statusId: String, durationTicks: Int, parameters: Map<String, Any> = emptyMap()) {
+        if (caster is Player) {
+            applyStatus(caster, target, statusId, durationTicks, parameters)
+            return
+        }
+        val expiration = if(durationTicks <= 0) -1L else System.currentTimeMillis() + (durationTicks * 50)
+        val effect = ActiveStatusEffect(target.uniqueId, caster.uniqueId, statusId, expiration, parameters)
+
+        val targetEffects = activeEffects.computeIfAbsent(target.uniqueId) { ConcurrentHashMap.newKeySet() }
+        targetEffects.removeIf { it.statusId.equals(statusId, ignoreCase = true) }
+        targetEffects.add(effect)
     }
 
     fun hasStatus(target: LivingEntity, statusId: String): Boolean {
@@ -106,7 +115,8 @@ object StatusEffectManager : IStatusEffectProvider {
     private fun handleStatusEffectTick(target: LivingEntity, effect: ActiveStatusEffect) {
         when(effect.statusId.uppercase()) {
             "FREEZING" -> {
-                val caster = plugin.server.getPlayer(effect.casterId) ?: return
+                val caster = plugin.server.getEntity(effect.casterId)
+                if (caster !is Player) return
                 val masterySkill = SkillManager.getSkill("freezing_stack_mastery") ?: return
                 val level = PlayerDataManager.getPlayerData(caster).getLearnedSkillLevel(masterySkill.internalId)
                 val params = masterySkill.levelData[level]?.effects?.find { it.type == "FREEZING_STACK_MASTERY" }?.parameters ?: return
@@ -121,29 +131,23 @@ object StatusEffectManager : IStatusEffectProvider {
         }
     }
 
-    // <<<<<<< IStatusEffectProvider 구현 시작 >>>>>>>
     override fun getTotalAdditiveStatBonus(player: Player, statType: StatType): Double {
         var totalBonus = 0.0
         val playerEffects = activeEffects[player.uniqueId] ?: return 0.0
 
         for (effect in playerEffects) {
-            // '그림자 학살자 장갑' 효과
             if (effect.statusId == "crit_attack_speed_buff" && statType == StatType.ATTACK_SPEED) {
                 totalBonus += effect.parameters["attack_speed_bonus"]?.toString()?.toDoubleOrNull() ?: 0.0
             }
-            // 여기에 다른 버프/디버프들의 합연산 스탯 로직 추가 가능
         }
         return totalBonus
     }
 
     override fun getTotalMultiplicativePercentBonus(player: Player, statType: StatType): Double {
-        // 현재는 곱연산 버프/디버프가 없으므로 0.0 반환
         return 0.0
     }
 
     override fun getTotalFlatAttackSpeedBonus(player: Player): Double {
-        // 이 함수는 현재 사용되지 않으며, getTotalAdditiveStatBonus로 통합하여 처리
         return 0.0
     }
-    // <<<<<<< IStatusEffectProvider 구현 끝 >>>>>>>
 }
