@@ -48,15 +48,10 @@ object SkillEffectExecutor {
 
         val levelData = skillData.levelData[level] ?: return
 
-        when (skillId) {
-            "wind_slash" -> {
-                applyWindSlash(caster, skillData, level)
-                return
-            }
-            "backstep" -> {
-                applyBackstep(caster, skillData, level)
-                return
-            }
+        // DASH 스킬을 ID 대신 behavior로 처리
+        if (skillData.behavior.equals("DASH", ignoreCase = true)) {
+            applyDash(caster, skillData, level)
+            return
         }
 
         if (skillData.behavior.equals("TOGGLE", ignoreCase = true)) {
@@ -80,6 +75,47 @@ object SkillEffectExecutor {
                 handleSingleEffect(caster, target, effect, skillData, level)
             }
         }
+    }
+
+    // applyWindSlash와 applyBackstep을 통합한 일반 Dash 핸들러
+    private fun applyDash(caster: Player, skillData: RPGSkillData, level: Int) {
+        dashingPlayers[caster.uniqueId]?.cancel()
+        val effects = skillData.levelData[level]?.effects ?: return
+        val dashEffect = effects.firstOrNull { it.type == "TELEPORT_FORWARD" } ?: return
+        val damageEffect = effects.firstOrNull { it.type == "DAMAGE" }
+        val soundEffect = effects.firstOrNull { it.type == "PLAY_SOUND" }
+
+        val distance = dashEffect.parameters["distance"]?.toString()?.toDoubleOrNull() ?: 5.0
+        val isBackward = distance < 0
+        val speed = 18.0
+        val durationTicks = (Math.abs(distance) / speed * 20.0).toLong()
+
+        val direction = caster.location.direction.clone().apply { y = 0.0 }.normalize()
+        if (isBackward) direction.multiply(-1)
+
+        val originalLocation = caster.location.clone()
+
+        val task = object : BukkitRunnable() {
+            var elapsedTicks = 0L
+            override fun run() {
+                if (elapsedTicks >= durationTicks || caster.isDead || !caster.isOnline) {
+                    dashingPlayers.remove(caster.uniqueId)
+                    this.cancel()
+                    return
+                }
+                caster.velocity = direction.clone().multiply(speed / 20.0)
+                elapsedTicks++
+            }
+        }.runTaskTimer(plugin, 0L, 1L)
+        dashingPlayers[caster.uniqueId] = task
+
+        if (damageEffect != null) {
+            val impactLocation = if(damageEffect.targetSelector.uppercase().contains("IMPACT")) originalLocation else caster.location
+            val targets = TargetSelector.findTargets(caster, damageEffect, impactLocation)
+            targets.forEach { target -> CombatManager.applySkillDamage(caster, target, damageEffect) }
+        }
+
+        soundEffect?.let { EffectPlayer.playSound(caster.location, it) }
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -192,75 +228,6 @@ object SkillEffectExecutor {
         }
     }
 
-    private fun applyWindSlash(caster: Player, skillData: RPGSkillData, level: Int) {
-        dashingPlayers[caster.uniqueId]?.cancel()
-
-        val effects = skillData.levelData[level]?.effects ?: return
-        val damageEffect = effects.find { it.type == "DAMAGE" } ?: return
-        val soundEffect = effects.find { it.type == "PLAY_SOUND" }
-
-        val distance = damageEffect.parameters["path_length"]?.toString()?.toDoubleOrNull() ?: 7.0
-        val speed = 18.0
-        val durationTicks = (distance / speed * 20.0).toLong()
-
-        val direction = caster.location.direction.clone().apply { y = 0.0 }.normalize()
-
-        val task = object : BukkitRunnable() {
-            var elapsedTicks = 0L
-            override fun run() {
-                if (elapsedTicks >= durationTicks || caster.isDead || !caster.isOnline) {
-                    dashingPlayers.remove(caster.uniqueId)
-                    this.cancel()
-                    return
-                }
-                caster.velocity = direction.clone().multiply(speed / 20.0)
-                elapsedTicks++
-            }
-        }.runTaskTimer(plugin, 0L, 1L)
-        dashingPlayers[caster.uniqueId] = task
-
-        val targets = TargetSelector.findTargets(caster, damageEffect, null)
-        targets.forEach { target -> CombatManager.applySkillDamage(caster, target, damageEffect) }
-        soundEffect?.let { EffectPlayer.playSound(caster.location, it) }
-    }
-
-    private fun applyBackstep(caster: Player, skillData: RPGSkillData, level: Int) {
-        dashingPlayers[caster.uniqueId]?.cancel()
-
-        val effects = skillData.levelData[level]?.effects ?: return
-        val teleportEffect = effects.find { it.type == "TELEPORT_FORWARD" } ?: return
-        val damageEffect = effects.find { it.type == "DAMAGE" } ?: return
-        val soundEffect = effects.find { it.type == "PLAY_SOUND" } ?: return
-
-        val distance = teleportEffect.parameters["distance"]?.toString()?.toDoubleOrNull() ?: -5.0
-        val speed = 16.0
-        val durationTicks = (Math.abs(distance) / speed * 20.0).toLong().coerceAtLeast(5L)
-
-        val direction = caster.location.direction.clone().apply { y = 0.0 }.normalize().multiply(-1)
-        direction.y = 0.4
-        direction.normalize()
-
-        val originalLocation = caster.location.clone()
-
-        val task = object : BukkitRunnable() {
-            var elapsedTicks = 0L
-            override fun run() {
-                if (elapsedTicks >= durationTicks || caster.isDead || !caster.isOnline) {
-                    dashingPlayers.remove(caster.uniqueId)
-                    this.cancel()
-                    return
-                }
-                caster.velocity = direction.clone().multiply(speed / 20.0)
-                elapsedTicks++
-            }
-        }.runTaskTimer(plugin, 0L, 1L)
-        dashingPlayers[caster.uniqueId] = task
-
-        val targets = TargetSelector.findTargets(caster, damageEffect, originalLocation)
-        targets.forEach { target -> CombatManager.applySkillDamage(caster, target, damageEffect) }
-        soundEffect?.let { EffectPlayer.playSound(originalLocation, it) }
-    }
-
     private fun applyShieldCharge(caster: Player, effect: SkillEffectData) {
         dashingPlayers[caster.uniqueId]?.cancel()
 
@@ -291,7 +258,6 @@ object SkillEffectExecutor {
 
                 caster.velocity = direction.clone().multiply(speed / 20.0)
 
-                // BUG-FIX: TargetSelector.isHostile을 사용하여 적대적인 대상만 필터링합니다.
                 val targets = caster.world.getNearbyEntities(caster.location, 1.5, 1.5, 1.5)
                     .filterIsInstance<LivingEntity>()
                     .filter { it != caster && !hitEntities.contains(it.uniqueId) && TargetSelector.isHostile(it, caster) }
@@ -310,7 +276,6 @@ object SkillEffectExecutor {
                 dashingPlayers.remove(caster.uniqueId)
 
                 val finalLocation = caster.location
-                // BUG-FIX: TargetSelector.isHostile을 사용하여 적대적인 대상만 필터링합니다.
                 val aoeTargets = finalLocation.world.getNearbyEntities(finalLocation, aoeRadius, aoeRadius, aoeRadius)
                     .filterIsInstance<LivingEntity>()
                     .filter { it != caster && TargetSelector.isHostile(it, caster) }
@@ -387,9 +352,7 @@ object SkillEffectExecutor {
         val shieldAmount = spellPower * shieldCoeff
 
         if (shieldAmount > 0) {
-            // START: 임시 보호막 상태이상 부여
-            StatusEffectManager.applyStatus(caster, caster, "TEMPORARY_SHIELD", 65, emptyMap()) // 3.25초 지속
-            // END: 임시 보호막 상태이상 부여
+            StatusEffectManager.applyStatus(caster, caster, "TEMPORARY_SHIELD", 65, emptyMap())
 
             playerData.currentShield += shieldAmount
             PlayerScoreboardManager.updateScoreboard(caster)
@@ -430,7 +393,7 @@ object SkillEffectExecutor {
                     }
                     PlayerScoreboardManager.updateScoreboard(caster)
                 }
-            }.runTaskLater(plugin, 60L) // 3초
+            }.runTaskLater(plugin, 60L)
         }
     }
 }

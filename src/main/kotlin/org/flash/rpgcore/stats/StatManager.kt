@@ -11,7 +11,6 @@ import org.flash.rpgcore.providers.IEncyclopediaProvider
 import org.flash.rpgcore.providers.IEquipmentProvider
 import org.flash.rpgcore.providers.ISkillStatProvider
 import org.flash.rpgcore.providers.IStatusEffectProvider
-import org.flash.rpgcore.providers.StubStatusEffectProvider
 import org.flash.rpgcore.utils.IXPHelper
 import org.flash.rpgcore.utils.XPHelper
 import kotlin.math.log
@@ -38,18 +37,7 @@ object StatManager {
         return when (statType) {
             StatType.ATTACK_SPEED -> {
                 var totalAttackSpeedStatValue = additiveSum
-                if (playerData.currentClassId == "frenzy_dps") {
-                    val furySkill = SkillManager.getSkill("fury_stack")
-                    if (furySkill != null) {
-                        val level = playerData.getLearnedSkillLevel("fury_stack")
-                        val effectData = furySkill.levelData[level]?.effects?.find { it.type == "MANAGE_FURY_STACK" }
-                        if (effectData != null) {
-                            val params = effectData.parameters
-                            val bonusPer10 = try { (params["attack_speed_per_10_stack"] as? String)?.toDouble() ?: 0.0 } catch (e: Exception) { 0.0 }
-                            totalAttackSpeedStatValue += (playerData.furyStacks / 10) * bonusPer10
-                        }
-                    }
-                }
+                totalAttackSpeedStatValue += statusEffectProvider.getTotalFlatAttackSpeedBonus(player)
                 max(0.1, totalAttackSpeedStatValue)
             }
             StatType.CRITICAL_CHANCE, StatType.COOLDOWN_REDUCTION,
@@ -58,19 +46,15 @@ object StatManager {
                 var totalPercentage = additiveSum
                 totalPercentage += encyclopediaProvider.getAdditivePercentageBonus(player, statType)
 
-                // START: Added for 'Scholars Wisdom' skill
                 if (statType == StatType.XP_GAIN_RATE) {
                     val skillLevel = playerData.getLearnedSkillLevel("scholars_wisdom")
                     if (skillLevel > 0) {
-                        val skillData = SkillManager.getSkill("scholars_wisdom")
-                        if (skillData != null) {
-                            val bonus = skillData.levelData[skillLevel]?.effects?.firstOrNull()
-                                ?.parameters?.get("xp_gain_bonus_percent")?.toString()?.toDoubleOrNull() ?: 0.0
-                            totalPercentage += (bonus / 100.0) // Add percentage points
+                        SkillManager.getSkill("scholars_wisdom")?.let { skillData ->
+                            val bonus = skillData.levelData[skillLevel]?.effects?.firstOrNull()?.parameters?.get("xp_gain_bonus_percent")?.toString()?.toDoubleOrNull() ?: 0.0
+                            totalPercentage += (bonus / 100.0)
                         }
                     }
                 }
-                // END: Added for 'Scholars Wisdom' skill
 
                 if (statType == StatType.COOLDOWN_REDUCTION) {
                     if (playerData.currentClassId == "gale_striker" && playerData.galeRushStacks >= 5) {
@@ -104,34 +88,17 @@ object StatManager {
 
                 var finalValue = additiveSum * multiplicativeProduct
 
-                if (statType == StatType.ATTACK_POWER && playerData.currentClassId == "frenzy_dps") {
-                    val furySkill = SkillManager.getSkill("fury_stack")
-                    if (furySkill != null) {
-                        val level = playerData.getLearnedSkillLevel("fury_stack")
-                        val effectData = furySkill.levelData[level]?.effects?.find { it.type == "MANAGE_FURY_STACK" }
-                        if (effectData != null) {
-                            val params = effectData.parameters
-                            val percentPerStack = try { (params["attack_power_per_stack"] as? String)?.toDouble() ?: 0.0 } catch (e: Exception) { 0.0 }
-                            val totalPercentIncrease = playerData.furyStacks * percentPerStack / 100.0
-                            finalValue *= (1.0 + totalPercentIncrease)
-                        }
-                    }
-                }
-
                 if (statType == StatType.DEFENSE_POWER || statType == StatType.MAGIC_RESISTANCE) {
                     val glovesInfo = playerData.customEquipment[EquipmentSlotType.GLOVES]
                     if (glovesInfo != null) {
                         val glovesData = EquipmentManager.getEquipmentDefinition(glovesInfo.itemInternalId)
-                        if (glovesData != null) {
-                            val effect = glovesData.uniqueEffectsOnEquip.find { it.type == "LOW_HP_DEFENSE_BUFF" }
-                            if (effect != null) {
-                                val currentMaxHp = getFinalStatValue(player, StatType.MAX_HP)
-                                if (currentMaxHp > 0) {
-                                    val healthThreshold = effect.parameters["health_threshold_percent"]?.toDoubleOrNull() ?: 0.3
-                                    if ((playerData.currentHp / currentMaxHp) <= healthThreshold) {
-                                        val boostPercent = effect.parameters["defense_boost_percent"]?.toDoubleOrNull() ?: 0.0
-                                        finalValue *= (1.0 + boostPercent)
-                                    }
+                        glovesData?.uniqueEffectsOnEquip?.find { it.type == "LOW_HP_DEFENSE_BUFF" }?.let { effect ->
+                            val currentMaxHp = getFinalStatValue(player, StatType.MAX_HP)
+                            if (currentMaxHp > 0) {
+                                val healthThreshold = effect.parameters["health_threshold_percent"]?.toDoubleOrNull() ?: 0.3
+                                if ((playerData.currentHp / currentMaxHp) <= healthThreshold) {
+                                    val boostPercent = effect.parameters["defense_boost_percent"]?.toDoubleOrNull() ?: 0.0
+                                    finalValue *= (1.0 + boostPercent)
                                 }
                             }
                         }
@@ -177,14 +144,9 @@ object StatManager {
             val playerData = PlayerDataManager.getPlayerData(player)
             val newBaseValue = playerData.getBaseStat(statType) + statType.incrementValue
             playerData.updateBaseStat(statType, newBaseValue)
-
             fullyRecalculateAndApplyStats(player)
             PlayerDataManager.savePlayerData(player, async = true)
-
-            val baseDisplayValue = if (statType.isPercentageBased) String.format("%.2f%%", newBaseValue * 100)
-            else if (statType == StatType.ATTACK_SPEED) String.format("%.2f배", newBaseValue)
-            else newBaseValue.toInt().toString()
-
+            val baseDisplayValue = if (statType.isPercentageBased) String.format("%.2f%%", newBaseValue * 100) else newBaseValue.toInt().toString()
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&e[System] &f${statType.displayName} &e기본 스탯이 &a${baseDisplayValue} &e(으)로 상승했습니다! (&6XP 소모: &e$upgradeCost&e)"))
             player.playSound(player.location, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.2f)
             return true

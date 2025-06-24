@@ -6,6 +6,8 @@ import org.bukkit.Sound
 import org.bukkit.attribute.Attribute
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
+import org.bukkit.event.entity.EntityDamageEvent
+import org.bukkit.metadata.FixedMetadataValue
 import org.flash.rpgcore.RPGcore
 import org.flash.rpgcore.equipment.EquipmentSlotType
 import org.flash.rpgcore.skills.SkillEffectData
@@ -36,44 +38,62 @@ object CombatManager {
         return lastDamagerMap.remove(victim.uniqueId)
     }
 
-    fun applyEnvironmentalDamage(victim: Player, damage: Double) {
+    fun applyEnvironmentalDamage(victim: Player, damage: Double, cause: EntityDamageEvent.DamageCause) {
+        if (GuardianShieldManager.isPlayerProtected(victim)) {
+            GuardianShieldManager.applyDamageToShield(victim.uniqueId, damage, true, cause)
+            return
+        }
         if (damage <= 0) return
-
         if (System.currentTimeMillis() - (lastPlayerDamageTime[victim.uniqueId] ?: 0L) < PLAYER_INVINCIBILITY_MILLIS) {
             return
         }
         val playerData = PlayerDataManager.getPlayerData(victim)
         lastPlayerDamageTime[victim.uniqueId] = System.currentTimeMillis()
         playerData.lastDamagedTime = System.currentTimeMillis()
-
         victim.world.playSound(victim.location, Sound.ENTITY_PLAYER_HURT, 1.0f, 1.0f)
-
         var remainingDamage = damage
-
         if (playerData.currentShield > 0) {
             val absorbedDamage = min(playerData.currentShield, remainingDamage)
             playerData.currentShield -= absorbedDamage
             remainingDamage -= absorbedDamage
             PlayerScoreboardManager.updateScoreboard(victim)
         }
-
         if (remainingDamage <= 0) return
-
         val newHp = playerData.currentHp - remainingDamage
         playerData.currentHp = max(0.0, newHp)
-
         victim.sendMessage("§7환경으로부터 §c${damage.toInt()}§7의 피해를 입었습니다! (남은 체력: §e${playerData.currentHp.toInt()}§7)")
-
         if (playerData.currentHp <= 0) {
             victim.health = 0.0
         }
         PlayerScoreboardManager.updateScoreboard(victim)
     }
 
-    fun handleDamage(damager: LivingEntity, victim: LivingEntity, isReflection: Boolean = false) {
-        if (damager is Player) {
-            if (victim is Player) return
+    fun handleDamage(damager: LivingEntity, victim: LivingEntity, originalDamage: Double, cause: EntityDamageEvent.DamageCause) {
+        if (victim is Player && GuardianShieldManager.isPlayerProtected(victim)) {
+            GuardianShieldManager.applyDamageToShield(victim.uniqueId, originalDamage, true, cause)
+            return
+        }
+        calculateAndApplyDamage(damager, victim, 1.0, 0.0, false)
+    }
 
+    fun applySkillDamage(caster: Player, target: LivingEntity, effectData: SkillEffectData) {
+        recordDamage(caster, target)
+        val params = effectData.parameters
+        val physCoeff = params["physical_damage_coeff_attack_power_formula"]?.toString()?.toDoubleOrNull() ?: 0.0
+        val magCoeff = params["magical_damage_coeff_spell_power_formula"]?.toString()?.toDoubleOrNull() ?: 0.0
+        calculateAndApplyDamage(caster, target, physCoeff, magCoeff, true)
+        applySkillKnockback(caster, target, effectData)
+    }
+
+    fun applyMonsterSkillDamage(caster: LivingEntity, target: LivingEntity, effectData: SkillEffectData) {
+        val params = effectData.parameters
+        val physCoeff = params["physical_damage_coeff_attack_power_formula"]?.toString()?.toDoubleOrNull() ?: 0.0
+        val magCoeff = params["magical_damage_coeff_spell_power_formula"]?.toString()?.toDoubleOrNull() ?: 0.0
+        calculateAndApplyDamage(caster, target, physCoeff, magCoeff, true)
+    }
+
+    private fun calculateAndApplyDamage(damager: LivingEntity, victim: LivingEntity, physicalCoeff: Double, magicalCoeff: Double, isSkill: Boolean) {
+        if (damager is Player) {
             val playerData = PlayerDataManager.getPlayerData(damager)
             val playerClass = playerData.currentClassId?.let { ClassManager.getClass(it) }
 
@@ -82,30 +102,20 @@ object CombatManager {
                     return
                 }
             }
+            if (!isSkill) {
+                val attackSpeed = StatManager.getFinalStatValue(damager, StatType.ATTACK_SPEED)
+                val equippedWeaponInfo = playerData.customEquipment[EquipmentSlotType.WEAPON]
+                val baseCooldown = equippedWeaponInfo?.let { EquipmentManager.getEquipmentDefinition(it.itemInternalId)?.baseCooldownMs } ?: 1000
+                val actualCooldown = (baseCooldown / attackSpeed).toLong()
 
-            val attackSpeed = StatManager.getFinalStatValue(damager, StatType.ATTACK_SPEED)
-            val equippedWeaponInfo = playerData.customEquipment[org.flash.rpgcore.equipment.EquipmentSlotType.WEAPON]
-            val baseCooldown = equippedWeaponInfo?.let { EquipmentManager.getEquipmentDefinition(it.itemInternalId)?.baseCooldownMs } ?: 1000
-            val actualCooldown = (baseCooldown / attackSpeed).toLong()
-
-            if (System.currentTimeMillis() - playerData.lastBasicAttackTime < actualCooldown) {
-                if (System.currentTimeMillis() - playerData.lastBasicAttackTime > 50) {
-                    return
+                if (System.currentTimeMillis() - playerData.lastBasicAttackTime < actualCooldown) {
+                    if (System.currentTimeMillis() - playerData.lastBasicAttackTime > 50) {
+                        return
+                    }
+                } else {
+                    playerData.lastBasicAttackTime = System.currentTimeMillis()
                 }
-            } else {
-                playerData.lastBasicAttackTime = System.currentTimeMillis()
             }
-        }
-
-        if (damager is Player && StatusEffectManager.hasStatus(damager, "last_stand_buff")) {
-            val buff = StatusEffectManager.getActiveStatus(damager, "last_stand_buff")!!
-            val consumedHp = buff.parameters["consumed_hp"]?.toString()?.toDoubleOrNull() ?: 0.0
-            val damageMultiplier = buff.parameters["damage_multiplier"]?.toString()?.toDoubleOrNull() ?: 1.0
-            val attackerAtk = StatManager.getFinalStatValue(damager, StatType.ATTACK_POWER)
-            val specialDamage = (attackerAtk * damageMultiplier) + consumedHp
-            StatusEffectManager.removeStatus(damager, "last_stand_buff")
-            applyFinalDamage(damager, victim, specialDamage, 0.0, false, false)
-            return
         }
 
         if (victim is Player) {
@@ -116,48 +126,38 @@ object CombatManager {
             lastPlayerDamageTime[victim.uniqueId] = System.currentTimeMillis()
         }
 
-        val attackerAtk = if (damager is Player) StatManager.getFinalStatValue(damager, StatType.ATTACK_POWER) else EntityManager.getEntityData(damager)?.stats?.get("ATTACK_POWER") ?: 5.0
-        val attackerCritChance = if (damager is Player) StatManager.getFinalStatValue(damager, StatType.CRITICAL_CHANCE) else 0.0
-        var victimDefense = if (victim is Player) StatManager.getFinalStatValue(victim, StatType.DEFENSE_POWER) else EntityManager.getEntityData(victim)?.stats?.get("DEFENSE_POWER") ?: 0.0
-        val isCritical = Random.nextDouble() < attackerCritChance
-        if (isCritical) victimDefense /= 2.0
-        var physicalDamage = (attackerAtk * 1.0) * 100 / (100 + victimDefense)
-        if (isCritical) {
-            val critDamageBonus = if(damager is Player) StatManager.getActiveCritDamageBonus(damager) else 0.0
-            physicalDamage *= (1.25 + critDamageBonus)
+        if (damager is Player && StatusEffectManager.hasStatus(damager, "last_stand_buff")) {
+            val buff = StatusEffectManager.getActiveStatus(damager, "last_stand_buff")!!
+            val consumedHp = buff.parameters["consumed_hp"]?.toString()?.toDoubleOrNull() ?: 0.0
+            val damageMultiplier = buff.parameters["damage_multiplier"]?.toString()?.toDoubleOrNull() ?: 1.0
+            val attackerAtk = StatManager.getFinalStatValue(damager, StatType.ATTACK_POWER)
+            val specialDamage = (attackerAtk * damageMultiplier) + consumedHp
+            StatusEffectManager.removeStatus(damager, "last_stand_buff")
+            applyFinalDamage(damager, victim, specialDamage, 0.0, false, false, isSkill)
+            return
         }
 
-        applyFinalDamage(damager, victim, physicalDamage, 0.0, isCritical, isReflection)
-    }
-
-    fun applySkillDamage(caster: Player, target: LivingEntity, effectData: SkillEffectData) {
-        if (target is Player) return
-
-        recordDamage(caster, target)
-
-        val params = effectData.parameters
-        val playerData = PlayerDataManager.getPlayerData(caster)
-        val attackerAtk = StatManager.getFinalStatValue(caster, StatType.ATTACK_POWER)
-        val attackerSpellPower = StatManager.getFinalStatValue(caster, StatType.SPELL_POWER)
-        val attackerCritChance = StatManager.getFinalStatValue(caster, StatType.CRITICAL_CHANCE)
-        var victimDefense = if (target is Player) StatManager.getFinalStatValue(target, StatType.DEFENSE_POWER) else EntityManager.getEntityData(target)?.stats?.get("DEFENSE_POWER") ?: 0.0
-        var victimMagicResist = if (target is Player) StatManager.getFinalStatValue(target, StatType.MAGIC_RESISTANCE) else EntityManager.getEntityData(target)?.stats?.get("MAGIC_RESISTANCE") ?: 0.0
+        val attackerAtk = if (damager is Player) StatManager.getFinalStatValue(damager, StatType.ATTACK_POWER) else EntityManager.getEntityData(damager)?.stats?.get("ATTACK_POWER") ?: 5.0
+        val attackerSpellPower = if (damager is Player) StatManager.getFinalStatValue(damager, StatType.SPELL_POWER) else EntityManager.getEntityData(damager)?.stats?.get("SPELL_POWER") ?: 5.0
+        val attackerCritChance = if (damager is Player) StatManager.getFinalStatValue(damager, StatType.CRITICAL_CHANCE) else 0.0
+        var victimDefense = if (victim is Player) StatManager.getFinalStatValue(victim, StatType.DEFENSE_POWER) else EntityManager.getEntityData(victim)?.stats?.get("DEFENSE_POWER") ?: 0.0
+        var victimMagicResist = if (victim is Player) StatManager.getFinalStatValue(victim, StatType.MAGIC_RESISTANCE) else EntityManager.getEntityData(victim)?.stats?.get("MAGIC_RESISTANCE") ?: 0.0
         val isCritical = Random.nextDouble() < attackerCritChance
-
-        val critDamageBonus = StatManager.getActiveCritDamageBonus(caster)
-        var finalCritMultiplier = 1.25 + critDamageBonus
+        var finalCritMultiplier = 1.25
 
         if (isCritical) {
-            if (playerData.currentClassId == "gale_striker" && playerData.galeRushStacks >= 5) {
+            finalCritMultiplier += if (damager is Player) StatManager.getActiveCritDamageBonus(damager) else 0.0
+
+            if (damager is Player && PlayerDataManager.getPlayerData(damager).currentClassId == "gale_striker" && PlayerDataManager.getPlayerData(damager).galeRushStacks >= 5) {
                 SkillManager.getSkill("gale_rush")?.let { skill ->
-                    val level = playerData.getLearnedSkillLevel(skill.internalId)
+                    val level = PlayerDataManager.getPlayerData(damager).getLearnedSkillLevel(skill.internalId)
                     skill.levelData[level]?.effects?.find { it.type == "MANAGE_GALE_RUSH_STACK" }?.let { effect ->
                         val bonusArmorPen = effect.parameters["bonus_armor_pen_percent_per_stack"]?.toString()?.toDoubleOrNull() ?: 0.0
                         val bonusCritMult = effect.parameters["bonus_crit_multiplier_per_stack"]?.toString()?.toDoubleOrNull() ?: 0.0
-                        val totalArmorPen = 0.5 + (playerData.galeRushStacks * bonusArmorPen / 100.0)
+                        val totalArmorPen = 0.5 + (PlayerDataManager.getPlayerData(damager).galeRushStacks * bonusArmorPen / 100.0)
                         victimDefense *= (1.0 - totalArmorPen)
                         victimMagicResist *= (1.0 - totalArmorPen)
-                        finalCritMultiplier += (playerData.galeRushStacks * bonusCritMult)
+                        finalCritMultiplier += (PlayerDataManager.getPlayerData(damager).galeRushStacks * bonusCritMult)
                     }
                 }
             } else {
@@ -166,76 +166,32 @@ object CombatManager {
             }
         }
 
-        val physCoeff = params["physical_damage_coeff_attack_power_formula"]?.toString()?.toDoubleOrNull() ?: 0.0
-        val magCoeff = params["magical_damage_coeff_spell_power_formula"]?.toString()?.toDoubleOrNull() ?: 0.0
-        var physicalDamage = (attackerAtk * physCoeff) * 100 / (100 + victimDefense)
-        var magicalDamage = (attackerSpellPower * magCoeff) * 100 / (100 + victimMagicResist)
+        var physicalDamage = (attackerAtk * physicalCoeff) * 100 / (100 + victimDefense)
+        var magicalDamage = (attackerSpellPower * magicalCoeff) * 100 / (100 + victimMagicResist)
 
         if (isCritical) {
             physicalDamage *= finalCritMultiplier
             magicalDamage *= finalCritMultiplier
         }
 
-        applyFinalDamage(caster, target, physicalDamage, magicalDamage, isCritical, false)
-        applySkillKnockback(caster, target, effectData)
+        applyFinalDamage(damager, victim, physicalDamage, magicalDamage, isCritical, false, isSkill)
 
-        if (playerData.currentClassId == "gale_striker") {
-            handleGaleRushStackChange(caster)
-        }
-    }
-
-    fun applyMonsterSkillDamage(caster: LivingEntity, target: LivingEntity, effectData: SkillEffectData) {
-        val params = effectData.parameters
-        val monsterData = EntityManager.getEntityData(caster) ?: return
-
-        val attackerAtk = monsterData.stats["ATTACK_POWER"] ?: 5.0
-        val attackerSpellPower = monsterData.stats["SPELL_POWER"] ?: 5.0
-
-        val victimDefense = if (target is Player) StatManager.getFinalStatValue(target, StatType.DEFENSE_POWER) else EntityManager.getEntityData(target)?.stats?.get("DEFENSE_POWER") ?: 0.0
-        val victimMagicResist = if (target is Player) StatManager.getFinalStatValue(target, StatType.MAGIC_RESISTANCE) else EntityManager.getEntityData(target)?.stats?.get("MAGIC_RESISTANCE") ?: 0.0
-
-        val physCoeff = params["physical_damage_coeff_attack_power_formula"]?.toString()?.toDoubleOrNull() ?: 0.0
-        val magCoeff = params["magical_damage_coeff_spell_power_formula"]?.toString()?.toDoubleOrNull() ?: 0.0
-
-        val physicalDamage = (attackerAtk * physCoeff) * 100 / (100 + victimDefense)
-        val magicalDamage = (attackerSpellPower * magCoeff) * 100 / (100 + victimMagicResist)
-
-        applyFinalDamage(caster, target, physicalDamage, magicalDamage, false, false)
-    }
-
-    fun applySkillKnockback(caster: LivingEntity, target: LivingEntity, effectData: SkillEffectData) {
-        val knockbackStrength = effectData.parameters["knockback_strength"]?.toString()?.toDoubleOrNull()
-        if (knockbackStrength != null && knockbackStrength != 0.0) {
-            val direction = target.location.toVector().subtract(caster.location.toVector()).normalize()
-            direction.y = 0.4
-            target.velocity = direction.multiply(knockbackStrength)
-        }
-    }
-
-    private fun handleLifesteal(damager: Player, physicalDamage: Double, magicalDamage: Double) {
-        val physicalLifestealRate = StatManager.getFinalStatValue(damager, StatType.PHYSICAL_LIFESTEAL)
-        val spellLifestealRate = StatManager.getFinalStatValue(damager, StatType.SPELL_LIFESTEAL)
-
-        val hpToHeal = (physicalDamage * physicalLifestealRate) + (magicalDamage * spellLifestealRate)
-
-        if (hpToHeal > 0) {
-            val playerData = PlayerDataManager.getPlayerData(damager)
-            val maxHp = StatManager.getFinalStatValue(damager, StatType.MAX_HP)
-            val newHp = min(maxHp, playerData.currentHp + hpToHeal)
-            val actualHeal = newHp - playerData.currentHp
-            if (actualHeal > 0.1) {
-                playerData.currentHp = newHp
-                PlayerScoreboardManager.updateScoreboard(damager)
+        if (isSkill && damager is Player) {
+            if (PlayerDataManager.getPlayerData(damager).currentClassId == "gale_striker") {
+                handleGaleRushStackChange(damager)
             }
         }
     }
 
-    fun applyFinalDamage(damager: LivingEntity, victim: LivingEntity, physicalDamage: Double, magicalDamage: Double, isCritical: Boolean, isReflection: Boolean, isDoubleStrikeProc: Boolean = false) {
+    internal fun applyFinalDamage(damager: LivingEntity, victim: LivingEntity, physicalDamage: Double, magicalDamage: Double, isCritical: Boolean, isReflection: Boolean, isSkill: Boolean, isDoubleStrikeProc: Boolean = false) {
         var totalDamage = physicalDamage + magicalDamage
         if (totalDamage <= 0) return
         var doubleStrikeWillProc = false
 
-        // '강체' 스킬 효과 적용
+        if (isReflection) {
+            damager.setMetadata("rpgcore_reflected_damage", FixedMetadataValue(plugin, true))
+        }
+
         if (victim is Player && !isReflection) {
             val playerData = PlayerDataManager.getPlayerData(victim)
             val toughBodyLevel = playerData.getLearnedSkillLevel("tough_body")
@@ -246,11 +202,6 @@ object CombatManager {
                     totalDamage *= (1.0 - (reductionPercent / 100.0))
                 }
             }
-        }
-
-        // '근성' 스킬 효과 적용
-        if (victim is Player && !isReflection) {
-            val playerData = PlayerDataManager.getPlayerData(victim)
             if (playerData.getLearnedSkillLevel("grit") > 0 && System.currentTimeMillis() >= playerData.gritCooldownUntil) {
                 SkillManager.getSkill("grit")?.let { skillData ->
                     val level = playerData.getLearnedSkillLevel("grit")
@@ -258,16 +209,13 @@ object CombatManager {
                         val thresholdPercent = params["damage_threshold_percent"]?.toString()?.toDoubleOrNull() ?: 100.0
                         val reductionPercent = params["damage_reduction_percent"]?.toString()?.toDoubleOrNull() ?: 0.0
                         val cooldownSeconds = params["internal_cooldown_seconds"]?.toString()?.toDoubleOrNull() ?: 120.0
-
                         val maxHp = StatManager.getFinalStatValue(victim, StatType.MAX_HP)
                         val damageThreshold = maxHp * (thresholdPercent / 100.0)
-
                         if (totalDamage >= damageThreshold) {
                             val originalDamage = totalDamage
                             totalDamage *= (1.0 - (reductionPercent / 100.0))
                             playerData.gritCooldownUntil = System.currentTimeMillis() + (cooldownSeconds * 1000).toLong()
                             victim.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a[근성]§f 효과가 발동하여 피해가 경감됩니다! (§c${originalDamage.toInt()}§7 -> §a${totalDamage.toInt()}§f)"))
-                            logger.info("[CombatManager] Grit skill triggered for ${victim.name}. Damage reduced from $originalDamage to $totalDamage.")
                         }
                     }
                 }
@@ -279,60 +227,29 @@ object CombatManager {
             var damageMultiplier = 1.0
 
             if (isCritical && !isReflection) {
-                val glovesInfo = playerData.customEquipment[EquipmentSlotType.GLOVES]
-                if (glovesInfo != null) {
-                    val glovesData = EquipmentManager.getEquipmentDefinition(glovesInfo.itemInternalId)
-                    glovesData?.uniqueEffectsOnHitDealt?.find { it.type == "CRIT_ATTACK_SPEED_BUFF" }?.let { effect ->
-                        val durationTicks = effect.parameters["duration_ticks"]?.toIntOrNull() ?: 100
-                        val attackSpeedBonus = effect.parameters["attack_speed_bonus"]?.toDoubleOrNull() ?: 0.0
-
-                        StatusEffectManager.applyStatus(
-                            caster = damager,
-                            target = damager,
-                            statusId = "crit_attack_speed_buff",
-                            durationTicks = durationTicks,
-                            parameters = mapOf("attack_speed_bonus" to attackSpeedBonus)
-                        )
+                playerData.customEquipment[EquipmentSlotType.GLOVES]?.let { glovesInfo ->
+                    EquipmentManager.getEquipmentDefinition(glovesInfo.itemInternalId)?.uniqueEffectsOnHitDealt?.find { it.type == "CRIT_ATTACK_SPEED_BUFF" }?.let { effect ->
+                        StatusEffectManager.applyStatus(damager, damager, "crit_attack_speed_buff", effect.parameters["duration_ticks"]?.toIntOrNull() ?: 100, mapOf("attack_speed_bonus" to (effect.parameters["attack_speed_bonus"]?.toDoubleOrNull() ?: 0.0)))
                         damager.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[살수의 장갑] §f공격 속도가 폭발적으로 증가합니다!"))
                     }
                 }
             }
 
-            val beltInfo = playerData.customEquipment[EquipmentSlotType.BELT]
-            if (beltInfo != null) {
-                val beltData = EquipmentManager.getEquipmentDefinition(beltInfo.itemInternalId)
-                if (beltData != null) {
-                    val effect = beltData.uniqueEffectsOnHitDealt.find { it.type == "HIGH_HP_BONUS_DAMAGE" }
-                    if (effect != null) {
-                        val healthThreshold = effect.parameters["health_threshold_percent"]?.toDoubleOrNull() ?: 0.8
-
-                        val victimMaxHp: Double
-                        val victimCurrentHp: Double
-
-                        val victimCustomData = EntityManager.getEntityData(victim)
-                        if (victimCustomData != null) {
-                            victimMaxHp = victimCustomData.maxHp
-                            victimCurrentHp = victimCustomData.currentHp
-                        } else {
-                            victimMaxHp = victim.getAttribute(Attribute.MAX_HEALTH)?.value ?: victim.health
-                            victimCurrentHp = victim.health
-                        }
-
-                        if (victimMaxHp > 0 && (victimCurrentHp / victimMaxHp) >= healthThreshold) {
-                            val bonusDamagePercent = effect.parameters["bonus_damage_percent"]?.toDoubleOrNull() ?: 0.0
-                            damageMultiplier *= (1.0 + bonusDamagePercent)
-                        }
+            playerData.customEquipment[EquipmentSlotType.BELT]?.let { beltInfo ->
+                EquipmentManager.getEquipmentDefinition(beltInfo.itemInternalId)?.uniqueEffectsOnHitDealt?.find { it.type == "HIGH_HP_BONUS_DAMAGE" }?.let { effect ->
+                    val healthThreshold = effect.parameters["health_threshold_percent"]?.toDoubleOrNull() ?: 0.8
+                    val victimMaxHp = (EntityManager.getEntityData(victim)?.maxHp) ?: victim.getAttribute(Attribute.MAX_HEALTH)?.value ?: victim.health
+                    val victimCurrentHp = (EntityManager.getEntityData(victim)?.currentHp) ?: victim.health
+                    if (victimMaxHp > 0 && (victimCurrentHp / victimMaxHp) >= healthThreshold) {
+                        damageMultiplier *= (1.0 + (effect.parameters["bonus_damage_percent"]?.toDoubleOrNull() ?: 0.0))
                     }
                 }
             }
 
             if (!isReflection && !isDoubleStrikeProc) {
-                val cloakInfo = playerData.customEquipment[EquipmentSlotType.CLOAK]
-                if (cloakInfo != null) {
-                    val cloakData = EquipmentManager.getEquipmentDefinition(cloakInfo.itemInternalId)
-                    cloakData?.uniqueEffectsOnHitDealt?.find { it.type == "DOUBLE_STRIKE" }?.let { effect ->
-                        val chance = effect.parameters["chance"]?.toDoubleOrNull() ?: 0.0
-                        if (Random.nextDouble() < chance) {
+                playerData.customEquipment[EquipmentSlotType.CLOAK]?.let { cloakInfo ->
+                    EquipmentManager.getEquipmentDefinition(cloakInfo.itemInternalId)?.uniqueEffectsOnHitDealt?.find { it.type == "DOUBLE_STRIKE" }?.let { effect ->
+                        if (Random.nextDouble() < (effect.parameters["chance"]?.toDoubleOrNull() ?: 0.0)) {
                             doubleStrikeWillProc = true
                         }
                     }
@@ -347,25 +264,18 @@ object CombatManager {
             }
 
             if (playerData.getLearnedSkillLevel("windflow") > 0) {
-                val moveSpeedAttr = damager.getAttribute(Attribute.MOVEMENT_SPEED)
-                if (moveSpeedAttr != null) {
-                    val baseSpeed = 0.1
-                    val currentSpeed = moveSpeedAttr.value
-                    val bonusSpeed = currentSpeed - baseSpeed
-                    val skillData = SkillManager.getSkill("windflow")!!
-                    val level = playerData.getLearnedSkillLevel("windflow")
-                    val params = skillData.levelData[level]!!.effects.first().parameters
-                    val damageMultiplierCoeff = params["damage_multiplier_per_speed_point"]?.toString()?.toDoubleOrNull() ?: 0.0
-                    damageMultiplier *= (1.0 + (bonusSpeed * damageMultiplierCoeff * 10))
+                damager.getAttribute(Attribute.MOVEMENT_SPEED)?.let {
+                    val bonusSpeed = it.value - 0.1
+                    val skill = SkillManager.getSkill("windflow")!!
+                    val params = skill.levelData[playerData.getLearnedSkillLevel("windflow")]!!.effects.first().parameters
+                    damageMultiplier *= (1.0 + (bonusSpeed * (params["damage_multiplier_per_speed_point"]?.toString()?.toDoubleOrNull() ?: 0.0) * 10))
                 }
             }
 
             if (playerData.currentClassId == "elementalist") {
-                val masterySkill = SkillManager.getSkill("burning_stack_mastery")
-                if (masterySkill != null) {
+                SkillManager.getSkill("burning_stack_mastery")?.let { masterySkill ->
                     val level = playerData.getLearnedSkillLevel(masterySkill.internalId)
-                    val params = masterySkill.levelData[level]?.effects?.find { it.type == "BURNING_STACK_MASTERY" }?.parameters
-                    if (params != null) {
+                    masterySkill.levelData[level]?.effects?.find { it.type == "BURNING_STACK_MASTERY" }?.parameters?.let { params ->
                         val radius = params["check_radius"]?.toString()?.toDoubleOrNull() ?: 10.0
                         val increasePerStack = params["final_damage_increase_per_stack_percent"]?.toString()?.toDoubleOrNull() ?: 2.0
                         val burningEnemies = damager.getNearbyEntities(radius, radius, radius).filterIsInstance<LivingEntity>().count { StatusEffectManager.hasStatus(it, "BURNING") }
@@ -381,50 +291,16 @@ object CombatManager {
             }
         }
 
-        if (damager is Player && !isReflection) {
-            EntityManager.getEntityData(victim)?.lastDamager = damager.uniqueId
-        }
+        EntityManager.getEntityData(victim)?.lastDamager = damager.uniqueId
 
-        if (victim is LivingEntity && StatusEffectManager.hasStatus(victim, "PARALYZING")) {
-            val effect = StatusEffectManager.getActiveStatus(victim, "PARALYZING")
-            if (effect != null) {
-                val caster = Bukkit.getPlayer(effect.casterId)
-                if (caster != null) {
-                    val masterySkill = SkillManager.getSkill("paralyzing_stack_mastery")
-                    if (masterySkill != null) {
+        if (StatusEffectManager.hasStatus(victim, "PARALYZING")) {
+            StatusEffectManager.getActiveStatus(victim, "PARALYZING")?.let { effect ->
+                (Bukkit.getPlayer(effect.casterId))?.let { caster ->
+                    SkillManager.getSkill("paralyzing_stack_mastery")?.let { masterySkill ->
                         val level = PlayerDataManager.getPlayerData(caster).getLearnedSkillLevel(masterySkill.internalId)
-                        val params = masterySkill.levelData[level]?.effects?.find { it.type == "PARALYZING_STACK_MASTERY" }?.parameters
-                        val reduction = params?.get("target_damage_reduction_percent")?.toString()?.toDoubleOrNull() ?: 10.0
-                        val reductionMultiplier = 1.0 - (reduction / 100.0)
-                        totalDamage *= reductionMultiplier
-                    }
-                }
-            }
-        }
-
-        if (victim is Player) {
-            val playerData = PlayerDataManager.getPlayerData(victim)
-            val beltInfo = playerData.customEquipment[EquipmentSlotType.BELT]
-            if (beltInfo != null) {
-                val beltData = EquipmentManager.getEquipmentDefinition(beltInfo.itemInternalId)
-                if (beltData != null) {
-                    val effect = beltData.uniqueEffectsOnHitTaken.find { it.type == "BURST_DAMAGE_NEGATION" }
-                    if (effect != null && System.currentTimeMillis() > playerData.burstDamageNegationCooldown) {
-                        val thresholdPercent = effect.parameters["damage_threshold_percent_max_hp"]?.toDoubleOrNull() ?: 0.2
-                        val maxHp = StatManager.getFinalStatValue(victim, StatType.MAX_HP)
-                        val damageThreshold = maxHp * thresholdPercent
-
-                        if (totalDamage > damageThreshold) {
-                            val excessDamage = totalDamage - damageThreshold
-                            val negationPercent = effect.parameters["negation_percent_of_excess"]?.toDoubleOrNull() ?: 0.5
-                            val negatedDamage = excessDamage * negationPercent
-
-                            totalDamage -= negatedDamage
-
-                            val cooldownTicks = effect.parameters["cooldown_ticks"]?.toLongOrNull() ?: 200L
-                            playerData.burstDamageNegationCooldown = System.currentTimeMillis() + (cooldownTicks * 50)
-
-                            victim.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7[산의 허리띠] §f효과로 피해를 일부 흡수했습니다! (§c-${negatedDamage.toInt()})"))
+                        masterySkill.levelData[level]?.effects?.find { it.type == "PARALYZING_STACK_MASTERY" }?.parameters?.let { params ->
+                            val reduction = params["target_damage_reduction_percent"]?.toString()?.toDoubleOrNull() ?: 10.0
+                            totalDamage *= (1.0 - (reduction / 100.0))
                         }
                     }
                 }
@@ -432,6 +308,24 @@ object CombatManager {
         }
 
         if (victim is Player) {
+            val playerData = PlayerDataManager.getPlayerData(victim)
+            playerData.customEquipment[EquipmentSlotType.BELT]?.let { beltInfo ->
+                EquipmentManager.getEquipmentDefinition(beltInfo.itemInternalId)?.uniqueEffectsOnHitTaken?.find { it.type == "BURST_DAMAGE_NEGATION" }?.let { effect ->
+                    if (System.currentTimeMillis() > playerData.burstDamageNegationCooldown) {
+                        val thresholdPercent = effect.parameters["damage_threshold_percent_max_hp"]?.toDoubleOrNull() ?: 0.2
+                        val damageThreshold = StatManager.getFinalStatValue(victim, StatType.MAX_HP) * thresholdPercent
+                        if (totalDamage > damageThreshold) {
+                            val excessDamage = totalDamage - damageThreshold
+                            val negationPercent = effect.parameters["negation_percent_of_excess"]?.toDoubleOrNull() ?: 0.5
+                            val negatedDamage = excessDamage * negationPercent
+                            totalDamage -= negatedDamage
+                            val cooldownTicks = effect.parameters["cooldown_ticks"]?.toLongOrNull() ?: 200L
+                            playerData.burstDamageNegationCooldown = System.currentTimeMillis() + (cooldownTicks * 50)
+                            victim.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7[산의 허리띠] §f효과로 피해를 일부 흡수했습니다! (§c-${negatedDamage.toInt()})"))
+                        }
+                    }
+                }
+            }
             victim.world.playSound(victim.location, Sound.ENTITY_PLAYER_HURT, 1.0f, 1.0f)
         }
 
@@ -441,23 +335,19 @@ object CombatManager {
                 val absorbedDamage = min(playerData.currentShield, totalDamage)
                 playerData.currentShield -= absorbedDamage
                 totalDamage -= absorbedDamage
-                PlayerScoreboardManager.updateScoreboard(victim)
             }
         }
 
         if (totalDamage <= 0.1) return
 
-        if (victim is Player && !isReflection) {
-            handleReflection(victim, damager, totalDamage)
-        }
+        if (victim is Player && !isReflection) handleReflection(victim, damager, totalDamage)
 
         if (victim is Player) {
             val victimData = PlayerDataManager.getPlayerData(victim)
-            if (victimData.currentClassId == "frenzy_dps") { handleFuryStackChange(victim) }
-
             if (victimData.currentClassId == "frenzy_dps") {
+                handleFuryStackChange(victim)
                 val skillLevel = victimData.getLearnedSkillLevel("bloody_smell")
-                if (skillLevel > 0) {
+                if(skillLevel > 0) {
                     val skill = SkillManager.getSkill("bloody_smell")!!
                     val effect = skill.levelData[skillLevel]!!.effects.first()
                     val buffParams = effect.parameters + mapOf("status_id" to "bloody_smell_buff")
@@ -471,15 +361,16 @@ object CombatManager {
             val newHp = playerData.currentHp - totalDamage
             playerData.currentHp = max(0.0, newHp)
             val damagerName = if (damager is Player) damager.name else damager.customName ?: damager.type.name
-            val message = if(isDoubleStrikeProc) "&4(2회 타격!)" else ""
-            victim.sendMessage("§c${damagerName}(으)로부터 ${totalDamage.toInt()}의 피해를 입었습니다! ${message} (남은 체력: ${playerData.currentHp.toInt()})")
+            val doubleStrikeMsg = if(isDoubleStrikeProc) "&4(2회 타격!)" else ""
+            victim.sendMessage("§c${damagerName}(으)로부터 ${totalDamage.toInt()}의 피해를 입었습니다! ${doubleStrikeMsg} (남은 체력: ${playerData.currentHp.toInt()})")
             if (damager is Player) {
                 val victimName = ChatColor.stripColor(victim.customName ?: victim.type.name.replace("_", " ").lowercase().replaceFirstChar { it.titlecase() })
                 val hpStr = "§c-${totalDamage.toInt()} §f(${max(0.0, newHp).toInt()}/${StatManager.getFinalStatValue(victim, StatType.MAX_HP).toInt()})"
-                val actionBarMessage = "&e${victimName} ${hpStr} ${if (isCritical) "&l(치명타!)" else ""} ${if(doubleStrikeWillProc) "&4(2회 타격!)" else ""}"
-                damager.sendActionBar(ChatColor.translateAlternateColorCodes('&', actionBarMessage))
+                val critStr = if (isCritical) "&l(치명타!)" else ""
+                val doubleDmgStr = if(doubleStrikeWillProc) "&4(2회 타격!)" else ""
+                damager.sendActionBar(ChatColor.translateAlternateColorCodes('&', "&e${victimName} ${hpStr} ${critStr} ${doubleDmgStr}"))
             }
-            if (playerData.currentHp <= 0) { victim.health = 0.0 }
+            if (playerData.currentHp <= 0) victim.health = 0.0
             PlayerScoreboardManager.updateScoreboard(victim)
         } else {
             val customMobData = EntityManager.getEntityData(victim)
@@ -487,20 +378,13 @@ object CombatManager {
                 customMobData.currentHp -= totalDamage
                 val newHp = customMobData.currentHp
                 val maxHp = customMobData.maxHp
-
                 val vanillaMaxHealth = victim.getAttribute(Attribute.MAX_HEALTH)?.value ?: 2048.0
                 victim.health = max(0.0, (newHp / maxHp) * vanillaMaxHealth)
-
-                if (newHp <= 0) {
-                    victim.health = 0.0
-                }
-                if (BossBarManager.isBoss(victim.uniqueId)) {
-                    BossBarManager.updateBossHp(victim, newHp, maxHp)
-                }
+                if (newHp <= 0) victim.health = 0.0
+                if (BossBarManager.isBoss(victim.uniqueId)) BossBarManager.updateBossHp(victim, newHp, maxHp)
             } else {
                 victim.health = max(0.0, victim.health - totalDamage)
             }
-
             if (damager is Player) {
                 val remainingHp = if (customMobData != null) customMobData.currentHp else victim.health
                 val maxHp = if (customMobData != null) customMobData.maxHp else victim.getAttribute(Attribute.MAX_HEALTH)?.value ?: victim.health
@@ -509,11 +393,11 @@ object CombatManager {
                     direction.y = 0.35
                     victim.velocity = direction.multiply(0.5)
                 }
-
                 val victimName = ChatColor.stripColor(victim.customName ?: victim.type.name.replace("_", " ").lowercase().replaceFirstChar { it.titlecase() })
                 val hpStr = "§c-${totalDamage.toInt()} §f(${max(0.0, remainingHp).toInt()}/${maxHp.toInt()})"
-                val actionBarMessage = "&e${victimName} ${hpStr} ${if (isCritical) "&l(치명타!)" else ""} ${if(doubleStrikeWillProc) "&4(2회 타격!)" else ""}"
-                damager.sendActionBar(ChatColor.translateAlternateColorCodes('&', actionBarMessage))
+                val critStr = if (isCritical) "&l(치명타!)" else ""
+                val doubleDmgStr = if(doubleStrikeWillProc) "&4(2회 타격!)" else ""
+                damager.sendActionBar(ChatColor.translateAlternateColorCodes('&', "&e${victimName} ${hpStr} ${critStr} ${doubleDmgStr}"))
             }
         }
 
@@ -524,7 +408,11 @@ object CombatManager {
         if (doubleStrikeWillProc) {
             damager.sendMessage(ChatColor.translateAlternateColorCodes('&', "&4[잔상의 망토] §f공격이 한 번 더 적중합니다!"))
             val secondIsCritical = Random.nextDouble() < (if (damager is Player) StatManager.getFinalStatValue(damager, StatType.CRITICAL_CHANCE) else 0.0)
-            applyFinalDamage(damager, victim, physicalDamage, magicalDamage, secondIsCritical, isReflection, true)
+            applyFinalDamage(damager, victim, physicalDamage, magicalDamage, secondIsCritical, isReflection, isSkill, true)
+        }
+
+        if (isReflection) {
+            damager.removeMetadata("rpgcore_reflected_damage", plugin)
         }
     }
 
@@ -548,7 +436,7 @@ object CombatManager {
 
         if (reflectionDamage > 0) {
             victim.sendMessage("§f[반사] §e${damager.name}§f에게 §c${reflectionDamage.toInt()}§f의 피해를 되돌려주었습니다!")
-            applyFinalDamage(victim, damager, reflectionDamage, 0.0, false, true)
+            applyFinalDamage(victim, damager, reflectionDamage, 0.0, false, true, true)
         }
     }
 
@@ -585,40 +473,46 @@ object CombatManager {
         if (target is Player) return
 
         val skill = SkillManager.getSkill("precision_charging") ?: return
-        val playerData = PlayerDataManager.getPlayerData(caster)
-        val skillLevel = playerData.getLearnedSkillLevel(skill.internalId)
+        val skillLevel = PlayerDataManager.getPlayerData(caster).getLearnedSkillLevel(skill.internalId)
         val skillParams = skill.levelData[skillLevel]?.effects?.first()?.parameters ?: return
 
         @Suppress("UNCHECKED_CAST")
         val chargeLevelEffects = skillParams["charge_level_effects"] as? Map<String, Map<String, Any>>
         val currentChargeEffect = chargeLevelEffects?.get(chargeLevel.toString())
         if (currentChargeEffect == null) {
-            handleDamage(caster, target)
+            handleDamage(caster, target, vanillaDamage, EntityDamageEvent.DamageCause.PROJECTILE)
             return
         }
 
         val damageMultiplier = currentChargeEffect["damage_multiplier"]?.toString()?.toDoubleOrNull() ?: 1.0
-        val critChanceBonus = currentChargeEffect["crit_chance_bonus"]?.toString()?.toDoubleOrNull() ?: 0.0
-        val critConversionRatio = currentChargeEffect["crit_damage_conversion_ratio"]?.toString()?.toDoubleOrNull() ?: 0.0
-        val attackerAtk = StatManager.getFinalStatValue(caster, StatType.ATTACK_POWER)
-        val baseCritChance = StatManager.getFinalStatValue(caster, StatType.CRITICAL_CHANCE)
-        val totalCritChance = baseCritChance + critChanceBonus
-        val isCritical = Random.nextDouble() < totalCritChance
-        var victimDefense = if (target is Player) StatManager.getFinalStatValue(target, StatType.DEFENSE_POWER) else EntityManager.getEntityData(target)?.stats?.get("DEFENSE_POWER") ?: 0.0
-        var totalDamage: Double
-        if (isCritical) {
-            victimDefense /= 2.0
-            val baseDamage = (attackerAtk * 1.0) * 100 / (100 + victimDefense)
-            val overflowCritChance = max(0.0, totalCritChance - 1.0)
-            val overflowDamageMultiplier = 1.0 + (overflowCritChance * critConversionRatio)
-            val critDamageBonus = StatManager.getActiveCritDamageBonus(caster)
-            totalDamage = baseDamage * damageMultiplier * (1.25 + critDamageBonus) * overflowDamageMultiplier
-        } else {
-            val baseDamage = (attackerAtk * 1.0) * 100 / (100 + victimDefense)
-            totalDamage = baseDamage * damageMultiplier
-        }
+        calculateAndApplyDamage(caster, target, 1.0 * damageMultiplier, 0.0, true)
+    }
 
-        applyFinalDamage(caster, target, totalDamage, 0.0, isCritical, false)
+    private fun handleLifesteal(damager: Player, physicalDamage: Double, magicalDamage: Double) {
+        val physicalLifestealRate = StatManager.getFinalStatValue(damager, StatType.PHYSICAL_LIFESTEAL)
+        val spellLifestealRate = StatManager.getFinalStatValue(damager, StatType.SPELL_LIFESTEAL)
+
+        val hpToHeal = (physicalDamage * physicalLifestealRate) + (magicalDamage * spellLifestealRate)
+
+        if (hpToHeal > 0) {
+            val playerData = PlayerDataManager.getPlayerData(damager)
+            val maxHp = StatManager.getFinalStatValue(damager, StatType.MAX_HP)
+            val newHp = min(maxHp, playerData.currentHp + hpToHeal)
+            val actualHeal = newHp - playerData.currentHp
+            if (actualHeal > 0.1) {
+                playerData.currentHp = newHp
+                PlayerScoreboardManager.updateScoreboard(damager)
+            }
+        }
+    }
+
+    fun applySkillKnockback(caster: LivingEntity, target: LivingEntity, effectData: SkillEffectData) {
+        val knockbackStrength = effectData.parameters["knockback_strength"]?.toString()?.toDoubleOrNull()
+        if (knockbackStrength != null && knockbackStrength != 0.0) {
+            val direction = target.location.toVector().subtract(caster.location.toVector()).normalize()
+            direction.y = 0.4
+            target.velocity = direction.multiply(knockbackStrength)
+        }
     }
 
     fun applyElementalExplosionDamage(caster: Player, target: LivingEntity) {

@@ -12,6 +12,7 @@ import org.bukkit.entity.Display.Billboard
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
+import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.scheduler.BukkitTask
 import org.joml.Vector3f
@@ -130,9 +131,13 @@ object GuardianShieldManager {
         return player.world == shield.location.world && player.location.distanceSquared(shield.location) <= shield.areaRadius * shield.areaRadius
     }
 
-    fun applyDamageToShield(ownerUUID: UUID, damage: Double, isPhysical: Boolean) {
+    fun applyDamageToShield(ownerUUID: UUID, damage: Double, isPhysical: Boolean, cause: EntityDamageEvent.DamageCause) {
         val shield = activeShields[ownerUUID] ?: return
         val owner = Bukkit.getPlayer(ownerUUID) ?: return
+
+        if(cause == EntityDamageEvent.DamageCause.CUSTOM && owner.hasMetadata("rpgcore_reflected_damage")) {
+            return
+        }
 
         val finalDamage = if (isPhysical) damage * 100 / (100 + shield.defense) else damage * 100 / (100 + shield.magicResistance)
 
@@ -143,8 +148,7 @@ object GuardianShieldManager {
 
         if (shield.reflectionCoeff > 0) {
             val spellPower = StatManager.getFinalStatValue(owner, StatType.SPELL_POWER)
-            // '반사 오라'와 별개로, '수호의 맹세' 고유의 계수만 사용하도록 수정
-            val reflectionDamage = spellPower * shield.reflectionCoeff
+            val reflectionDamage = (finalDamage * 0.1) + (spellPower * shield.reflectionCoeff)
 
             if (reflectionDamage > 0) {
                 val enemies = owner.world.getNearbyEntities(shield.location, shield.areaRadius, shield.areaRadius, shield.areaRadius)
@@ -152,8 +156,7 @@ object GuardianShieldManager {
                     .filter { it != owner && it !is Player }
 
                 enemies.forEach { enemy ->
-                    // 가해자를 owner로 지정하여 경험치/드랍 아이템 획득
-                    CombatManager.applyFinalDamage(owner, enemy, 0.0, reflectionDamage, false, true)
+                    CombatManager.applyFinalDamage(owner, enemy, 0.0, reflectionDamage, false, true, true)
                 }
             }
         }

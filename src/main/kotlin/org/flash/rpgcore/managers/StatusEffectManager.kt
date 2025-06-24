@@ -10,7 +10,7 @@ import org.flash.rpgcore.RPGcore
 import org.flash.rpgcore.equipment.EquipmentSlotType
 import org.flash.rpgcore.providers.IStatusEffectProvider
 import org.flash.rpgcore.stats.StatType
-import java.util.UUID
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 object StatusEffectManager : IStatusEffectProvider {
@@ -47,7 +47,6 @@ object StatusEffectManager : IStatusEffectProvider {
         }.runTaskTimer(plugin, 0L, 10L)
     }
 
-    // 플레이어가 시전자인 경우
     fun applyStatus(caster: Player, target: LivingEntity, statusId: String, durationTicks: Int, parameters: Map<String, Any> = emptyMap()) {
         var finalDurationTicks = durationTicks
 
@@ -86,7 +85,6 @@ object StatusEffectManager : IStatusEffectProvider {
         }
     }
 
-    // BUG-FIX: 몬스터 등 Player가 아닌 LivingEntity가 시전자인 경우를 위한 오버로딩 함수 추가
     fun applyStatus(caster: LivingEntity, target: LivingEntity, statusId: String, durationTicks: Int, parameters: Map<String, Any> = emptyMap()) {
         if (caster is Player) {
             applyStatus(caster, target, statusId, durationTicks, parameters)
@@ -144,10 +142,42 @@ object StatusEffectManager : IStatusEffectProvider {
     }
 
     override fun getTotalMultiplicativePercentBonus(player: Player, statType: StatType): Double {
-        return 0.0
+        var totalBonus = 0.0
+        val playerData = PlayerDataManager.getPlayerData(player)
+
+        // '전투 열기' (fury_stack) 로직
+        if (playerData.currentClassId == "frenzy_dps" && playerData.furyStacks > 0 && statType == StatType.ATTACK_POWER) {
+            SkillManager.getSkill("fury_stack")?.let { skillData ->
+                val level = playerData.getLearnedSkillLevel("fury_stack")
+                skillData.levelData[level]?.effects?.find { it.type == "MANAGE_FURY_STACK" }?.parameters?.let { params ->
+                    val percentPerStack = params["attack_power_per_stack"]?.toString()?.toDoubleOrNull() ?: 0.0
+                    totalBonus += playerData.furyStacks * percentPerStack / 100.0
+                }
+            }
+        }
+
+        // 여기에 다른 상태이상으로 인한 곱연산 보너스 로직 추가...
+
+        return totalBonus
     }
 
     override fun getTotalFlatAttackSpeedBonus(player: Player): Double {
-        return 0.0
+        var totalBonus = 0.0
+        val playerData = PlayerDataManager.getPlayerData(player)
+
+        // '전투 열기' (fury_stack) 로직
+        if (playerData.currentClassId == "frenzy_dps" && playerData.furyStacks > 0) {
+            SkillManager.getSkill("fury_stack")?.let { skillData ->
+                val level = playerData.getLearnedSkillLevel("fury_stack")
+                skillData.levelData[level]?.effects?.find { it.type == "MANAGE_FURY_STACK" }?.parameters?.let { params ->
+                    val bonusPer10 = params["attack_speed_per_10_stack"]?.toString()?.toDoubleOrNull() ?: 0.0
+                    totalBonus += (playerData.furyStacks / 10) * bonusPer10
+                }
+            }
+        }
+
+        // 여기에 다른 상태이상으로 인한 합연산 공격속도 보너스 로직 추가...
+
+        return totalBonus
     }
 }

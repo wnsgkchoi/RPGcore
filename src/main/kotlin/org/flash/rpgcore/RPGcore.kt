@@ -5,6 +5,7 @@ import org.bukkit.attribute.Attribute
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Mob
 import org.bukkit.entity.Player
+import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitRunnable
 import org.flash.rpgcore.commands.RPGCommandExecutor
@@ -94,7 +95,7 @@ class RPGcore : JavaPlugin() {
             override fun run() {
                 tickCounter++
 
-                if (tickCounter % 100 == 0) { // 5초에 한 번씩 정리 작업
+                if (tickCounter % 100 == 0) {
                     GuardianShieldManager.cleanUp()
                 }
 
@@ -110,7 +111,6 @@ class RPGcore : JavaPlugin() {
                                 playerData.currentHp = min(maxHp, playerData.currentHp + hpToRegen)
                                 needsUpdate = true
                             }
-
                             val maxMp = StatManager.getFinalStatValue(player, StatType.MAX_MP)
                             val mpToRegen = max(1.0, maxMp * 0.02)
                             if (playerData.currentMp < maxMp) {
@@ -138,10 +138,9 @@ class RPGcore : JavaPlugin() {
                                 val params = skill.levelData[level]?.effects?.find { it.type == "MANAGE_GALE_RUSH_STACK" }?.parameters
                                 val expireTicks = params?.get("stack_expire_ticks")?.toString()?.toLongOrNull() ?: 100L
                                 val decayAmount = params?.get("stack_decay_amount")?.toString()?.toIntOrNull() ?: 1
-
                                 if (System.currentTimeMillis() - playerData.lastGaleRushActionTime > expireTicks * 50L) {
                                     playerData.galeRushStacks = (playerData.galeRushStacks - decayAmount).coerceAtLeast(0)
-                                    playerData.lastGaleRushActionTime = System.currentTimeMillis() // 다음 감소를 위해 시간 초기화
+                                    playerData.lastGaleRushActionTime = System.currentTimeMillis()
                                     needsUpdate = true
                                 }
                             }
@@ -212,13 +211,11 @@ class RPGcore : JavaPlugin() {
                     }
                 }
 
-                if (tickCounter % 20 == 0) { // 1초마다 AI 갱신
+                if (tickCounter % 20 == 0) {
                     for (entityData in EntityManager.getAllEntityData()) {
                         val monster = server.getEntity(entityData.entityUUID) as? LivingEntity ?: continue
                         if (monster.isDead) continue
-
                         var currentTarget: LivingEntity? = null
-
                         if (InfiniteDungeonManager.isDungeonMonster(monster.uniqueId)) {
                             val session = InfiniteDungeonManager.getSessionByMonster(monster.uniqueId)
                             if (session != null) {
@@ -227,29 +224,22 @@ class RPGcore : JavaPlugin() {
                                     entityData.aggroTarget = currentTarget.uniqueId
                                 }
                                 val arena = InfiniteDungeonManager.getArenaById(session.arenaId)
-                                if (arena != null) {
-                                    if (monster.location.distanceSquared(arena.playerSpawn) > ARENA_LEASH_RADIUS_SQUARED) {
-                                        val respawnPoint = arena.monsterSpawns.random()
-                                        monster.teleport(respawnPoint)
-                                        logger.info("[AI] Monster ${monster.name} (${monster.uniqueId}) strayed too far and was teleported back into its arena.")
-                                    }
+                                if (arena != null && monster.location.distanceSquared(arena.playerSpawn) > ARENA_LEASH_RADIUS_SQUARED) {
+                                    monster.teleport(arena.monsterSpawns.random())
                                 }
                             }
                         } else {
                             val monsterDef = MonsterManager.getMonsterData(entityData.monsterId) ?: continue
                             currentTarget = entityData.aggroTarget?.let { Bukkit.getEntity(it) as? LivingEntity }
-
                             if (currentTarget == null || currentTarget.isDead || currentTarget.location.distanceSquared(monster.location) > TARGETING_RADIUS_SQUARED) {
                                 entityData.aggroTarget = null
                                 currentTarget = findNewTarget(monster, monsterDef)
                                 currentTarget?.let { entityData.aggroTarget = it.uniqueId }
                             }
                         }
-
                         if (currentTarget != null) {
                             val monsterDef = MonsterManager.getMonsterData(entityData.monsterId) ?: continue
                             var skillCasted = false
-
                             if (monsterDef.skills.isNotEmpty()) {
                                 for (skillInfo in monsterDef.skills.shuffled()) {
                                     if (isSkillReady(monster, entityData, skillInfo, currentTarget)) {
@@ -259,71 +249,21 @@ class RPGcore : JavaPlugin() {
                                     }
                                 }
                             }
-
-                            // BUG-FIX: 스킬을 사용하지 않았을 경우, 기본 AI(이동 및 공격) 실행
-                            if (!skillCasted) {
-                                val basicAttackCooldown = 2000L
-                                if (System.currentTimeMillis() - entityData.lastBasicAttackTime > basicAttackCooldown) {
-                                    val meleeRangeSquared = 4.0 * 4.0
-                                    if (monster.location.distanceSquared(currentTarget.location) <= meleeRangeSquared) {
-                                        CombatManager.handleDamage(monster, currentTarget)
-                                        entityData.lastBasicAttackTime = System.currentTimeMillis()
-                                    } else {
-                                        (monster as? Mob)?.pathfinder?.moveTo(currentTarget, 1.0)
-                                    }
+                            if (!skillCasted && System.currentTimeMillis() - entityData.lastBasicAttackTime > 2000L) {
+                                if (monster.location.distanceSquared(currentTarget.location) <= 4.0 * 4.0) {
+                                    CombatManager.handleDamage(monster, currentTarget, 0.0, EntityDamageEvent.DamageCause.ENTITY_ATTACK)
+                                    entityData.lastBasicAttackTime = System.currentTimeMillis()
+                                } else {
+                                    (monster as? Mob)?.pathfinder?.moveTo(currentTarget, 1.0)
                                 }
                             }
                         }
                     }
                 }
-
                 if (tickCounter >= 6000) {
                     tickCounter = 0
                 }
             }
-
-            private fun findNewTarget(monster: LivingEntity, monsterDef: CustomMonsterData): Player? {
-                val nearbyPlayers = monster.getNearbyEntities(TARGETING_RADIUS, TARGETING_RADIUS, TARGETING_RADIUS)
-                    .filterIsInstance<Player>().filter { !it.isDead && !InfiniteDungeonManager.isPlayerInDungeon(it) }
-                if (nearbyPlayers.isEmpty()) return null
-
-                return when (monsterDef.aggroType) {
-                    AggroType.NEAREST -> nearbyPlayers.minByOrNull { it.location.distanceSquared(monster.location) }
-                    AggroType.FARTHEST -> nearbyPlayers.maxByOrNull { it.location.distanceSquared(monster.location) }
-                    AggroType.LOWEST_HP -> nearbyPlayers.minByOrNull {
-                        val pData = PlayerDataManager.getPlayerData(it)
-                        pData.currentHp / StatManager.getFinalStatValue(it, StatType.MAX_HP)
-                    }
-                }
-            }
-
-            private fun isSkillReady(monster: LivingEntity, entityData: CustomEntityData, skillInfo: MonsterSkillInfo, target: LivingEntity): Boolean {
-                val cooldown = entityData.skillCooldowns[skillInfo.internalId] ?: 0L
-                if (System.currentTimeMillis() < cooldown) return false
-
-                if (Random.nextDouble() > skillInfo.chance) return false
-
-                val condition = skillInfo.condition ?: return true
-
-                // BUG-FIX: 거리 조건 확인 로직 추가
-                return when (condition["type"]?.toString()?.uppercase()) {
-                    "HP_BELOW" -> {
-                        val value = condition["value"]?.toString()?.toDoubleOrNull() ?: return false
-                        val hpRatio = entityData.currentHp / entityData.maxHp
-                        if (value < 1.0) hpRatio <= value else entityData.currentHp <= value
-                    }
-                    "DISTANCE_ABOVE" -> {
-                        val value = condition["value"]?.toString()?.toDoubleOrNull() ?: return false
-                        monster.location.distanceSquared(target.location) >= value * value
-                    }
-                    "DISTANCE_BELOW" -> {
-                        val value = condition["value"]?.toString()?.toDoubleOrNull() ?: return false
-                        monster.location.distanceSquared(target.location) <= value * value
-                    }
-                    else -> true
-                }
-            }
-
         }.runTaskTimer(this, 100L, 1L)
         logger.info("[RPGcore] 플러그인 초기화가 완료되었습니다.")
     }
@@ -331,5 +271,46 @@ class RPGcore : JavaPlugin() {
     override fun onDisable() {
         PlayerDataManager.saveAllOnlinePlayerData()
         logger.info("[RPGcore] 플러그인이 비활성화되었습니다.")
+    }
+
+    private fun findNewTarget(monster: LivingEntity, monsterDef: CustomMonsterData): Player? {
+        val nearbyPlayers = monster.getNearbyEntities(50.0, 50.0, 50.0)
+            .filterIsInstance<Player>().filter { !it.isDead && !InfiniteDungeonManager.isPlayerInDungeon(it) }
+        if (nearbyPlayers.isEmpty()) return null
+
+        return when (monsterDef.aggroType) {
+            AggroType.NEAREST -> nearbyPlayers.minByOrNull { it.location.distanceSquared(monster.location) }
+            AggroType.FARTHEST -> nearbyPlayers.maxByOrNull { it.location.distanceSquared(monster.location) }
+            AggroType.LOWEST_HP -> nearbyPlayers.minByOrNull {
+                val pData = PlayerDataManager.getPlayerData(it)
+                pData.currentHp / StatManager.getFinalStatValue(it, StatType.MAX_HP)
+            }
+        }
+    }
+
+    private fun isSkillReady(monster: LivingEntity, entityData: CustomEntityData, skillInfo: MonsterSkillInfo, target: LivingEntity): Boolean {
+        val cooldown = entityData.skillCooldowns[skillInfo.internalId] ?: 0L
+        if (System.currentTimeMillis() < cooldown) return false
+
+        if (Random.nextDouble() > skillInfo.chance) return false
+
+        val condition = skillInfo.condition ?: return true
+
+        return when (condition["type"]?.toString()?.uppercase()) {
+            "HP_BELOW" -> {
+                val value = condition["value"]?.toString()?.toDoubleOrNull() ?: return false
+                val hpRatio = entityData.currentHp / entityData.maxHp
+                if (value < 1.0) hpRatio <= value else entityData.currentHp <= value
+            }
+            "DISTANCE_ABOVE" -> {
+                val value = condition["value"]?.toString()?.toDoubleOrNull() ?: return false
+                monster.location.distanceSquared(target.location) >= value * value
+            }
+            "DISTANCE_BELOW" -> {
+                val value = condition["value"]?.toString()?.toDoubleOrNull() ?: return false
+                monster.location.distanceSquared(target.location) <= value * value
+            }
+            else -> true
+        }
     }
 }
