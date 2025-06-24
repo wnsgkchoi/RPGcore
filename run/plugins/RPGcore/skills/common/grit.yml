@@ -1,0 +1,50 @@
+display_name: "&7근성"
+description:
+  - "&7치명적인 수준의 피해를 입었을 때,"
+  - "&7피해를 경감시켜 생존을 돕습니다."
+class_restrictions: [ "common" ]
+icon_material: "IRON_INGOT"
+skill_type: "PASSIVE"
+behavior: "PASSIVE"
+max_level: 5
+level_data:
+  1:
+    effects:
+      - type: "GRIT_PASSIVE"
+        parameters:
+          damage_threshold_percent: 40.0
+          damage_reduction_percent: 20.0
+          internal_cooldown_seconds: 120.0
+  2:
+    effects:
+      - type: "GRIT_PASSIVE"
+        parameters:
+          damage_threshold_percent: 38.0
+          damage_reduction_percent: 25.0
+          internal_cooldown_seconds: 105.0
+  3:
+    effects:
+      - type: "GRIT_PASSIVE"
+        parameters:
+          damage_threshold_percent: 35.0
+          damage_reduction_percent: 30.0
+          internal_cooldown_seconds: 90.0
+  4:
+    effects:
+      - type: "GRIT_PASSIVE"
+        parameters:
+          damage_threshold_percent: 32.0
+          damage_reduction_percent: 35.0
+          internal_cooldown_seconds: 75.0
+  5:
+    effects:
+      - type: "GRIT_PASSIVE"
+        parameters:
+          damage_threshold_percent: 30.0
+          damage_reduction_percent: 40.0
+          internal_cooldown_seconds: 60.0
+upgrade_cost_per_level:
+  2: 75000
+  3: 300000
+  4: 1200000
+  5: 4500000

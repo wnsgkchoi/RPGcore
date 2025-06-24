@@ -1,44 +1,76 @@
 # XP 상점에서 판매할 아이템 목록
-#
-# - id: (문자열) 상점 내에서 아이템을 식별하는 고유 ID
-#   item_type: (문자열) 아이템 종류 (VANILLA, RPGCORE_CUSTOM_MATERIAL, SPECIAL)
-#   item_id: (문자열) Material 이름, 커스텀 재료 ID, 또는 특수 아이템 ID (예: return_scroll)
-#   display_name: (문자열) GUI에 표시될 이름
-#   lore: (문자열 리스트) GUI에 표시될 설명
-#   custom_model_data: (정수, 선택) 커스텀 모델 데이터
-#   xp_cost: (정수) 구매에 필요한 XP
-#   amount: (정수) 한 번 구매 시 지급되는 수량
-#
-items:
-  - id: "buy_golden_apple"
-    item_type: "VANILLA"
-    item_id: "GOLDEN_APPLE"
-    display_name: "&6황금 사과"
-    lore:
-      - "&7먹으면 특별한 효과를 얻을 수 있는"
-      - "&7귀한 사과입니다."
-    xp_cost: 50000
-    amount: 1
+categories:
+  special:
+    display_name: "&b특수 아이템"
+    icon_material: "NETHER_STAR"
+    items:
+      - id: "buy_return_scroll"
+        item_type: "SPECIAL"
+        item_id: "return_scroll"
+        display_name: "&b귀환 주문서"
+        lore:
+          - "&7사용 시 '/rpg setspawn'으로 지정한"
+          - "&7개인 스폰 지점으로 즉시 이동합니다."
+          - ""
+          - "&c(소모성 아이템)"
+        custom_model_data: 1
+        xp_cost: 25000
+        amount: 1
+      - id: "buy_backpack"
+        item_type: "SPECIAL"
+        item_id: "backpack"
+        display_name: "&a개인 창고"
+        lore:
+          - "&7우클릭하여 개인 창고를 엽니다."
+        xp_cost: 1000000
+        amount: 1
 
-  - id: "buy_dragon_scale"
-    item_type: "RPGCORE_CUSTOM_MATERIAL"
-    item_id: "dragon_scale" # 예시 커스텀 재료 ID
-    display_name: "&c용의 비늘"
-    lore:
-      - "&7전설적인 용의 단단한 비늘입니다."
-      - "&7강력한 장비를 제작하는 데 사용됩니다."
-    xp_cost: 100000
-    amount: 1
+  common_skill:
+    display_name: "&a공용 스킬"
+    icon_material: "KNOWLEDGE_BOOK"
+    items:
+      - id: "buy_skill_grit"
+        item_type: "RPGCORE_SKILL_UNLOCK"
+        item_id: "grit"
+        display_name: "&7[스킬북] 근성"
+        lore:
+          - "&7사용 시 패시브 스킬 '근성'을 배웁니다."
+        xp_cost: 300000
+        amount: 1
+      - id: "buy_skill_scholars_wisdom"
+        item_type: "RPGCORE_SKILL_UNLOCK"
+        item_id: "scholars_wisdom"
+        display_name: "&e[스킬북] 학자의 지혜"
+        lore:
+          - "&7사용 시 패시브 스킬 '학자의 지혜'를 배웁니다."
+        xp_cost: 700000
+        amount: 1
 
-  - id: "buy_return_scroll"
-    item_type: "SPECIAL"
-    item_id: "return_scroll"
-    display_name: "&b귀환 주문서"
-    lore:
-      - "&7사용 시 '/rpg setspawn'으로 지정한"
-      - "&7개인 스폰 지점으로 즉시 이동합니다."
-      - ""
-      - "&c(소모성 아이템)"
-    custom_model_data: 1
-    xp_cost: 25000
-    amount: 1
+  spike_tank_skill:
+    display_name: "&8철마수 스킬"
+    icon_material: "NETHERITE_CHESTPLATE"
+    items:
+      - id: "buy_skill_tough_body"
+        item_type: "RPGCORE_SKILL_UNLOCK"
+        item_id: "tough_body"
+        display_name: "&7[스킬북] 강체"
+        lore:
+          - "&7사용 시 철마수 전용 패시브 '강체'를 배웁니다."
+        xp_cost: 150000
+        amount: 1
+      - id: "buy_skill_retaliatory_will"
+        item_type: "RPGCORE_SKILL_UNLOCK"
+        item_id: "retaliatory_will"
+        display_name: "&8[스킬북] 반격의 의지"
+        lore:
+          - "&7사용 시 철마수 전용 액티브 '반격의 의지'를 배웁니다."
+        xp_cost: 300000
+        amount: 1
+      - id: "buy_skill_guardians_vow"
+        item_type: "RPGCORE_SKILL_UNLOCK"
+        item_id: "guardians_vow"
+        display_name: "&6[스킬북] 수호의 맹세"
+        lore:
+          - "&7사용 시 철마수 전용 궁극기 '수호의 맹세'를 배웁니다."
+        xp_cost: 500000
+        amount: 1

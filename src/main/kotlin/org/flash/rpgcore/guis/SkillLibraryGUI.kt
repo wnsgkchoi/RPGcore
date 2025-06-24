@@ -49,7 +49,11 @@ class SkillLibraryGUI(
         val playerClass = playerData.currentClassId?.let { ClassManager.getClass(it) } ?: return
         val innateSkillIds = playerClass.innatePassiveSkillIds.toSet()
 
-        val allClassSkills = SkillManager.getSkillsForClass(playerClass.internalId)
+        val classSkills = SkillManager.getSkillsForClass(playerClass.internalId)
+        val commonSkills = SkillManager.getSkillsForClass("common") // 공통 스킬 불러오기
+        val allAvailableSkills = (classSkills + commonSkills).distinctBy { it.internalId } // 합치고 중복 제거
+
+        val allClassSkills = allAvailableSkills
             .filter { it.skillType.equals(targetSlotType, ignoreCase = true) }
             .sortedBy { it.displayName }
 

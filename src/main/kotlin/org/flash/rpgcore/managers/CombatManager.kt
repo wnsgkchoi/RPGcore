@@ -88,14 +88,11 @@ object CombatManager {
             val baseCooldown = equippedWeaponInfo?.let { EquipmentManager.getEquipmentDefinition(it.itemInternalId)?.baseCooldownMs } ?: 1000
             val actualCooldown = (baseCooldown / attackSpeed).toLong()
 
-            // BUG-FIX: 휩쓸기 공격을 위한 유예 시간(50ms) 추가
             if (System.currentTimeMillis() - playerData.lastBasicAttackTime < actualCooldown) {
-                // 마지막 공격 이후 50ms가 지나지 않았다면 같은 공격(휩쓸기)으로 간주하여 통과
                 if (System.currentTimeMillis() - playerData.lastBasicAttackTime > 50) {
                     return
                 }
             } else {
-                // 정상적인 공격이거나 휩쓸기의 첫 타격일 경우 공격 시간 갱신
                 playerData.lastBasicAttackTime = System.currentTimeMillis()
             }
         }
@@ -234,9 +231,48 @@ object CombatManager {
     }
 
     fun applyFinalDamage(damager: LivingEntity, victim: LivingEntity, physicalDamage: Double, magicalDamage: Double, isCritical: Boolean, isReflection: Boolean, isDoubleStrikeProc: Boolean = false) {
-        var finalPhysicalDamage = physicalDamage
-        var finalMagicalDamage = magicalDamage
+        var totalDamage = physicalDamage + magicalDamage
+        if (totalDamage <= 0) return
         var doubleStrikeWillProc = false
+
+        // '강체' 스킬 효과 적용
+        if (victim is Player && !isReflection) {
+            val playerData = PlayerDataManager.getPlayerData(victim)
+            val toughBodyLevel = playerData.getLearnedSkillLevel("tough_body")
+            if (toughBodyLevel > 0) {
+                SkillManager.getSkill("tough_body")?.let { skillData ->
+                    val reductionPercent = skillData.levelData[toughBodyLevel]?.effects?.firstOrNull()
+                        ?.parameters?.get("final_damage_reduction_percent")?.toString()?.toDoubleOrNull() ?: 0.0
+                    totalDamage *= (1.0 - (reductionPercent / 100.0))
+                }
+            }
+        }
+
+        // '근성' 스킬 효과 적용
+        if (victim is Player && !isReflection) {
+            val playerData = PlayerDataManager.getPlayerData(victim)
+            if (playerData.getLearnedSkillLevel("grit") > 0 && System.currentTimeMillis() >= playerData.gritCooldownUntil) {
+                SkillManager.getSkill("grit")?.let { skillData ->
+                    val level = playerData.getLearnedSkillLevel("grit")
+                    skillData.levelData[level]?.effects?.firstOrNull()?.parameters?.let { params ->
+                        val thresholdPercent = params["damage_threshold_percent"]?.toString()?.toDoubleOrNull() ?: 100.0
+                        val reductionPercent = params["damage_reduction_percent"]?.toString()?.toDoubleOrNull() ?: 0.0
+                        val cooldownSeconds = params["internal_cooldown_seconds"]?.toString()?.toDoubleOrNull() ?: 120.0
+
+                        val maxHp = StatManager.getFinalStatValue(victim, StatType.MAX_HP)
+                        val damageThreshold = maxHp * (thresholdPercent / 100.0)
+
+                        if (totalDamage >= damageThreshold) {
+                            val originalDamage = totalDamage
+                            totalDamage *= (1.0 - (reductionPercent / 100.0))
+                            playerData.gritCooldownUntil = System.currentTimeMillis() + (cooldownSeconds * 1000).toLong()
+                            victim.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a[근성]§f 효과가 발동하여 피해가 경감됩니다! (§c${originalDamage.toInt()}§7 -> §a${totalDamage.toInt()}§f)"))
+                            logger.info("[CombatManager] Grit skill triggered for ${victim.name}. Damage reduced from $originalDamage to $totalDamage.")
+                        }
+                    }
+                }
+            }
+        }
 
         if (damager is Player) {
             val playerData = PlayerDataManager.getPlayerData(damager)
@@ -338,8 +374,7 @@ object CombatManager {
                 }
             }
 
-            finalPhysicalDamage *= damageMultiplier
-            finalMagicalDamage *= damageMultiplier
+            totalDamage *= damageMultiplier
 
             if (playerData.currentClassId == "frenzy_dps") {
                 handleFuryStackChange(damager)
@@ -361,15 +396,11 @@ object CombatManager {
                         val params = masterySkill.levelData[level]?.effects?.find { it.type == "PARALYZING_STACK_MASTERY" }?.parameters
                         val reduction = params?.get("target_damage_reduction_percent")?.toString()?.toDoubleOrNull() ?: 10.0
                         val reductionMultiplier = 1.0 - (reduction / 100.0)
-                        finalPhysicalDamage *= reductionMultiplier
-                        finalMagicalDamage *= reductionMultiplier
+                        totalDamage *= reductionMultiplier
                     }
                 }
             }
         }
-
-        var totalDamage = finalPhysicalDamage + finalMagicalDamage
-        if (totalDamage <= 0) return
 
         if (victim is Player) {
             val playerData = PlayerDataManager.getPlayerData(victim)
@@ -487,7 +518,7 @@ object CombatManager {
         }
 
         if (damager is Player && !isReflection) {
-            handleLifesteal(damager, finalPhysicalDamage, finalMagicalDamage)
+            handleLifesteal(damager, physicalDamage, magicalDamage)
         }
 
         if (doubleStrikeWillProc) {

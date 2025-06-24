@@ -22,7 +22,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
     private val logger = plugin.logger
 
     private val baseSubCommands = listOf("help", "stats", "class", "equip", "skills", "infinite", "trade", "encyclopedia", "shop", "setspawn", "backpack", "trash", "alchemy")
-    private val adminSubCommands = listOf("giveequip", "giverecipe", "reload", "give", "setstat", "giveskill", "xptest") // <<<<<<< "xptest" 추가
+    private val adminSubCommands = listOf("giveequip", "giverecipe", "reload", "give", "setstat", "giveskill", "xptest")
 
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (args.isEmpty() || args[0].equals("help", ignoreCase = true)) {
@@ -45,7 +45,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
                 "equip" -> EquipmentGUI(player).open()
                 "skills" -> SkillManagementGUI(player).open()
                 "encyclopedia" -> EncyclopediaDungeonGUI(player).open()
-                "shop" -> ShopGUI(player).open()
+                "shop" -> ShopCategoryGUI(player).open() // <<<< 수정된 부분
                 "backpack" -> BackpackGUI(player).open()
                 "trash" -> TrashGUI().open(player)
                 "setspawn" -> handleSetSpawn(player)
@@ -58,7 +58,6 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
                 sender.sendMessage(ChatColor.translateAlternateColorCodes('&', "&c[System] 이 명령어를 사용할 권한이 없습니다."))
                 return true
             }
-            // 테스트 명령어 처리 로직
             if (subCommand == "xptest") {
                 if (sender is Player) {
                     val amount = args.getOrNull(1)?.toIntOrNull() ?: 100
@@ -75,6 +74,8 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
         return true
     }
 
+    // ... (이하 코드는 이전과 동일하므로 생략하지 않고 모두 포함)
+
     private fun handleSetSpawn(player: Player) {
         val playerData = PlayerDataManager.getPlayerData(player)
         val loc = player.location
@@ -84,7 +85,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
             playerData.customSpawnLocation = newSpawnData
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a[System] &f현재 위치가 개인 귀환 지점으로 최초 설정되었습니다."))
         } else {
-            if (XPHelper.removeTotalExperience(player, 50000)) { // SETSPAWN_CHANGE_COST
+            if (XPHelper.removeTotalExperience(player, 50000)) {
                 playerData.customSpawnLocation = newSpawnData
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a[System] &f개인 귀환 지점을 변경했습니다. (&eXP 50000 &a소모)"))
             } else {
@@ -314,7 +315,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
             when (args[0].lowercase()) {
                 "infinite" -> return listOf("join", "leave", "ranking").filter { it.startsWith(args[1], ignoreCase = true) }.sorted()
                 "trade" -> return Bukkit.getOnlinePlayers().map { it.name }.filter { it.startsWith(args[1], ignoreCase = true) && it != sender.name }.sorted()
-                "give", "giveequip", "giverecipe", "setstat", "giveskill", "xptest" -> { // <<<<<<< "xptest" 추가
+                "give", "giveequip", "giverecipe", "setstat", "giveskill", "xptest" -> {
                     if (sender.isOp) {
                         return Bukkit.getOnlinePlayers().map { it.name }.filter { it.startsWith(args[1], ignoreCase = true) }.sorted()
                     }
@@ -381,6 +382,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
             "setspawn" -> "setspawn"
             "backpack" -> "backpack"
             "trash" -> "trash"
+            "alchemy" -> "alchemy"
             else -> subCommand
         }
     }
@@ -399,6 +401,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
             "setspawn" -> "개인 귀환 지점을 설정합니다. (변경 시 XP 소모)"
             "backpack" -> "개인 창고를 엽니다."
             "trash" -> "아이템 파기용 쓰레기통을 엽니다."
+            "alchemy" -> "연금술 테이블을 엽니다."
             else -> "알 수 없는 명령어입니다."
         }
     }
@@ -411,7 +414,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
             "giveequip" -> "giveequip <player> <item_id> <level> [amount]"
             "giverecipe" -> "giverecipe <player> <recipe_id>"
             "reload" -> "reload"
-            "xptest" -> "xptest [amount]" // <<<<<<< 추가
+            "xptest" -> "xptest [amount]"
             else -> subCommand
         }
     }
@@ -424,7 +427,7 @@ class RPGCommandExecutor : CommandExecutor, TabCompleter {
             "giveequip" -> "플레이어에게 커스텀 장비를 지급합니다."
             "giverecipe" -> "플레이어에게 제작 레시피를 지급합니다."
             "reload" -> "플러그인 설정을 리로드합니다."
-            "xptest" -> "플레이어에게 테스트용 경험치를 지급합니다." // <<<<<<< 추가
+            "xptest" -> "플레이어에게 테스트용 경험치를 지급합니다."
             else -> "알 수 없는 관리자 명령어입니다."
         }
     }

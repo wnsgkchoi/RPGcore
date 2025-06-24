@@ -78,6 +78,7 @@ class RPGcore : JavaPlugin() {
         server.pluginManager.registerEvents(TrashGUIListener(), this)
         server.pluginManager.registerEvents(DurabilityListener(), this)
         server.pluginManager.registerEvents(AlchemyGUIListener(), this)
+        server.pluginManager.registerEvents(ShopCategoryGUIListener(), this)
 
         val rpgCommandExecutor = RPGCommandExecutor()
         getCommand("rpg")?.setExecutor(rpgCommandExecutor)
@@ -92,6 +93,10 @@ class RPGcore : JavaPlugin() {
 
             override fun run() {
                 tickCounter++
+
+                if (tickCounter % 100 == 0) { // 5초에 한 번씩 정리 작업
+                    GuardianShieldManager.cleanUp()
+                }
 
                 if (tickCounter % 20 == 0) {
                     for (player in Bukkit.getOnlinePlayers()) {
@@ -158,7 +163,7 @@ class RPGcore : JavaPlugin() {
                                 }
                             }
                         } else {
-                            if (playerData.currentShield > 0) {
+                            if (playerData.currentShield > 0 && !StatusEffectManager.hasStatus(player, "TEMPORARY_SHIELD")) {
                                 playerData.currentShield = 0.0
                                 needsUpdate = true
                             }

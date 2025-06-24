@@ -1,0 +1,70 @@
+display_name: "&7강체"
+description:
+  - "&7강인한 육체를 단련하여,"
+  - "&7받는 모든 최종 피해가 영구적으로 감소합니다."
+class_restrictions: [ "spike_tank" ]
+icon_material: "ANVIL"
+skill_type: "PASSIVE"
+behavior: "PASSIVE"
+max_level: 10
+level_data:
+  1:
+    effects:
+      - type: "TOUGH_BODY_PASSIVE"
+        parameters:
+          final_damage_reduction_percent: 1.0
+  2:
+    effects:
+      - type: "TOUGH_BODY_PASSIVE"
+        parameters:
+          final_damage_reduction_percent: 3.0
+  3:
+    effects:
+      - type: "TOUGH_BODY_PASSIVE"
+        parameters:
+          final_damage_reduction_percent: 6.0
+  4:
+    effects:
+      - type: "TOUGH_BODY_PASSIVE"
+        parameters:
+          final_damage_reduction_percent: 9.0
+  5:
+    effects:
+      - type: "TOUGH_BODY_PASSIVE"
+        parameters:
+          final_damage_reduction_percent: 12.0
+  6:
+    effects:
+      - type: "TOUGH_BODY_PASSIVE"
+        parameters:
+          final_damage_reduction_percent: 15.0
+  7:
+    effects:
+      - type: "TOUGH_BODY_PASSIVE"
+        parameters:
+          final_damage_reduction_percent: 18.0
+  8:
+    effects:
+      - type: "TOUGH_BODY_PASSIVE"
+        parameters:
+          final_damage_reduction_percent: 21.0
+  9:
+    effects:
+      - type: "TOUGH_BODY_PASSIVE"
+        parameters:
+          final_damage_reduction_percent: 25.0
+  10:
+    effects:
+      - type: "TOUGH_BODY_PASSIVE"
+        parameters:
+          final_damage_reduction_percent: 30.0
+upgrade_cost_per_level:
+  2: 15000
+  3: 25000
+  4: 40000
+  5: 65000
+  6: 100000
+  7: 150000
+  8: 220000
+  9: 320000
+  10: 500000

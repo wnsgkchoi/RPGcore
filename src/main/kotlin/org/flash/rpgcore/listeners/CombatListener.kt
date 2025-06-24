@@ -67,6 +67,14 @@ class CombatListener : Listener {
     fun onGenericPlayerDamage(event: EntityDamageEvent) {
         val victim = event.entity as? Player ?: return
         if (event is EntityDamageByEntityEvent) return
+
+        // '수호의 맹세' 피해 흡수 로직
+        if (GuardianShieldManager.isPlayerProtected(victim)) {
+            GuardianShieldManager.applyDamageToShield(victim.uniqueId, event.damage, true) // 환경 피해는 물리로 간주
+            event.isCancelled = true
+            return
+        }
+
         event.isCancelled = true
         CombatManager.applyEnvironmentalDamage(victim, event.damage)
     }
@@ -126,8 +134,19 @@ class CombatListener : Listener {
         }
 
         val victim = event.entity as? LivingEntity ?: return
+        val damager = event.damager
+        if (damager is LivingEntity && InfiniteDungeonManager.isDungeonMonster(victim.uniqueId) && InfiniteDungeonManager.isDungeonMonster(damager.uniqueId)) {
+            event.isCancelled = true
+            return
+        }
 
-        // BUG-FIX: 투사체 반사 로직 추가
+        if (victim is Player && GuardianShieldManager.isPlayerProtected(victim)) {
+            val isPhysical = damager !is Projectile // 임시로 투사체 외에는 물리 피해로 간주
+            GuardianShieldManager.applyDamageToShield(victim.uniqueId, event.damage, isPhysical)
+            event.isCancelled = true
+            return
+        }
+
         if (event.damager is Projectile && victim is LivingEntity && StatusEffectManager.hasStatus(victim, "projectile_reflection")) {
             val projectile = event.damager as Projectile
             val shooter = projectile.shooter as? LivingEntity
@@ -137,7 +156,7 @@ class CombatListener : Listener {
                 val reflectionVector = shooter.location.toVector().subtract(victim.location.toVector()).normalize()
                 val newProjectile = victim.world.spawn(victim.location.add(0.0, 1.0, 0.0), projectile.javaClass)
                 newProjectile.shooter = victim
-                newProjectile.velocity = reflectionVector.multiply(1.5) // 반사되는 투사체는 더 빠르게
+                newProjectile.velocity = reflectionVector.multiply(1.5)
 
                 victim.world.playSound(victim.location, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1.0f, 1.5f)
                 projectile.remove()
@@ -296,7 +315,6 @@ class CombatListener : Listener {
                 if (session != null) {
                     session.monsterUUIDs.remove(victim.uniqueId)
                     val wave = session.wave.toDouble()
-                    // BUG-FIX: 2차 함수 경험치 공식 적용
                     val xpCoeff = InfiniteDungeonManager.xpScalingCoeff
                     val xpScale = (xpCoeff.first * wave * wave) + (xpCoeff.second * wave) + xpCoeff.third
                     (monsterDefinition.xpReward * xpScale).toInt()
@@ -337,7 +355,6 @@ class CombatListener : Listener {
             }
         }
     }
-
 
     private fun handleOnAttackSetBonuses(player: Player) {
         val activeBonuses = SetBonusManager.getActiveBonuses(player)

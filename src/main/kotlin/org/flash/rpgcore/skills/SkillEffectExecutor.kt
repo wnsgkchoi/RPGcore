@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.Location
+import org.bukkit.Particle
 import org.bukkit.Sound
 import org.bukkit.entity.Arrow
 import org.bukkit.entity.Fireball
@@ -118,6 +119,8 @@ object SkillEffectExecutor {
             "ON_TAKE_DAMAGE_BUFF" -> {}
             "RANDOM_ARROW_VOLLEY" -> if (target == caster) applyRandomArrowVolley(caster, effect, skillData, level)
             "EMPOWER_NEXT_SHOT" -> if (target == caster) applyEmpowerNextShot(caster, effect)
+            "APPLY_RETALIATORY_SHIELD" -> applyRetaliatoryShield(caster, effect, skillData, level)
+            "DEPLOY_GUARDIAN_SHIELD" -> GuardianShieldManager.deployShield(caster, skillData, level)
             else -> logger.warning("[SkillEffectExecutor] Unknown effect type: ${effect.type}")
         }
     }
@@ -373,5 +376,61 @@ object SkillEffectExecutor {
 
     private fun applyEmpowerNextShot(caster: Player, effect: SkillEffectData) {
         applyCustomStatus(caster, caster, effect)
+    }
+
+    private fun applyRetaliatoryShield(caster: Player, effect: SkillEffectData, skillData: RPGSkillData, level: Int) {
+        val params = skillData.levelData[level]?.effects?.firstOrNull()?.parameters ?: return
+        val playerData = PlayerDataManager.getPlayerData(caster)
+
+        val shieldCoeff = params["shield_coeff_spell_power"]?.toString()?.toDoubleOrNull() ?: 0.0
+        val spellPower = StatManager.getFinalStatValue(caster, StatType.SPELL_POWER)
+        val shieldAmount = spellPower * shieldCoeff
+
+        if (shieldAmount > 0) {
+            // START: 임시 보호막 상태이상 부여
+            StatusEffectManager.applyStatus(caster, caster, "TEMPORARY_SHIELD", 65, emptyMap()) // 3.25초 지속
+            // END: 임시 보호막 상태이상 부여
+
+            playerData.currentShield += shieldAmount
+            PlayerScoreboardManager.updateScoreboard(caster)
+            caster.sendMessage(ChatColor.translateAlternateColorCodes('&',"§8[반격의 의지] §f보호막 §a${shieldAmount.toInt()}§f을 얻었습니다."))
+            caster.world.spawnParticle(Particle.CRIT, caster.location.add(0.0, 1.0, 0.0), 50, 0.5, 0.5, 0.5, 0.1)
+            caster.playSound(caster.location, Sound.ITEM_SHIELD_BLOCK, 1.0f, 0.8f)
+
+            object : BukkitRunnable() {
+                override fun run() {
+                    if (!caster.isOnline) return
+
+                    val currentPlayerData = PlayerDataManager.getPlayerData(caster)
+                    val remainingShield = currentPlayerData.currentShield.coerceAtMost(shieldAmount)
+                    currentPlayerData.currentShield = (currentPlayerData.currentShield - shieldAmount).coerceAtLeast(0.0)
+
+                    if (remainingShield > 0) {
+                        val damageCoeffShield = params["damage_coeff_remaining_shield"]?.toString()?.toDoubleOrNull() ?: 0.0
+                        val damageCoeffSP = params["damage_coeff_spell_power"]?.toString()?.toDoubleOrNull() ?: 0.0
+                        val radius = params["area_radius"]?.toString()?.toDoubleOrNull() ?: 3.0
+                        val currentSpellPower = StatManager.getFinalStatValue(caster, StatType.SPELL_POWER)
+
+                        val explosionDamage = (remainingShield * damageCoeffShield) + (currentSpellPower * damageCoeffSP)
+
+                        val damageEffect = SkillEffectData(
+                            "DAMAGE", "AREA_ENEMY_AROUND_CASTER",
+                            mapOf(
+                                "area_radius" to radius.toString(),
+                                "magical_damage_coeff_spell_power_formula" to (explosionDamage / currentSpellPower).toString()
+                            )
+                        )
+
+                        val targets = TargetSelector.findTargets(caster, damageEffect, null)
+                        targets.forEach { CombatManager.applySkillDamage(caster, it, damageEffect) }
+
+                        caster.world.spawnParticle(Particle.EXPLOSION, caster.location, 1)
+                        caster.world.playSound(caster.location, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.2f)
+                        caster.sendMessage("§8[반격의 의지] §f남은 보호막이 폭발하여 피해를 줍니다!")
+                    }
+                    PlayerScoreboardManager.updateScoreboard(caster)
+                }
+            }.runTaskLater(plugin, 60L) // 3초
+        }
     }
 }

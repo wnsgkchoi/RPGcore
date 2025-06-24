@@ -1,7 +1,7 @@
 display_name: "&a화살 난사"
 description:
   - "&7하늘로 화살을 쏘아 올려, 자신 주변의"
-  - "&7무작위 위치에 화살 비를 내립니다."
+  - "&7적에게 화살 비를 내린다."  
 class_restrictions: [ "marksman" ]
 icon_material: "SPECTRAL_ARROW"
 skill_type: "ACTIVE"

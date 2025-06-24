@@ -1,0 +1,121 @@
+display_name: "&8반격의 의지"
+description:
+  - "&7주문력에 비례한 방어막을 3초간 생성합니다."
+  - "&73초 후, 남은 방어막은 폭발하여 주변 적에게"
+  - "&7남은 방어막의 양과 주문력에 비례한 피해를 줍니다."
+class_restrictions: [ "spike_tank" ]
+icon_material: "OBSIDIAN"
+skill_type: "ACTIVE"
+behavior: "BUFF"
+max_level: 10
+level_data:
+  1:
+    mp_cost: 30
+    cooldown_ticks: 360 # 18초
+    effects:
+      - type: "APPLY_RETALIATORY_SHIELD"
+        parameters:
+          shield_coeff_spell_power: 1.5
+          damage_coeff_remaining_shield: 0.8
+          damage_coeff_spell_power: 1.2
+          area_radius: 3.0
+  2:
+    mp_cost: 32
+    cooldown_ticks: 350
+    effects:
+      - type: "APPLY_RETALIATORY_SHIELD"
+        parameters:
+          shield_coeff_spell_power: 1.7
+          damage_coeff_remaining_shield: 0.9
+          damage_coeff_spell_power: 1.4
+          area_radius: 3.2
+  3:
+    mp_cost: 34
+    cooldown_ticks: 340
+    effects:
+      - type: "APPLY_RETALIATORY_SHIELD"
+        parameters:
+          shield_coeff_spell_power: 1.9
+          damage_coeff_remaining_shield: 1.0
+          damage_coeff_spell_power: 1.6
+          area_radius: 3.4
+  4:
+    mp_cost: 36
+    cooldown_ticks: 330
+    effects:
+      - type: "APPLY_RETALIATORY_SHIELD"
+        parameters:
+          shield_coeff_spell_power: 2.1
+          damage_coeff_remaining_shield: 1.1
+          damage_coeff_spell_power: 1.8
+          area_radius: 3.6
+  5:
+    mp_cost: 38
+    cooldown_ticks: 320
+    effects:
+      - type: "APPLY_RETALIATORY_SHIELD"
+        parameters:
+          shield_coeff_spell_power: 2.4
+          damage_coeff_remaining_shield: 1.2
+          damage_coeff_spell_power: 2.0
+          area_radius: 3.8
+  6:
+    mp_cost: 40
+    cooldown_ticks: 300
+    effects:
+      - type: "APPLY_RETALIATORY_SHIELD"
+        parameters:
+          shield_coeff_spell_power: 2.7
+          damage_coeff_remaining_shield: 1.3
+          damage_coeff_spell_power: 2.3
+          area_radius: 4.0
+  7:
+    mp_cost: 42
+    cooldown_ticks: 280
+    effects:
+      - type: "APPLY_RETALIATORY_SHIELD"
+        parameters:
+          shield_coeff_spell_power: 3.0
+          damage_coeff_remaining_shield: 1.4
+          damage_coeff_spell_power: 2.6
+          area_radius: 4.2
+  8:
+    mp_cost: 45
+    cooldown_ticks: 260
+    effects:
+      - type: "APPLY_RETALIATORY_SHIELD"
+        parameters:
+          shield_coeff_spell_power: 3.4
+          damage_coeff_remaining_shield: 1.5
+          damage_coeff_spell_power: 3.0
+          area_radius: 4.5
+  9:
+    mp_cost: 48
+    cooldown_ticks: 240
+    effects:
+      - type: "APPLY_RETALIATORY_SHIELD"
+        parameters:
+          shield_coeff_spell_power: 3.8
+          damage_coeff_remaining_shield: 1.6
+          damage_coeff_spell_power: 3.4
+          area_radius: 4.8
+  10:
+    mp_cost: 50
+    cooldown_ticks: 220 # 11초
+    effects:
+      - type: "APPLY_RETALIATORY_SHIELD"
+        parameters:
+          shield_coeff_spell_power: 4.2
+          damage_coeff_remaining_shield: 1.8
+          damage_coeff_spell_power: 4.0
+          area_radius: 5.0
+upgrade_cost_per_level:
+  2: 50000
+  3: 100000
+  4: 180000
+  5: 280000
+  6: 420000
+  7: 600000
+  8: 850000
+  9: 1200000
+  10: 1700000

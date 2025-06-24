@@ -66,7 +66,8 @@ data class PlayerData(
     var bowChargeLevel: Int = 0,
     var isChargingBow: Boolean = false,
     var distanceTraveledForBeltEffect: Double = 0.0,
-    var burstDamageNegationCooldown: Long = 0L // <<<<<<< 추가된 필드
+    var burstDamageNegationCooldown: Long = 0L,
+    var gritCooldownUntil: Long = 0L // '근성' 스킬 쿨다운을 위한 필드
 ) {
 
     fun initializeForNewPlayer() {

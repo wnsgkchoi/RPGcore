@@ -1,0 +1,40 @@
+display_name: "&e학자의 지혜"
+description:
+  - "&7몬스터 처치 시 획득하는 경험치가"
+  - "&7영구적으로 증가합니다."
+class_restrictions: [ "common" ]
+icon_material: "BOOK"
+skill_type: "PASSIVE"
+behavior: "PASSIVE"
+max_level: 5
+level_data:
+  1:
+    effects:
+      - type: "SCHOLARS_WISDOM_PASSIVE"
+        parameters:
+          xp_gain_bonus_percent: 10.0
+  2:
+    effects:
+      - type: "SCHOLARS_WISDOM_PASSIVE"
+        parameters:
+          xp_gain_bonus_percent: 20.0
+  3:
+    effects:
+      - type: "SCHOLARS_WISDOM_PASSIVE"
+        parameters:
+          xp_gain_bonus_percent: 30.0
+  4:
+    effects:
+      - type: "SCHOLARS_WISDOM_PASSIVE"
+        parameters:
+          xp_gain_bonus_percent: 50.0
+  5:
+    effects:
+      - type: "SCHOLARS_WISDOM_PASSIVE"
+        parameters:
+          xp_gain_bonus_percent: 100.0
+upgrade_cost_per_level:
+  2: 100000
+  3: 400000
+  4: 1500000
+  5: 6000000

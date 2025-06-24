@@ -58,6 +58,19 @@ object SkillLoreHelper {
         val levelSpecificData = skillData.levelData[level] ?: return skillData.description.map { ChatColor.translateAlternateColorCodes('&', it) }
 
         val desc = when (skillData.internalId) {
+            // 공통
+            "grit" -> {
+                val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
+                val threshold = params["damage_threshold_percent"]?.toString()?.toDoubleOrNull() ?: 0.0
+                val reduction = params["damage_reduction_percent"]?.toString()?.toDoubleOrNull() ?: 0.0
+                val cooldown = params["internal_cooldown_seconds"]?.toString()?.toDoubleOrNull() ?: 0.0
+                "&7최대 체력의 &c${threshold.toInt()}%&7 이상의 피해를 입으면, 해당 피해를 &a${reduction.toInt()}%&7 경감시킵니다. 이 효과는 &e${cooldown.toInt()}초&7의 재사용 대기시간을 가집니다."
+            }
+            "scholars_wisdom" -> {
+                val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
+                val bonus = params["xp_gain_bonus_percent"]?.toString()?.toDoubleOrNull() ?: 0.0
+                "&7몬스터 처치 시 획득하는 모든 경험치가 영구적으로 &a${bonus.toInt()}%&7 증가합니다."
+            }
             // 광전사
             "fury_stack" -> {
                 val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
@@ -93,6 +106,36 @@ object SkillLoreHelper {
                 val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
                 "&7토글 시, 피격 무적시간이 사라지는 대신 모든 반사 데미지가 &c${params["reflection_damage_multiplier"]}배&7 증가합니다. 다시 토글하여 원래 상태로 돌아올 수 있습니다."
             }
+            "tough_body" -> {
+                val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
+                val reduction = params["final_damage_reduction_percent"]?.toString()?.toDoubleOrNull() ?: 0.0
+                "&7받는 모든 최종 피해가 영구적으로 &a${reduction.toInt()}%&7 감소합니다."
+            }
+            "retaliatory_will" -> {
+                val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
+                val shieldCoeff = params["shield_coeff_spell_power"]?.toString()?.toDoubleOrNull()?.times(100)?.toInt() ?: 0
+                "&7주문력의 &a${shieldCoeff}%&7에 해당하는 보호막을 3초간 생성합니다. 3초 후 남은 보호막은 폭발하여 주변 적에게 피해를 줍니다."
+            }
+            "guardians_vow" -> {
+                val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
+                val radius = params["area_radius"]?.toString()?.toDoubleOrNull() ?: 0.0
+                val hpCoeff = (params["shield_hp_coeff_max_hp"]?.toString()?.toDoubleOrNull() ?: 0.0) * 100
+                val defCoeff = (params["shield_def_coeff_defense"]?.toString()?.toDoubleOrNull() ?: 0.0) * 100
+                val resCoeff = (params["shield_res_coeff_magic_resistance"]?.toString()?.toDoubleOrNull() ?: 0.0) * 100
+                val reflectCoeff = (params["reflection_coeff_spell_power"]?.toString()?.toDoubleOrNull() ?: 0.0) * 100
+
+                val detailedLore = listOf(
+                    "&7자신의 위치에 수호 방패를 소환하여",
+                    "&e${radius}m&7 반경의 신성한 영역을 생성합니다.",
+                    "&7영역 내에서 받는 모든 피해를 방패가 대신 흡수하고 영역 내의 모든 적에게 피해를 반사합니다.",
+                    " ",
+                    "&7> 방패 체력: &f시전자 최대 체력의 &a${hpCoeff.toInt()}%",
+                    "&7> 방패 방어력: &f시전자 방어력의 &a${defCoeff.toInt()}%",
+                    "&7> 방패 마법 저항력: &f시전자 마법 저항력의 &a${resCoeff.toInt()}%",
+                    "&7> 피해 반사량: &f주문력의 &c${reflectCoeff.toInt()}%"
+                )
+                return detailedLore.map { ChatColor.translateAlternateColorCodes('&', it) }
+            }
 
             // 질풍검객
             "gale_rush" -> {
@@ -117,7 +160,7 @@ object SkillLoreHelper {
             }
 
             // 명사수
-            "precision_charging" -> { // --- 수정된 부분 ---
+            "precision_charging" -> {
                 val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
                 @Suppress("UNCHECKED_CAST")
                 val chargeEffects = params["charge_level_effects"] as? Map<String, Map<String, Any>> ?: return skillData.description
@@ -135,11 +178,11 @@ object SkillLoreHelper {
                 }
 
                 "&7활을 당겨 차징 단계에 따라 화살을 강화합니다.\n" +
-                "&7&o(100% 초과 치명타 확률은 추가 피해로 전환됩니다.)\n \n" +
-                "&6[단계별 강화 효과 (1-${maxChargeLevel}단계)]\n" +
-                "&7 - 최종 피해량 배율: &c${damageMultipliers}\n" +
-                "&7 - 관통 레벨: &b${pierceLevels}\n" +
-                "&7 - 치명타 확률 보너스: &e+${critChanceBonuses}"
+                        "&7&o(100% 초과 치명타 확률은 추가 피해로 전환됩니다.)\n \n" +
+                        "&6[단계별 강화 효과 (1-${maxChargeLevel}단계)]\n" +
+                        "&7 - 최종 피해량 배율: &c${damageMultipliers}\n" +
+                        "&7 - 관통 레벨: &b${pierceLevels}\n" +
+                        "&7 - 치명타 확률 보너스: &e+${critChanceBonuses}"
             }
             "arrow_spree" -> {
                 val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
@@ -185,7 +228,7 @@ object SkillLoreHelper {
                 val damageCoeff = (p["magical_damage_coeff_spell_power_formula"]?.toString()?.toDoubleOrNull()?.times(100)?.toInt()) ?: 0
                 val status = skillData.element ?: "알 수 없는"
                 val projectileName = if (skillData.internalId == "fireball") "화염탄" else "빙백탄"
-                
+
                 "&7전방으로 ${projectileName}을(를) 발사합니다. 탄착 지점 주변 &e${radius}칸 &7내의 적에게 주문력의 &c${damageCoeff}%&7 피해를 주고 '&e${status}&7' 스택을 부여합니다."
             }
             "lightning_strike" -> {

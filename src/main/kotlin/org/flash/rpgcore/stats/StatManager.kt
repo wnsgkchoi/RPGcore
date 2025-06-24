@@ -22,7 +22,7 @@ object StatManager {
     private val logger = RPGcore.instance.logger
 
     private val equipmentProvider: IEquipmentProvider = EquipmentManager
-    private val statusEffectProvider: IStatusEffectProvider = StatusEffectManager // <<<<<<< 수정
+    private val statusEffectProvider: IStatusEffectProvider = StatusEffectManager
     private val encyclopediaProvider: IEncyclopediaProvider = EncyclopediaManager
     private val skillStatProvider: ISkillStatProvider = SkillManager
     private val xpHelper: IXPHelper = XPHelper
@@ -58,6 +58,20 @@ object StatManager {
                 var totalPercentage = additiveSum
                 totalPercentage += encyclopediaProvider.getAdditivePercentageBonus(player, statType)
 
+                // START: Added for 'Scholars Wisdom' skill
+                if (statType == StatType.XP_GAIN_RATE) {
+                    val skillLevel = playerData.getLearnedSkillLevel("scholars_wisdom")
+                    if (skillLevel > 0) {
+                        val skillData = SkillManager.getSkill("scholars_wisdom")
+                        if (skillData != null) {
+                            val bonus = skillData.levelData[skillLevel]?.effects?.firstOrNull()
+                                ?.parameters?.get("xp_gain_bonus_percent")?.toString()?.toDoubleOrNull() ?: 0.0
+                            totalPercentage += (bonus / 100.0) // Add percentage points
+                        }
+                    }
+                }
+                // END: Added for 'Scholars Wisdom' skill
+
                 if (statType == StatType.COOLDOWN_REDUCTION) {
                     if (playerData.currentClassId == "gale_striker" && playerData.galeRushStacks >= 5) {
                         SkillManager.getSkill("gale_rush")?.let { skill ->
@@ -70,7 +84,6 @@ object StatManager {
                     }
                 }
 
-                // <<<<<<< '그림자 학살자' 세트 효과 로직 시작 >>>>>>>
                 if (statType == StatType.CRITICAL_CHANCE) {
                     SetBonusManager.getActiveBonuses(player).find { it.setId == "slaughterer_set" }?.let { setBonus ->
                         val tier = SetBonusManager.getActiveSetTier(player, setBonus.setId)
@@ -79,7 +92,6 @@ object StatManager {
                         }
                     }
                 }
-                // <<<<<<< '그림자 학살자' 세트 효과 로직 끝 >>>>>>>
 
                 max(0.0, totalPercentage)
             }
@@ -173,7 +185,7 @@ object StatManager {
             else if (statType == StatType.ATTACK_SPEED) String.format("%.2f배", newBaseValue)
             else newBaseValue.toInt().toString()
 
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&e[System] &f${statType.displayName} &e기본 스탯이 &a${baseDisplayValue} &e(으)로 상승했습니다! (XP 소모: &6$upgradeCost&e)"))
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&e[System] &f${statType.displayName} &e기본 스탯이 &a${baseDisplayValue} &e(으)로 상승했습니다! (&6XP 소모: &e$upgradeCost&e)"))
             player.playSound(player.location, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.2f)
             return true
         } else {
@@ -207,7 +219,6 @@ object StatManager {
         return statType.isXpUpgradable || statType == StatType.ATTACK_SPEED
     }
 
-    // <<<<<<< 추가된 함수 >>>>>>>
     fun getActiveCritDamageBonus(player: Player): Double {
         var bonus = 0.0
         SetBonusManager.getActiveBonuses(player).find { it.setId == "slaughterer_set" }?.let { setBonus ->

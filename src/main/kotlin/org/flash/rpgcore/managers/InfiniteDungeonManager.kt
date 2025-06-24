@@ -287,6 +287,7 @@ object InfiniteDungeonManager {
     fun leave(player: Player, isDeath: Boolean) {
         val session = activeSessions.remove(player.uniqueId) ?: return
 
+        GuardianShieldManager.removeShield(player.uniqueId, false)
         session.monsterUUIDs.forEach { uuid ->
             Bukkit.getEntity(uuid)?.remove()
         }
