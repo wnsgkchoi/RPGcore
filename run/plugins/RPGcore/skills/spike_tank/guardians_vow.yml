@@ -12,169 +12,101 @@ max_level: 15
 level_data:
   1:
     mp_cost: 100
-    cooldown_ticks: 1200 # 60초
+    cooldown_ticks: 1200
     effects:
-      - type: "DEPLOY_GUARDIAN_SHIELD"
-        parameters:
-          shield_hp_coeff_max_hp: 5.00
-          shield_def_coeff_defense: 1.50
-          shield_res_coeff_magic_resistance: 1.50
-          area_radius: 8.0
-          reflection_coeff_spell_power: 0.20
+      - trigger: ON_SKILL_USE
+        action:
+          type: "DEPLOY_GUARDIAN_SHIELD"
+          parameters:
+            shield_hp_coeff_max_hp: "5.0"
+            shield_def_coeff_defense: "1.5"
+            shield_res_coeff_magic_resistance: "1.5"
+            area_radius: "8.0"
+            reflection_coeff_spell_power: "0.2"
   2:
     mp_cost: 105
     cooldown_ticks: 1180
     effects:
-      - type: "DEPLOY_GUARDIAN_SHIELD"
-        parameters:
-          shield_hp_coeff_max_hp: 5.25
-          shield_def_coeff_defense: 1.55
-          shield_res_coeff_magic_resistance: 1.55
-          area_radius: 8.5
-          reflection_coeff_spell_power: 0.22
+      - trigger: ON_SKILL_USE
+        action: { type: "DEPLOY_GUARDIAN_SHIELD", parameters: { shield_hp_coeff_max_hp: "5.25", shield_def_coeff_defense: "1.55", shield_res_coeff_magic_resistance: "1.55", area_radius: "8.5", reflection_coeff_spell_power: "0.22" } }
   3:
     mp_cost: 110
     cooldown_ticks: 1160
     effects:
-      - type: "DEPLOY_GUARDIAN_SHIELD"
-        parameters:
-          shield_hp_coeff_max_hp: 5.50
-          shield_def_coeff_defense: 1.60
-          shield_res_coeff_magic_resistance: 1.60
-          area_radius: 9.0
-          reflection_coeff_spell_power: 0.24
+      - trigger: ON_SKILL_USE
+        action: { type: "DEPLOY_GUARDIAN_SHIELD", parameters: { shield_hp_coeff_max_hp: "5.50", shield_def_coeff_defense: "1.60", shield_res_coeff_magic_resistance: "1.60", area_radius: "9.0", reflection_coeff_spell_power: "0.24" } }
   4:
     mp_cost: 115
     cooldown_ticks: 1140
     effects:
-      - type: "DEPLOY_GUARDIAN_SHIELD"
-        parameters:
-          shield_hp_coeff_max_hp: 5.75
-          shield_def_coeff_defense: 1.65
-          shield_res_coeff_magic_resistance: 1.65
-          area_radius: 9.5
-          reflection_coeff_spell_power: 0.26
+      - trigger: ON_SKILL_USE
+        action: { type: "DEPLOY_GUARDIAN_SHIELD", parameters: { shield_hp_coeff_max_hp: "5.75", shield_def_coeff_defense: "1.65", shield_res_coeff_magic_resistance: "1.65", area_radius: "9.5", reflection_coeff_spell_power: "0.26" } }
   5:
     mp_cost: 120
     cooldown_ticks: 1120
     effects:
-      - type: "DEPLOY_GUARDIAN_SHIELD"
-        parameters:
-          shield_hp_coeff_max_hp: 6.00
-          shield_def_coeff_defense: 1.70
-          shield_res_coeff_magic_resistance: 1.70
-          area_radius: 10.0
-          reflection_coeff_spell_power: 0.28
+      - trigger: ON_SKILL_USE
+        action: { type: "DEPLOY_GUARDIAN_SHIELD", parameters: { shield_hp_coeff_max_hp: "6.00", shield_def_coeff_defense: "1.70", shield_res_coeff_magic_resistance: "1.70", area_radius: "10.0", reflection_coeff_spell_power: "0.28" } }
   6:
     mp_cost: 125
     cooldown_ticks: 1100
     effects:
-      - type: "DEPLOY_GUARDIAN_SHIELD"
-        parameters:
-          shield_hp_coeff_max_hp: 6.50
-          shield_def_coeff_defense: 1.80
-          shield_res_coeff_magic_resistance: 1.80
-          area_radius: 10.5
-          reflection_coeff_spell_power: 0.30
+      - trigger: ON_SKILL_USE
+        action: { type: "DEPLOY_GUARDIAN_SHIELD", parameters: { shield_hp_coeff_max_hp: "6.50", shield_def_coeff_defense: "1.80", shield_res_coeff_magic_resistance: "1.80", area_radius: "10.5", reflection_coeff_spell_power: "0.30" } }
   7:
     mp_cost: 130
     cooldown_ticks: 1080
     effects:
-      - type: "DEPLOY_GUARDIAN_SHIELD"
-        parameters:
-          shield_hp_coeff_max_hp: 7.00
-          shield_def_coeff_defense: 1.90
-          shield_res_coeff_magic_resistance: 1.90
-          area_radius: 11.0
-          reflection_coeff_spell_power: 0.35
+      - trigger: ON_SKILL_USE
+        action: { type: "DEPLOY_GUARDIAN_SHIELD", parameters: { shield_hp_coeff_max_hp: "7.00", shield_def_coeff_defense: "1.90", shield_res_coeff_magic_resistance: "1.90", area_radius: "11.0", reflection_coeff_spell_power: "0.35" } }
   8:
     mp_cost: 135
     cooldown_ticks: 1060
     effects:
-      - type: "DEPLOY_GUARDIAN_SHIELD"
-        parameters:
-          shield_hp_coeff_max_hp: 7.50
-          shield_def_coeff_defense: 2.00
-          shield_res_coeff_magic_resistance: 2.00
-          area_radius: 11.5
-          reflection_coeff_spell_power: 0.40
+      - trigger: ON_SKILL_USE
+        action: { type: "DEPLOY_GUARDIAN_SHIELD", parameters: { shield_hp_coeff_max_hp: "7.50", shield_def_coeff_defense: "2.00", shield_res_coeff_magic_resistance: "2.00", area_radius: "11.5", reflection_coeff_spell_power: "0.40" } }
   9:
     mp_cost: 140
     cooldown_ticks: 1040
     effects:
-      - type: "DEPLOY_GUARDIAN_SHIELD"
-        parameters:
-          shield_hp_coeff_max_hp: 8.00
-          shield_def_coeff_defense: 2.10
-          shield_res_coeff_magic_resistance: 2.10
-          area_radius: 12.0
-          reflection_coeff_spell_power: 0.45
+      - trigger: ON_SKILL_USE
+        action: { type: "DEPLOY_GUARDIAN_SHIELD", parameters: { shield_hp_coeff_max_hp: "8.00", shield_def_coeff_defense: "2.10", shield_res_coeff_magic_resistance: "2.10", area_radius: "12.0", reflection_coeff_spell_power: "0.45" } }
   10:
     mp_cost: 150
     cooldown_ticks: 1000
     effects:
-      - type: "DEPLOY_GUARDIAN_SHIELD"
-        parameters:
-          shield_hp_coeff_max_hp: 8.50
-          shield_def_coeff_defense: 2.20
-          shield_res_coeff_magic_resistance: 2.20
-          area_radius: 12.5
-          reflection_coeff_spell_power: 0.50
+      - trigger: ON_SKILL_USE
+        action: { type: "DEPLOY_GUARDIAN_SHIELD", parameters: { shield_hp_coeff_max_hp: "8.50", shield_def_coeff_defense: "2.20", shield_res_coeff_magic_resistance: "2.20", area_radius: "12.5", reflection_coeff_spell_power: "0.50" } }
   11:
     mp_cost: 160
     cooldown_ticks: 980
     effects:
-      - type: "DEPLOY_GUARDIAN_SHIELD"
-        parameters:
-          shield_hp_coeff_max_hp: 9.00
-          shield_def_coeff_defense: 2.30
-          shield_res_coeff_magic_resistance: 2.30
-          area_radius: 13.0
-          reflection_coeff_spell_power: 0.55
+      - trigger: ON_SKILL_USE
+        action: { type: "DEPLOY_GUARDIAN_SHIELD", parameters: { shield_hp_coeff_max_hp: "9.00", shield_def_coeff_defense: "2.30", shield_res_coeff_magic_resistance: "2.30", area_radius: "13.0", reflection_coeff_spell_power: "0.55" } }
   12:
     mp_cost: 170
     cooldown_ticks: 960
     effects:
-      - type: "DEPLOY_GUARDIAN_SHIELD"
-        parameters:
-          shield_hp_coeff_max_hp: 9.50
-          shield_def_coeff_defense: 2.40
-          shield_res_coeff_magic_resistance: 2.40
-          area_radius: 13.5
-          reflection_coeff_spell_power: 0.60
+      - trigger: ON_SKILL_USE
+        action: { type: "DEPLOY_GUARDIAN_SHIELD", parameters: { shield_hp_coeff_max_hp: "9.50", shield_def_coeff_defense: "2.40", shield_res_coeff_magic_resistance: "2.40", area_radius: "13.5", reflection_coeff_spell_power: "0.60" } }
   13:
     mp_cost: 180
     cooldown_ticks: 940
     effects:
-      - type: "DEPLOY_GUARDIAN_SHIELD"
-        parameters:
-          shield_hp_coeff_max_hp: 10.00
-          shield_def_coeff_defense: 2.50
-          shield_res_coeff_magic_resistance: 2.50
-          area_radius: 14.0
-          reflection_coeff_spell_power: 0.65
+      - trigger: ON_SKILL_USE
+        action: { type: "DEPLOY_GUARDIAN_SHIELD", parameters: { shield_hp_coeff_max_hp: "10.00", shield_def_coeff_defense: "2.50", shield_res_coeff_magic_resistance: "2.50", area_radius: "14.0", reflection_coeff_spell_power: "0.65" } }
   14:
     mp_cost: 190
     cooldown_ticks: 920
     effects:
-      - type: "DEPLOY_GUARDIAN_SHIELD"
-        parameters:
-          shield_hp_coeff_max_hp: 11.00
-          shield_def_coeff_defense: 2.70
-          shield_res_coeff_magic_resistance: 2.70
-          area_radius: 14.5
-          reflection_coeff_spell_power: 0.80
+      - trigger: ON_SKILL_USE
+        action: { type: "DEPLOY_GUARDIAN_SHIELD", parameters: { shield_hp_coeff_max_hp: "11.00", shield_def_coeff_defense: "2.70", shield_res_coeff_magic_resistance: "2.70", area_radius: "14.5", reflection_coeff_spell_power: "0.80" } }
   15:
     mp_cost: 200
-    cooldown_ticks: 900 # 45초
+    cooldown_ticks: 900
     effects:
-      - type: "DEPLOY_GUARDIAN_SHIELD"
-        parameters:
-          shield_hp_coeff_max_hp: 15.00
-          shield_def_coeff_defense: 3.00
-          shield_res_coeff_magic_resistance: 3.00
-          area_radius: 15.0
-          reflection_coeff_spell_power: 1.00
+      - trigger: ON_SKILL_USE
+        action: { type: "DEPLOY_GUARDIAN_SHIELD", parameters: { shield_hp_coeff_max_hp: "15.00", shield_def_coeff_defense: "3.00", shield_res_coeff_magic_resistance: "3.00", area_radius: "15.0", reflection_coeff_spell_power: "1.00" } }
 upgrade_cost_per_level:
   2: 100000
   3: 180000

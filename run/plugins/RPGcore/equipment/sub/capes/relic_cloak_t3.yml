@@ -8,11 +8,13 @@ equipment_type: CLOAK
 set_id: "relic_set"
 tier: 3
 max_upgrade_level: 30
-unique_effects_on_hit_taken:
-  - type: "COOLDOWN_REDUCTION_ON_HIT"
-    parameters:
-      chance: "0.15"
-      reduction_ticks: "15" # 0.75초
+effects:
+  - trigger: ON_HIT_TAKEN
+    action:
+      type: "COOLDOWN_REDUCTION_ON_HIT"
+      parameters:
+        chance: "0.15"
+        reduction_ticks: "15"
 statsPerLevel:
   0:  { additiveStats: { COOLDOWN_REDUCTION: 0.095, DEFENSE_POWER: 155.0 } }
   1:  { additiveStats: { COOLDOWN_REDUCTION: 0.096, DEFENSE_POWER: 160.0 } }

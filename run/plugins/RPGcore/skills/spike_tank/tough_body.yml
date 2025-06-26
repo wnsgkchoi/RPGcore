@@ -10,54 +10,47 @@ max_level: 10
 level_data:
   1:
     effects:
-      - type: "TOUGH_BODY_PASSIVE"
-        parameters:
-          final_damage_reduction_percent: 1.0
+      - trigger: ON_LEARN_PASSIVE
+        action:
+          type: "TOUGH_BODY_PASSIVE"
+          parameters:
+            final_damage_reduction_percent: "1.0"
   2:
     effects:
-      - type: "TOUGH_BODY_PASSIVE"
-        parameters:
-          final_damage_reduction_percent: 3.0
+      - trigger: ON_LEARN_PASSIVE
+        action: { type: "TOUGH_BODY_PASSIVE", parameters: { final_damage_reduction_percent: "3.0" } }
   3:
     effects:
-      - type: "TOUGH_BODY_PASSIVE"
-        parameters:
-          final_damage_reduction_percent: 6.0
+      - trigger: ON_LEARN_PASSIVE
+        action: { type: "TOUGH_BODY_PASSIVE", parameters: { final_damage_reduction_percent: "6.0" } }
   4:
     effects:
-      - type: "TOUGH_BODY_PASSIVE"
-        parameters:
-          final_damage_reduction_percent: 9.0
+      - trigger: ON_LEARN_PASSIVE
+        action: { type: "TOUGH_BODY_PASSIVE", parameters: { final_damage_reduction_percent: "9.0" } }
   5:
     effects:
-      - type: "TOUGH_BODY_PASSIVE"
-        parameters:
-          final_damage_reduction_percent: 12.0
+      - trigger: ON_LEARN_PASSIVE
+        action: { type: "TOUGH_BODY_PASSIVE", parameters: { final_damage_reduction_percent: "12.0" } }
   6:
     effects:
-      - type: "TOUGH_BODY_PASSIVE"
-        parameters:
-          final_damage_reduction_percent: 15.0
+      - trigger: ON_LEARN_PASSIVE
+        action: { type: "TOUGH_BODY_PASSIVE", parameters: { final_damage_reduction_percent: "15.0" } }
   7:
     effects:
-      - type: "TOUGH_BODY_PASSIVE"
-        parameters:
-          final_damage_reduction_percent: 18.0
+      - trigger: ON_LEARN_PASSIVE
+        action: { type: "TOUGH_BODY_PASSIVE", parameters: { final_damage_reduction_percent: "18.0" } }
   8:
     effects:
-      - type: "TOUGH_BODY_PASSIVE"
-        parameters:
-          final_damage_reduction_percent: 21.0
+      - trigger: ON_LEARN_PASSIVE
+        action: { type: "TOUGH_BODY_PASSIVE", parameters: { final_damage_reduction_percent: "21.0" } }
   9:
     effects:
-      - type: "TOUGH_BODY_PASSIVE"
-        parameters:
-          final_damage_reduction_percent: 25.0
+      - trigger: ON_LEARN_PASSIVE
+        action: { type: "TOUGH_BODY_PASSIVE", parameters: { final_damage_reduction_percent: "25.0" } }
   10:
     effects:
-      - type: "TOUGH_BODY_PASSIVE"
-        parameters:
-          final_damage_reduction_percent: 30.0
+      - trigger: ON_LEARN_PASSIVE
+        action: { type: "TOUGH_BODY_PASSIVE", parameters: { final_damage_reduction_percent: "30.0" } }
 upgrade_cost_per_level:
   2: 15000
   3: 25000

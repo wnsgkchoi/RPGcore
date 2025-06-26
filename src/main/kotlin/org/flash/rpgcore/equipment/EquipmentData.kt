@@ -1,6 +1,7 @@
 package org.flash.rpgcore.equipment
 
 import org.bukkit.Material
+import org.flash.rpgcore.effects.Effect // 새로운 Effect 클래스를 import
 import org.flash.rpgcore.stats.StatType
 
 data class EquipmentData(
@@ -18,11 +19,8 @@ data class EquipmentData(
     val statsPerLevel: Map<Int, EquipmentStats>,
     val xpCostPerUpgradeLevel: Map<Int, Long>,
 
-    val uniqueEffectsOnEquip: List<EffectDefinition> = emptyList(),
-    val uniqueEffectsOnHitDealt: List<EffectDefinition> = emptyList(),
-    val uniqueEffectsOnHitTaken: List<EffectDefinition> = emptyList(),
-    val uniqueEffectsOnSkillUse: List<EffectDefinition> = emptyList(),
-    val uniqueEffectsOnMove: List<EffectDefinition> = emptyList(), // <<<<<<< 추가된 필드
+    // 기존 uniqueEffects... 필드들을 단일 effects 리스트로 통합
+    val effects: List<Effect> = emptyList(),
 
     val setId: String? = null,
     val baseCooldownMs: Int? = null
@@ -33,7 +31,4 @@ data class EquipmentStats(
     val multiplicativeStats: Map<StatType, Double> = emptyMap()
 )
 
-data class EffectDefinition(
-    val type: String,
-    val parameters: Map<String, String>
-)
+// 기존의 EffectDefinition은 Effect, EffectAction 클래스로 대체되므로 삭제합니다.

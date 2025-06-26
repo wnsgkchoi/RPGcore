@@ -10,34 +10,44 @@ max_level: 5
 level_data:
   1:
     effects:
-      - type: "BURNING_STACK_MASTERY"
-        parameters:
-          final_damage_increase_per_stack_percent: "2"
-          check_radius: "8"
+      - trigger: ON_EQUIP
+        action:
+          type: "BURNING_STACK_MASTERY"
+          parameters:
+            final_damage_increase_per_stack_percent: "2"
+            check_radius: "8"
   2:
     effects:
-      - type: "BURNING_STACK_MASTERY"
-        parameters:
-          final_damage_increase_per_stack_percent: "2.5"
-          check_radius: "9"
+      - trigger: ON_EQUIP
+        action:
+          type: "BURNING_STACK_MASTERY"
+          parameters:
+            final_damage_increase_per_stack_percent: "2.5"
+            check_radius: "9"
   3:
     effects:
-      - type: "BURNING_STACK_MASTERY"
-        parameters:
-          final_damage_increase_per_stack_percent: "3"
-          check_radius: "10"
+      - trigger: ON_EQUIP
+        action:
+          type: "BURNING_STACK_MASTERY"
+          parameters:
+            final_damage_increase_per_stack_percent: "3"
+            check_radius: "10"
   4:
     effects:
-      - type: "BURNING_STACK_MASTERY"
-        parameters:
-          final_damage_increase_per_stack_percent: "3.5"
-          check_radius: "11"
+      - trigger: ON_EQUIP
+        action:
+          type: "BURNING_STACK_MASTERY"
+          parameters:
+            final_damage_increase_per_stack_percent: "3.5"
+            check_radius: "11"
   5:
     effects:
-      - type: "BURNING_STACK_MASTERY"
-        parameters:
-          final_damage_increase_per_stack_percent: "4"
-          check_radius: "12"
+      - trigger: ON_EQUIP
+        action:
+          type: "BURNING_STACK_MASTERY"
+          parameters:
+            final_damage_increase_per_stack_percent: "4"
+            check_radius: "12"
 upgrade_cost_per_level:
   2: 50000
   3: 250000

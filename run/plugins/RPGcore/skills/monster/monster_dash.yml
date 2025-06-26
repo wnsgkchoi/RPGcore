@@ -7,12 +7,16 @@ level_data:
     mp_cost: 0
     cooldown_ticks: 60
     effects:
-      - type: "TELEPORT_FORWARD" # SkillEffectExecutor에 구현 필요
-        target_selector: "SELF"
-        parameters:
-          distance: "5.0"
-      - type: "DAMAGE"
-        target_selector: "AREA_ENEMY_AROUND_CASTER"
-        parameters:
-          area_radius: "2.5"
-          physical_damage_coeff_attack_power_formula: "1.5"
+      - trigger: ON_SKILL_USE
+        action:
+          type: "TELEPORT_FORWARD"
+          target_selector: "SELF"
+          parameters:
+            distance: "5.0"
+      - trigger: ON_SKILL_USE
+        action:
+          type: "DAMAGE"
+          target_selector: "AREA_ENEMY_AROUND_CASTER"
+          parameters:
+            area_radius: "2.5"
+            physical_damage_coeff_attack_power_formula: "1.5"

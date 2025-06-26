@@ -10,29 +10,39 @@ max_level: 5
 level_data:
   1:
     effects:
-      - type: "FREEZING_STACK_MASTERY"
-        parameters:
-          move_speed_reduction_percent: "20"
+      - trigger: ON_EQUIP
+        action:
+          type: "FREEZING_STACK_MASTERY"
+          parameters:
+            move_speed_reduction_percent: "20"
   2:
     effects:
-      - type: "FREEZING_STACK_MASTERY"
-        parameters:
-          move_speed_reduction_percent: "30"
+      - trigger: ON_EQUIP
+        action:
+          type: "FREEZING_STACK_MASTERY"
+          parameters:
+            move_speed_reduction_percent: "30"
   3:
     effects:
-      - type: "FREEZING_STACK_MASTERY"
-        parameters:
-          move_speed_reduction_percent: "40"
+      - trigger: ON_EQUIP
+        action:
+          type: "FREEZING_STACK_MASTERY"
+          parameters:
+            move_speed_reduction_percent: "40"
   4:
     effects:
-      - type: "FREEZING_STACK_MASTERY"
-        parameters:
-          move_speed_reduction_percent: "50"
+      - trigger: ON_EQUIP
+        action:
+          type: "FREEZING_STACK_MASTERY"
+          parameters:
+            move_speed_reduction_percent: "50"
   5:
     effects:
-      - type: "FREEZING_STACK_MASTERY"
-        parameters:
-          move_speed_reduction_percent: "75"
+      - trigger: ON_EQUIP
+        action:
+          type: "FREEZING_STACK_MASTERY"
+          parameters:
+            move_speed_reduction_percent: "75"
 upgrade_cost_per_level:
   2: 50000
   3: 250000

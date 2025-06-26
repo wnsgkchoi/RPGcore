@@ -1,13 +1,13 @@
 package org.flash.rpgcore.utils
 
 import org.bukkit.ChatColor
-import org.flash.rpgcore.equipment.EffectDefinition
+import org.flash.rpgcore.effects.EffectAction
 
 object EffectLoreHelper {
 
-    fun generateEffectLore(effect: EffectDefinition): String {
-        val type = effect.type
-        val params = effect.parameters
+    fun generateEffectLore(action: EffectAction): String {
+        val type = action.type
+        val params = action.parameters
 
         val description = when (type) {
             // 가속의 유물 세트
@@ -53,7 +53,7 @@ object EffectLoreHelper {
             }
 
             // 그림자 학살자 세트
-            "CRIT_ATTACK_SPEED_BUFF" -> {
+            "ATTACK_SPEED_BUFF" -> {
                 val duration = (params["duration_ticks"]?.toDoubleOrNull() ?: 100.0) / 20.0
                 val boost = params["attack_speed_bonus"]?.toDoubleOrNull()?.times(100) ?: 0.0
                 "&7치명타 시 &b${duration}초&7 동안 공격 속도가 &a${String.format("%.0f", boost)}%&7 증가합니다."

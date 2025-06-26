@@ -10,29 +10,39 @@ max_level: 5
 level_data:
   1:
     effects:
-      - type: "SCHOLARS_WISDOM_PASSIVE"
-        parameters:
-          xp_gain_bonus_percent: 10.0
+      - trigger: ON_EQUIP # 스탯 매니저가 상시 적용 스킬로 인지하기 위한 트리거
+        action:
+          type: "SCHOLARS_WISDOM_PASSIVE"
+          parameters:
+            xp_gain_bonus_percent: 10.0
   2:
     effects:
-      - type: "SCHOLARS_WISDOM_PASSIVE"
-        parameters:
-          xp_gain_bonus_percent: 20.0
+      - trigger: ON_EQUIP
+        action:
+          type: "SCHOLARS_WISDOM_PASSIVE"
+          parameters:
+            xp_gain_bonus_percent: 20.0
   3:
     effects:
-      - type: "SCHOLARS_WISDOM_PASSIVE"
-        parameters:
-          xp_gain_bonus_percent: 30.0
+      - trigger: ON_EQUIP
+        action:
+          type: "SCHOLARS_WISDOM_PASSIVE"
+          parameters:
+            xp_gain_bonus_percent: 30.0
   4:
     effects:
-      - type: "SCHOLARS_WISDOM_PASSIVE"
-        parameters:
-          xp_gain_bonus_percent: 50.0
+      - trigger: ON_EQUIP
+        action:
+          type: "SCHOLARS_WISDOM_PASSIVE"
+          parameters:
+            xp_gain_bonus_percent: 50.0
   5:
     effects:
-      - type: "SCHOLARS_WISDOM_PASSIVE"
-        parameters:
-          xp_gain_bonus_percent: 100.0
+      - trigger: ON_EQUIP
+        action:
+          type: "SCHOLARS_WISDOM_PASSIVE"
+          parameters:
+            xp_gain_bonus_percent: 100.0
 upgrade_cost_per_level:
   2: 100000
   3: 400000

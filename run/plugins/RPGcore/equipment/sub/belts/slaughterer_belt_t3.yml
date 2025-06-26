@@ -8,11 +8,13 @@ equipment_type: BELT
 set_id: "slaughterer_set"
 tier: 3
 max_upgrade_level: 30
-unique_effects_on_hit_dealt:
-  - type: "HIGH_HP_BONUS_DAMAGE"
-    parameters:
-      health_threshold_percent: "0.8" 
-      bonus_damage_percent: "0.15"   # 15%로 효과 강화
+effects:
+  - trigger: ON_HIT_DEALT
+    action:
+      type: "HIGH_HP_BONUS_DAMAGE"
+      parameters:
+        health_threshold_percent: "0.8" 
+        bonus_damage_percent: "0.15"
 statsPerLevel:
   0:  { additiveStats: { ATTACK_POWER: 140.0, SPELL_POWER: 140.0 } }
   1:  { additiveStats: { ATTACK_POWER: 145.0, SPELL_POWER: 145.0 } }

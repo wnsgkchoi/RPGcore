@@ -16,6 +16,8 @@ import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.entity.ProjectileHitEvent
 import org.flash.rpgcore.RPGcore
+import org.flash.rpgcore.effects.EffectTriggerManager
+import org.flash.rpgcore.effects.TriggerType
 import org.flash.rpgcore.equipment.EquipmentSlotType
 import org.flash.rpgcore.managers.*
 import org.flash.rpgcore.player.MonsterEncounterData
@@ -133,6 +135,13 @@ class CombatListener : Listener {
             is LivingEntity -> rawDamager
             is Projectile -> rawDamager.shooter as? LivingEntity
             else -> null
+        }
+
+        if (damager is Player) {
+            EffectTriggerManager.fire(TriggerType.ON_HIT_DEALT, damager, event)
+            if (event.isCritical) { // Bukkit의 기본 치명타 이벤트를 임시로 활용
+                EffectTriggerManager.fire(TriggerType.ON_CRIT_DEALT, damager, event)
+            }
         }
 
         // 공격자가 LivingEntity가 아니면 플러그인 로직을 타지 않음 (바닐라 데미지 허용)

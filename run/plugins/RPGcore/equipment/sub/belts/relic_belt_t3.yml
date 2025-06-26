@@ -8,11 +8,13 @@ equipment_type: BELT
 set_id: "relic_set"
 tier: 3
 max_upgrade_level: 30
-unique_effects_on_move:
-  - type: "COOLDOWN_REDUCTION_ON_MOVE"
-    parameters:
-      distance_per_trigger: "40"
-      reduction_seconds: "1.5"
+effects:
+  - trigger: ON_MOVE
+    action:
+      type: "COOLDOWN_REDUCTION_ON_MOVE"
+      parameters:
+        distance_per_trigger: "40"
+        reduction_seconds: "1.5"
 statsPerLevel:
   0:  { additiveStats: { MAX_MP: 265.0, COOLDOWN_REDUCTION: 0.065 } }
   1:  { additiveStats: { MAX_MP: 271.0, COOLDOWN_REDUCTION: 0.066 } }

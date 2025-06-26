@@ -8,10 +8,12 @@ equipment_type: CLOAK
 set_id: "bulwark_set"
 tier: 2
 max_upgrade_level: 20
-unique_effects_on_equip:
-  - type: "DEBUFF_DURATION_REDUCTION"
-    parameters:
-      reduction_percent: "0.15" # 15%
+effects:
+  - trigger: ON_EQUIP
+    action:
+      type: "DEBUFF_DURATION_REDUCTION"
+      parameters:
+        reduction_percent: "0.15"
 statsPerLevel:
   0:  { additiveStats: { MAX_HP: 55.0, DEFENSE_POWER: 20.0, MAGIC_RESISTANCE: 35.0 } }
   1:  { additiveStats: { MAX_HP: 58.0, DEFENSE_POWER: 21.0, MAGIC_RESISTANCE: 37.0 } }

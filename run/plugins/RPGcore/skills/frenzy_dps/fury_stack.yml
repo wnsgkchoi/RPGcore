@@ -10,44 +10,54 @@ max_level: 5
 level_data:
   1:
     effects:
-      - type: "MANAGE_FURY_STACK"
-        parameters:
-          max_stack: "50"
-          attack_power_per_stack: "1.0"
-          attack_speed_per_10_stack: "0.01"
-          stack_expire_ticks: "60"
+      - trigger: ON_EQUIP # 상시 적용되는 스탯 관리 로직
+        action:
+          type: "MANAGE_FURY_STACK"
+          parameters:
+            max_stack: "50"
+            attack_power_per_stack: "1.0"
+            attack_speed_per_10_stack: "0.01"
+            stack_expire_ticks: "60"
   2:
     effects:
-      - type: "MANAGE_FURY_STACK"
-        parameters:
-          max_stack: "60"
-          attack_power_per_stack: "1.0"
-          attack_speed_per_10_stack: "0.02"
-          stack_expire_ticks: "65"
+      - trigger: ON_EQUIP
+        action:
+          type: "MANAGE_FURY_STACK"
+          parameters:
+            max_stack: "60"
+            attack_power_per_stack: "1.0"
+            attack_speed_per_10_stack: "0.02"
+            stack_expire_ticks: "65"
   3:
     effects:
-      - type: "MANAGE_FURY_STACK"
-        parameters:
-          max_stack: "70"
-          attack_power_per_stack: "1.5"
-          attack_speed_per_10_stack: "0.03"
-          stack_expire_ticks: "70"
+      - trigger: ON_EQUIP
+        action:
+          type: "MANAGE_FURY_STACK"
+          parameters:
+            max_stack: "70"
+            attack_power_per_stack: "1.5"
+            attack_speed_per_10_stack: "0.03"
+            stack_expire_ticks: "70"
   4:
     effects:
-      - type: "MANAGE_FURY_STACK"
-        parameters:
-          max_stack: "85"
-          attack_power_per_stack: "1.5"
-          attack_speed_per_10_stack: "0.04"
-          stack_expire_ticks: "75"
+      - trigger: ON_EQUIP
+        action:
+          type: "MANAGE_FURY_STACK"
+          parameters:
+            max_stack: "85"
+            attack_power_per_stack: "1.5"
+            attack_speed_per_10_stack: "0.04"
+            stack_expire_ticks: "75"
   5:
     effects:
-      - type: "MANAGE_FURY_STACK"
-        parameters:
-          max_stack: "100"
-          attack_power_per_stack: "2.0"
-          attack_speed_per_10_stack: "0.05"
-          stack_expire_ticks: "80"
+      - trigger: ON_EQUIP
+        action:
+          type: "MANAGE_FURY_STACK"
+          parameters:
+            max_stack: "100"
+            attack_power_per_stack: "2.0"
+            attack_speed_per_10_stack: "0.05"
+            stack_expire_ticks: "80"
 upgrade_cost_per_level:
   2: 50000
   3: 250000

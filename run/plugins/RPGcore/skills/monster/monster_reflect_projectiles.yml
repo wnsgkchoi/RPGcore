@@ -5,10 +5,12 @@ max_level: 1
 level_data:
   '1':
     mp_cost: 0
-    cooldown_ticks: 400 # 20초
+    cooldown_ticks: 400
     effects:
-      - type: "APPLY_CUSTOM_STATUS"
-        target_selector: "SELF"
-        parameters:
-          status_id: "projectile_reflection"
-          duration_ticks: 100 # 5초 동안 지속
+      - trigger: ON_SKILL_USE
+        action:
+          type: "APPLY_CUSTOM_STATUS"
+          target_selector: "SELF"
+          parameters:
+            status_id: "projectile_reflection"
+            duration_ticks: "100"

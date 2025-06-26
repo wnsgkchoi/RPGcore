@@ -8,12 +8,13 @@ equipment_type: GLOVES
 set_id: "slaughterer_set"
 tier: 3
 max_upgrade_level: 30
-unique_effects_on_hit_dealt:
-  - type: "CRIT_ATTACK_SPEED_BUFF"
-    parameters:
-      trigger_on_crit_only: "true"
-      duration_ticks: "120" # 6초
-      attack_speed_bonus: "0.15" # 15%
+effects:
+  - trigger: ON_CRIT_DEALT
+    action:
+      type: "ATTACK_SPEED_BUFF"
+      parameters:
+        duration_ticks: "120"
+        attack_speed_bonus: "0.15"
 statsPerLevel:
   0:  { additiveStats: { MAX_HP: 110.0, ATTACK_POWER: 130.0, SPELL_POWER: 130.0, CRITICAL_CHANCE: 0.105 } }
   1:  { additiveStats: { MAX_HP: 115.0, ATTACK_POWER: 135.0, SPELL_POWER: 135.0, CRITICAL_CHANCE: 0.106 } }

@@ -10,29 +10,39 @@ max_level: 5
 level_data:
   1:
     effects:
-      - type: "PARALYZING_STACK_MASTERY"
-        parameters:
-          target_damage_reduction_percent: "10"
+      - trigger: ON_EQUIP
+        action:
+          type: "PARALYZING_STACK_MASTERY"
+          parameters:
+            target_damage_reduction_percent: "10"
   2:
     effects:
-      - type: "PARALYZING_STACK_MASTERY"
-        parameters:
-          target_damage_reduction_percent: "15"
+      - trigger: ON_EQUIP
+        action:
+          type: "PARALYZING_STACK_MASTERY"
+          parameters:
+            target_damage_reduction_percent: "15"
   3:
     effects:
-      - type: "PARALYZING_STACK_MASTERY"
-        parameters:
-          target_damage_reduction_percent: "20"
+      - trigger: ON_EQUIP
+        action:
+          type: "PARALYZING_STACK_MASTERY"
+          parameters:
+            target_damage_reduction_percent: "20"
   4:
     effects:
-      - type: "PARALYZING_STACK_MASTERY"
-        parameters:
-          target_damage_reduction_percent: "25"
+      - trigger: ON_EQUIP
+        action:
+          type: "PARALYZING_STACK_MASTERY"
+          parameters:
+            target_damage_reduction_percent: "25"
   5:
     effects:
-      - type: "PARALYZING_STACK_MASTERY"
-        parameters:
-          target_damage_reduction_percent: "30"
+      - trigger: ON_EQUIP
+        action:
+          type: "PARALYZING_STACK_MASTERY"
+          parameters:
+            target_damage_reduction_percent: "30"
 upgrade_cost_per_level:
   2: 50000
   3: 250000

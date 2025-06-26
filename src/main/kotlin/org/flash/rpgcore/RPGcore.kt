@@ -9,6 +9,7 @@ import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitRunnable
 import org.flash.rpgcore.commands.RPGCommandExecutor
+import org.flash.rpgcore.effects.EffectTriggerManager
 import org.flash.rpgcore.entities.CustomEntityData
 import org.flash.rpgcore.listeners.*
 import org.flash.rpgcore.managers.*
@@ -54,6 +55,7 @@ class RPGcore : JavaPlugin() {
         InfiniteDungeonManager.start()
         AlchemyManager.load()
         ItemManager.load()
+        EffectTriggerManager.registerHandlers()
 
         server.pluginManager.registerEvents(PlayerConnectionListener(), this)
         server.pluginManager.registerEvents(StatGUIListener(), this)

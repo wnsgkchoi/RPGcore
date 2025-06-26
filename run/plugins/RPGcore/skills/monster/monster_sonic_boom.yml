@@ -7,9 +7,11 @@ level_data:
     mp_cost: 0
     cooldown_ticks: 180
     effects:
-      - type: "DAMAGE"
-        target_selector: "AREA_ENEMY_IN_CONE"
-        parameters:
-          cone_range: "15.0"
-          cone_angle: "30.0"
-          magical_damage_coeff_spell_power_formula: "20.0"
+      - trigger: ON_SKILL_USE
+        action:
+          type: "DAMAGE"
+          target_selector: "AREA_ENEMY_IN_CONE"
+          parameters:
+            cone_range: "15.0"
+            cone_angle: "30.0"
+            magical_damage_coeff_spell_power_formula: "20.0"

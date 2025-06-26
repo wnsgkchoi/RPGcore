@@ -6,6 +6,9 @@ import org.bukkit.Sound
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import org.flash.rpgcore.RPGcore
+import org.flash.rpgcore.effects.Effect
+import org.flash.rpgcore.effects.EffectAction
+import org.flash.rpgcore.effects.TriggerType
 import org.flash.rpgcore.player.PlayerData
 import org.flash.rpgcore.providers.ISkillStatProvider
 import org.flash.rpgcore.skills.RPGSkillData
@@ -82,7 +85,6 @@ object SkillManager : ISkillStatProvider {
                         val currentLevelSection = levelDataSection.getConfigurationSection(levelKey)!!
                         val mpCost = currentLevelSection.getInt("mp_cost", 0)
                         val cooldownTicks = currentLevelSection.getInt("cooldown_ticks", 0)
-                        // 'max_charges'와 'max_charge'를 모두 확인하여 호환성 확보
                         val maxChargesValue = currentLevelSection.getInt("max_charges", currentLevelSection.getInt("max_charge", 0))
                         val maxCharges = if (maxChargesValue > 0) maxChargesValue else null
 

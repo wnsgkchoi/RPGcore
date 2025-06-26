@@ -12,52 +12,64 @@ level_data:
     mp_cost: 20
     cooldown_ticks: 340
     effects:
-      - { type: "APPLY_LAST_STAND", target_selector: "SELF", parameters: { hp_cost_percent: "0.3", buff_duration_ticks: "100", damage_multiplier: "1.5" } }
+      - trigger: ON_SKILL_USE
+        action:
+          type: "APPLY_LAST_STAND"
+          parameters: { hp_cost_percent: "0.3", buff_duration_ticks: "100", damage_multiplier: "1.5" }
   2:
     mp_cost: 22
     cooldown_ticks: 320
     effects:
-      - { type: "APPLY_LAST_STAND", target_selector: "SELF", parameters: { hp_cost_percent: "0.3", buff_duration_ticks: "100", damage_multiplier: "1.65" } }
+      - trigger: ON_SKILL_USE
+        action: { type: "APPLY_LAST_STAND", parameters: { hp_cost_percent: "0.3", buff_duration_ticks: "100", damage_multiplier: "1.65" } }
   3:
     mp_cost: 24
     cooldown_ticks: 300
     effects:
-      - { type: "APPLY_LAST_STAND", target_selector: "SELF", parameters: { hp_cost_percent: "0.3", buff_duration_ticks: "100", damage_multiplier: "1.8" } }
+      - trigger: ON_SKILL_USE
+        action: { type: "APPLY_LAST_STAND", parameters: { hp_cost_percent: "0.3", buff_duration_ticks: "100", damage_multiplier: "1.8" } }
   4:
     mp_cost: 26
     cooldown_ticks: 280
     effects:
-      - { type: "APPLY_LAST_STAND", target_selector: "SELF", parameters: { hp_cost_percent: "0.3", buff_duration_ticks: "100", damage_multiplier: "1.95" } }
+      - trigger: ON_SKILL_USE
+        action: { type: "APPLY_LAST_STAND", parameters: { hp_cost_percent: "0.3", buff_duration_ticks: "100", damage_multiplier: "1.95" } }
   5:
     mp_cost: 28
     cooldown_ticks: 260
     effects:
-      - { type: "APPLY_LAST_STAND", target_selector: "SELF", parameters: { hp_cost_percent: "0.3", buff_duration_ticks: "100", damage_multiplier: "2.1" } }
+      - trigger: ON_SKILL_USE
+        action: { type: "APPLY_LAST_STAND", parameters: { hp_cost_percent: "0.3", buff_duration_ticks: "100", damage_multiplier: "2.1" } }
   6:
     mp_cost: 30
     cooldown_ticks: 240
     effects:
-      - { type: "APPLY_LAST_STAND", target_selector: "SELF", parameters: { hp_cost_percent: "0.3", buff_duration_ticks: "100", damage_multiplier: "2.3" } }
+      - trigger: ON_SKILL_USE
+        action: { type: "APPLY_LAST_STAND", parameters: { hp_cost_percent: "0.3", buff_duration_ticks: "100", damage_multiplier: "2.3" } }
   7:
     mp_cost: 32
     cooldown_ticks: 220
     effects:
-      - { type: "APPLY_LAST_STAND", target_selector: "SELF", parameters: { hp_cost_percent: "0.3", buff_duration_ticks: "100", damage_multiplier: "2.5" } }
+      - trigger: ON_SKILL_USE
+        action: { type: "APPLY_LAST_STAND", parameters: { hp_cost_percent: "0.3", buff_duration_ticks: "100", damage_multiplier: "2.5" } }
   8:
     mp_cost: 34
     cooldown_ticks: 200
     effects:
-      - { type: "APPLY_LAST_STAND", target_selector: "SELF", parameters: { hp_cost_percent: "0.3", buff_duration_ticks: "100", damage_multiplier: "2.7" } }
+      - trigger: ON_SKILL_USE
+        action: { type: "APPLY_LAST_STAND", parameters: { hp_cost_percent: "0.3", buff_duration_ticks: "100", damage_multiplier: "2.7" } }
   9:
     mp_cost: 36
     cooldown_ticks: 180
     effects:
-      - { type: "APPLY_LAST_STAND", target_selector: "SELF",  parameters: { hp_cost_percent: "0.3", buff_duration_ticks: "100", damage_multiplier: "2.9" } }
+      - trigger: ON_SKILL_USE
+        action: { type: "APPLY_LAST_STAND",  parameters: { hp_cost_percent: "0.3", buff_duration_ticks: "100", damage_multiplier: "2.9" } }
   10:
     mp_cost: 38
     cooldown_ticks: 160
     effects:
-      - { type: "APPLY_LAST_STAND", target_selector: "SELF", parameters: { hp_cost_percent: "0.3", buff_duration_ticks: "100", damage_multiplier: "3.0" } }
+      - trigger: ON_SKILL_USE
+        action: { type: "APPLY_LAST_STAND", parameters: { hp_cost_percent: "0.3", buff_duration_ticks: "100", damage_multiplier: "3.0" } }
 upgrade_cost_per_level:
   2: 5000
   3: 16875

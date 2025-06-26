@@ -7,13 +7,11 @@ level_data:
     mp_cost: 0
     cooldown_ticks: 200
     effects:
-      - type: "DAMAGE"
-        target_selector: "AREA_ENEMY_AROUND_CASTER"
-        parameters:
-          area_radius: "5.0"
-          physical_damage_coeff_attack_power_formula: "7.0"
-          knockback_strength: "1.5" # 넉백 효과
-# BUG-FIX: 근접했을 때만 사용하도록 거리 조건 추가
-condition:
-  type: "DISTANCE_BELOW"
-  value: "5.0" # 5블록 이내
+      - trigger: ON_SKILL_USE
+        action:
+          type: "DAMAGE"
+          target_selector: "AREA_ENEMY_AROUND_CASTER"
+          parameters:
+            area_radius: "5.0"
+            physical_damage_coeff_attack_power_formula: "7.0"
+            knockback_strength: "1.5"

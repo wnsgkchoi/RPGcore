@@ -8,10 +8,12 @@ equipment_type: GLOVES
 set_id: "relic_set"
 tier: 3
 max_upgrade_level: 30
-unique_effects_on_skill_use:
-  - type: "COOLDOWN_RESET"
-    parameters:
-      chance: "0.07"
+effects:
+  - trigger: ON_SKILL_USE
+    action:
+      type: "COOLDOWN_RESET"
+      parameters:
+        chance: "0.07"
 statsPerLevel:
   0:  { additiveStats: { MAX_MP: 220.0, COOLDOWN_REDUCTION: 0.095 } }
   1:  { additiveStats: { MAX_MP: 226.0, COOLDOWN_REDUCTION: 0.096 } }

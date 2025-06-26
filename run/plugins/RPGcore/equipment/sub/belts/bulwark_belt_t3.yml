@@ -8,12 +8,14 @@ equipment_type: BELT
 set_id: "bulwark_set"
 tier: 3
 max_upgrade_level: 30
-unique_effects_on_hit_taken:
-  - type: "BURST_DAMAGE_NEGATION"
-    parameters:
-      damage_threshold_percent_max_hp: "0.2"
-      negation_percent_of_excess: "0.75" # 75%로 효과 강화
-      cooldown_ticks: "160" # 8초로 쿨타임 감소
+effects:
+  - trigger: ON_HIT_TAKEN
+    action:
+      type: "BURST_DAMAGE_NEGATION"
+      parameters:
+        damage_threshold_percent_max_hp: "0.2"
+        negation_percent_of_excess: "0.75"
+        cooldown_ticks: "160"
 statsPerLevel:
   0:  { additiveStats: { MAX_HP: 360.0, DEFENSE_POWER: 85.0 } }
   1:  { additiveStats: { MAX_HP: 370.0, DEFENSE_POWER: 88.0 } }

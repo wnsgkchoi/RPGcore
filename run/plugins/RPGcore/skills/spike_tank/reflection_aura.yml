@@ -10,34 +10,44 @@ max_level: 5
 level_data:
   1:
     effects:
-      - type: "REFLECTION_AURA"
-        parameters:
-          base_reflect_ratio: "0.1"
-          spell_power_reflect_coeff: "0.2"
+      - trigger: ON_HIT_TAKEN
+        action:
+          type: "REFLECTION_AURA"
+          parameters:
+            base_reflect_ratio: "0.1"
+            spell_power_reflect_coeff: "0.2"
   2:
     effects:
-      - type: "REFLECTION_AURA"
-        parameters:
-          base_reflect_ratio: "0.12"
-          spell_power_reflect_coeff: "0.25"
+      - trigger: ON_HIT_TAKEN
+        action:
+          type: "REFLECTION_AURA"
+          parameters:
+            base_reflect_ratio: "0.12"
+            spell_power_reflect_coeff: "0.25"
   3:
     effects:
-      - type: "REFLECTION_AURA"
-        parameters:
-          base_reflect_ratio: "0.14"
-          spell_power_reflect_coeff: "0.3"
+      - trigger: ON_HIT_TAKEN
+        action:
+          type: "REFLECTION_AURA"
+          parameters:
+            base_reflect_ratio: "0.14"
+            spell_power_reflect_coeff: "0.3"
   4:
     effects:
-      - type: "REFLECTION_AURA"
-        parameters:
-          base_reflect_ratio: "0.17"
-          spell_power_reflect_coeff: "0.35"
+      - trigger: ON_HIT_TAKEN
+        action:
+          type: "REFLECTION_AURA"
+          parameters:
+            base_reflect_ratio: "0.17"
+            spell_power_reflect_coeff: "0.35"
   5:
     effects:
-      - type: "REFLECTION_AURA"
-        parameters:
-          base_reflect_ratio: "0.2"
-          spell_power_reflect_coeff: "0.4"
+      - trigger: ON_HIT_TAKEN
+        action:
+          type: "REFLECTION_AURA"
+          parameters:
+            base_reflect_ratio: "0.2"
+            spell_power_reflect_coeff: "0.4"
 upgrade_cost_per_level:
   2: 50000
   3: 250000

@@ -9,34 +9,94 @@ max_level: 10
 level_data:
   1:
     effects:
-      - { type: "ON_TAKE_DAMAGE_BUFF", parameters: { damage_multiplier_on_next_hit: "1.1", buff_duration_ticks: "100" } }
+      - trigger: ON_HIT_TAKEN
+        action:
+          type: "APPLY_BUFF_ON_TAKE_DAMAGE"
+          parameters:
+            status_id: "bloody_smell_buff"
+            damage_multiplier_on_next_hit: "1.1"
+            buff_duration_ticks: "100"
   2:
     effects:
-      - { type: "ON_TAKE_DAMAGE_BUFF", parameters: { damage_multiplier_on_next_hit: "1.15", buff_duration_ticks: "100"  } }
+      - trigger: ON_HIT_TAKEN
+        action:
+          type: "APPLY_BUFF_ON_TAKE_DAMAGE"
+          parameters:
+            status_id: "bloody_smell_buff"
+            damage_multiplier_on_next_hit: "1.15"
+            buff_duration_ticks: "100"
   3:
     effects:
-      - { type: "ON_TAKE_DAMAGE_BUFF", parameters: { damage_multiplier_on_next_hit: "1.2", buff_duration_ticks: "100"  } }
+      - trigger: ON_HIT_TAKEN
+        action:
+          type: "APPLY_BUFF_ON_TAKE_DAMAGE"
+          parameters:
+            status_id: "bloody_smell_buff"
+            damage_multiplier_on_next_hit: "1.2"
+            buff_duration_ticks: "100"
   4:
     effects:
-      - { type: "ON_TAKE_DAMAGE_BUFF", parameters: { damage_multiplier_on_next_hit: "1.25", buff_duration_ticks: "100"  } }
+      - trigger: ON_HIT_TAKEN
+        action:
+          type: "APPLY_BUFF_ON_TAKE_DAMAGE"
+          parameters:
+            status_id: "bloody_smell_buff"
+            damage_multiplier_on_next_hit: "1.25"
+            buff_duration_ticks: "100"
   5:
     effects:
-      - { type: "ON_TAKE_DAMAGE_BUFF", parameters: { damage_multiplier_on_next_hit: "1.3", buff_duration_ticks: "100"  } }
+      - trigger: ON_HIT_TAKEN
+        action:
+          type: "APPLY_BUFF_ON_TAKE_DAMAGE"
+          parameters:
+            status_id: "bloody_smell_buff"
+            damage_multiplier_on_next_hit: "1.3"
+            buff_duration_ticks: "100"
   6:
     effects:
-      - { type: "ON_TAKE_DAMAGE_BUFF", parameters: { damage_multiplier_on_next_hit: "1.35", buff_duration_ticks: "100"  } }
+      - trigger: ON_HIT_TAKEN
+        action:
+          type: "APPLY_BUFF_ON_TAKE_DAMAGE"
+          parameters:
+            status_id: "bloody_smell_buff"
+            damage_multiplier_on_next_hit: "1.35"
+            buff_duration_ticks: "100"
   7:
     effects:
-      - { type: "ON_TAKE_DAMAGE_BUFF", parameters: { damage_multiplier_on_next_hit: "1.4", buff_duration_ticks: "100"  } }
+      - trigger: ON_HIT_TAKEN
+        action:
+          type: "APPLY_BUFF_ON_TAKE_DAMAGE"
+          parameters:
+            status_id: "bloody_smell_buff"
+            damage_multiplier_on_next_hit: "1.4"
+            buff_duration_ticks: "100"
   8:
     effects:
-      - { type: "ON_TAKE_DAMAGE_BUFF", parameters: { damage_multiplier_on_next_hit: "1.45", buff_duration_ticks: "100"  } }
+      - trigger: ON_HIT_TAKEN
+        action:
+          type: "APPLY_BUFF_ON_TAKE_DAMAGE"
+          parameters:
+            status_id: "bloody_smell_buff"
+            damage_multiplier_on_next_hit: "1.45"
+            buff_duration_ticks: "100"
   9:
     effects:
-      - { type: "ON_TAKE_DAMAGE_BUFF", parameters: { damage_multiplier_on_next_hit: "1.48", buff_duration_ticks: "100"  } }
+      - trigger: ON_HIT_TAKEN
+        action:
+          type: "APPLY_BUFF_ON_TAKE_DAMAGE"
+          parameters:
+            status_id: "bloody_smell_buff"
+            damage_multiplier_on_next_hit: "1.48"
+            buff_duration_ticks: "100"
   10:
     effects:
-      - { type: "ON_TAKE_DAMAGE_BUFF", parameters: { damage_multiplier_on_next_hit: "1.5", buff_duration_ticks: "100" } }
+      - trigger: ON_HIT_TAKEN
+        action:
+          type: "APPLY_BUFF_ON_TAKE_DAMAGE"
+          parameters:
+            status_id: "bloody_smell_buff"
+            damage_multiplier_on_next_hit: "1.5"
+            buff_duration_ticks: "100"
 upgrade_cost_per_level:
   2: 5000
   3: 16875

@@ -7,13 +7,15 @@ level_data:
     mp_cost: 0
     cooldown_ticks: 100
     effects:
-      - type: "PROJECTILE"
-        target_selector: "SELF" # 시전자가 발사
-        parameters:
-          projectile_type: "FIREBALL"
-          on_impact_effects:
-            - type: "DAMAGE"
-              target_selector: "AREA_ENEMY_AROUND_IMPACT"
-              parameters:
-                area_radius: "3.0"
-                magical_damage_coeff_spell_power_formula: "5.0"
+      - trigger: ON_SKILL_USE
+        action:
+          type: "PROJECTILE"
+          target_selector: "SELF"
+          parameters:
+            projectile_type: "FIREBALL"
+            on_impact_effects:
+              - type: "DAMAGE"
+                target_selector: "AREA_ENEMY_AROUND_IMPACT"
+                parameters:
+                  area_radius: "3.0"
+                  magical_damage_coeff_spell_power_formula: "5.0"

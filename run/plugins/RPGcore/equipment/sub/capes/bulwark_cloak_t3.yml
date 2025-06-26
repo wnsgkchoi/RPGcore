@@ -8,10 +8,12 @@ equipment_type: CLOAK
 set_id: "bulwark_set"
 tier: 3
 max_upgrade_level: 30
-unique_effects_on_equip:
-  - type: "DEBUFF_DURATION_REDUCTION"
-    parameters:
-      reduction_percent: "0.25" # 25%로 효과 강화
+effects:
+  - trigger: ON_EQUIP
+    action:
+      type: "DEBUFF_DURATION_REDUCTION"
+      parameters:
+        reduction_percent: "0.25"
 statsPerLevel:
   0:  { additiveStats: { MAX_HP: 180.0, DEFENSE_POWER: 85.0, MAGIC_RESISTANCE: 120.0 } }
   1:  { additiveStats: { MAX_HP: 185.0, DEFENSE_POWER: 88.0, MAGIC_RESISTANCE: 124.0 } }

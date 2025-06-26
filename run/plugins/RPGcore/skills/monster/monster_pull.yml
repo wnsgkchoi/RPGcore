@@ -7,13 +7,11 @@ level_data:
     mp_cost: 0
     cooldown_ticks: 160
     effects:
-      - type: "DAMAGE"
-        target_selector: "AREA_ENEMY_AROUND_CASTER"
-        parameters:
-          area_radius: "8.0"
-          physical_damage_coeff_attack_power_formula: "5.0" # 약한 피해
-          knockback_strength: "-2.0" # 플레이어를 끌어당김
-# BUG-FIX: 멀리 있을 때만 사용하도록 거리 조건 추가
-condition:
-  type: "DISTANCE_ABOVE"
-  value: "7.0" # 7블록 이상
+      - trigger: ON_SKILL_USE
+        action:
+          type: "DAMAGE"
+          target_selector: "AREA_ENEMY_AROUND_CASTER"
+          parameters:
+            area_radius: "8.0"
+            physical_damage_coeff_attack_power_formula: "5.0"
+            knockback_strength: "-2.0"

@@ -8,11 +8,13 @@ equipment_type: GLOVES
 set_id: "bulwark_set"
 tier: 2
 max_upgrade_level: 20
-unique_effects_on_equip:
-  - type: "LOW_HP_DEFENSE_BUFF"
-    parameters:
-      health_threshold_percent: "0.3" # 체력 30% 이하
-      defense_boost_percent: "0.2"    # 방어력/마법저항력 20% 증가
+effects:
+  - trigger: ON_EQUIP # 이 효과는 주기적으로 체크되므로 ON_EQUIP 또는 PERIODIC으로 처리 가능
+    action:
+      type: "LOW_HP_DEFENSE_BUFF"
+      parameters:
+        health_threshold_percent: "0.3"
+        defense_boost_percent: "0.2"
 statsPerLevel:
   0:  { additiveStats: { MAX_HP: 80.0, DEFENSE_POWER: 30.0, MAGIC_RESISTANCE: 15.0 } }
   1:  { additiveStats: { MAX_HP: 85.0, DEFENSE_POWER: 32.0, MAGIC_RESISTANCE: 16.0 } }

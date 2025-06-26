@@ -8,10 +8,12 @@ equipment_type: CLOAK
 set_id: "slaughterer_set"
 tier: 3
 max_upgrade_level: 30
-unique_effects_on_hit_dealt:
-  - type: "DOUBLE_STRIKE"
-    parameters:
-      chance: "0.07" # 7%로 효과 강화
+effects:
+  - trigger: ON_HIT_DEALT
+    action:
+      type: "DOUBLE_STRIKE"
+      parameters:
+        chance: "0.07"
 statsPerLevel:
   0:  { additiveStats: { CRITICAL_CHANCE: 0.135 } }
   1:  { additiveStats: { CRITICAL_CHANCE: 0.136 } }

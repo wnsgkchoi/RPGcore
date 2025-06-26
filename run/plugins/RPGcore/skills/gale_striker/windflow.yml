@@ -1,7 +1,7 @@
-display_name: "&b풍류"
+display_name: "&b순풍"
 description:
-  - "&7(패시브) 자신의 이동 속도에 비례하여"
-  - "&7모든 최종 데미지가 증가합니다."
+  - "&7(패시브) 공격 시 자신의 이동 속도에 비례하여"
+  - "&7주는 피해량이 증가합니다."
 class_restrictions: [ "gale_striker" ]
 icon_material: "SUGAR"
 skill_type: "PASSIVE"
@@ -10,36 +10,74 @@ max_level: 10
 level_data:
   1:
     effects:
-      - type: "WIND_FLOW_PASSIVE" # 코드에서 이 타입을 식별하여 로직 적용
-        parameters:
-          damage_multiplier_per_speed_point: "0.5" # 추가 이동속도 0.1당 최종 데미지 5% 증가
+      - trigger: ON_HIT_DEALT
+        action:
+          type: "WINDFLOW_DAMAGE_BOOST"
+          parameters:
+            damage_multiplier_per_speed_point: "0.5" # 이동속도 0.1당 최종 데미지 5% 증가
   2:
     effects:
-      - { type: "WIND_FLOW_PASSIVE", parameters: { damage_multiplier_per_speed_point: "0.6" } }
+      - trigger: ON_HIT_DEALT
+        action:
+          type: "WINDFLOW_DAMAGE_BOOST"
+          parameters:
+            damage_multiplier_per_speed_point: "0.6"
   3:
     effects:
-      - { type: "WIND_FLOW_PASSIVE", parameters: { damage_multiplier_per_speed_point: "0.7" } }
+      - trigger: ON_HIT_DEALT
+        action:
+          type: "WINDFLOW_DAMAGE_BOOST"
+          parameters:
+            damage_multiplier_per_speed_point: "0.7"
   4:
     effects:
-      - { type: "WIND_FLOW_PASSIVE", parameters: { damage_multiplier_per_speed_point: "0.8" } }
+      - trigger: ON_HIT_DEALT
+        action:
+          type: "WINDFLOW_DAMAGE_BOOST"
+          parameters:
+            damage_multiplier_per_speed_point: "0.8"
   5:
     effects:
-      - { type: "WIND_FLOW_PASSIVE", parameters: { damage_multiplier_per_speed_point: "0.9" } }
+      - trigger: ON_HIT_DEALT
+        action:
+          type: "WINDFLOW_DAMAGE_BOOST"
+          parameters:
+            damage_multiplier_per_speed_point: "0.9"
   6:
     effects:
-      - { type: "WIND_FLOW_PASSIVE", parameters: { damage_multiplier_per_speed_point: "1.0" } }
+      - trigger: ON_HIT_DEALT
+        action:
+          type: "WINDFLOW_DAMAGE_BOOST"
+          parameters:
+            damage_multiplier_per_speed_point: "1.0"
   7:
     effects:
-      - { type: "WIND_FLOW_PASSIVE", parameters: { damage_multiplier_per_speed_point: "1.1" } }
+      - trigger: ON_HIT_DEALT
+        action:
+          type: "WINDFLOW_DAMAGE_BOOST"
+          parameters:
+            damage_multiplier_per_speed_point: "1.1"
   8:
     effects:
-      - { type: "WIND_FLOW_PASSIVE", parameters: { damage_multiplier_per_speed_point: "1.2" } }
+      - trigger: ON_HIT_DEALT
+        action:
+          type: "WINDFLOW_DAMAGE_BOOST"
+          parameters:
+            damage_multiplier_per_speed_point: "1.2"
   9:
     effects:
-      - { type: "WIND_FLOW_PASSIVE", parameters: { damage_multiplier_per_speed_point: "1.3" } }
+      - trigger: ON_HIT_DEALT
+        action:
+          type: "WINDFLOW_DAMAGE_BOOST"
+          parameters:
+            damage_multiplier_per_speed_point: "1.3"
   10:
     effects:
-      - { type: "WIND_FLOW_PASSIVE", parameters: { damage_multiplier_per_speed_point: "1.5" } }
+      - trigger: ON_HIT_DEALT
+        action:
+          type: "WINDFLOW_DAMAGE_BOOST"
+          parameters:
+            damage_multiplier_per_speed_point: "1.5"
 upgrade_cost_per_level:
   2: 5000
   3: 16875

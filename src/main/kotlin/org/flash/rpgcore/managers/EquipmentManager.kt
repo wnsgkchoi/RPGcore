@@ -11,7 +11,9 @@ import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import org.flash.rpgcore.RPGcore
-import org.flash.rpgcore.equipment.EffectDefinition
+import org.flash.rpgcore.effects.Effect
+import org.flash.rpgcore.effects.EffectAction
+import org.flash.rpgcore.effects.TriggerType
 import org.flash.rpgcore.equipment.EquipmentData
 import org.flash.rpgcore.equipment.EquipmentSlotType
 import org.flash.rpgcore.equipment.EquipmentStats
@@ -93,36 +95,36 @@ object EquipmentManager : IEquipmentManager {
                 }
             }
 
-            val uniqueEffectsOnEquip = parseEffectList(config.getMapList("unique_effects_on_equip"))
-            val uniqueEffectsOnHitDealt = parseEffectList(config.getMapList("unique_effects_on_hit_dealt"))
-            val uniqueEffectsOnHitTaken = parseEffectList(config.getMapList("unique_effects_on_hit_taken"))
-            val uniqueEffectsOnSkillUse = parseEffectList(config.getMapList("unique_effects_on_skill_use"))
-            val uniqueEffectsOnMove = parseEffectList(config.getMapList("unique_effects_on_move")) // <<<<<<< 추가된 로드 로직
+            val effects = mutableListOf<Effect>()
+            config.getMapList("effects")?.forEach { effectMap ->
+                try {
+                    val trigger = TriggerType.valueOf((effectMap["trigger"] as String).uppercase())
+                    @Suppress("UNCHECKED_CAST")
+                    val actionMap = effectMap["action"] as Map<String, Any>
+                    val actionType = actionMap["type"] as String
+                    @Suppress("UNCHECKED_CAST")
+                    val parameters = (actionMap["parameters"] as? Map<String, Any>)
+                        ?.mapValues { it.value.toString() } ?: emptyMap()
+
+                    effects.add(Effect(trigger, EffectAction(actionType, parameters)))
+                } catch (e: Exception) {
+                    logger.warning("[EquipmentManager] Failed to parse an effect in '${file.name}': ${e.message}")
+                }
+            }
+
             val setId = config.getString("set_id")
             val baseCooldownMs = if (config.contains("base_cooldown_ms")) config.getInt("base_cooldown_ms") else null
 
             val equipmentData = EquipmentData(
                 internalId, displayName, material, customModelData, lore, equipmentType, tier,
                 requiredClassInternalIds, maxUpgradeLevel, statsPerLevel, xpCostPerUpgradeLevel,
-                uniqueEffectsOnEquip, uniqueEffectsOnHitDealt, uniqueEffectsOnHitTaken, uniqueEffectsOnSkillUse, uniqueEffectsOnMove, // <<<<<<< 생성자에 추가
+                effects,
                 setId, baseCooldownMs
             )
             equipmentDefinitions[internalId] = equipmentData
         } catch (e: Exception) {
             logger.severe("Critical error loading equipment file '${file.path}': ${e.message}")
         }
-    }
-
-    private fun parseEffectList(mapList: List<Map<*, *>>): List<EffectDefinition> {
-        val effects = mutableListOf<EffectDefinition>()
-        mapList.forEach { effectMap ->
-            val type = effectMap["type"] as? String ?: return@forEach
-            val parameters = (effectMap["parameters"] as? Map<*, *>)
-                ?.mapNotNull { (k, v) -> (k as? String)?.let { key -> v?.toString()?.let { value -> key to value } } }
-                ?.toMap() ?: emptyMap()
-            effects.add(EffectDefinition(type, parameters))
-        }
-        return effects
     }
 
     override fun reloadEquipmentDefinitions() {
@@ -219,16 +221,13 @@ object EquipmentManager : IEquipmentManager {
             }
         }
 
-        // <<<<<<< 고유 효과 Lore 추가 로직 시작 >>>>>>>
-        val allUniqueEffects = definition.uniqueEffectsOnEquip + definition.uniqueEffectsOnHitDealt + definition.uniqueEffectsOnHitTaken + definition.uniqueEffectsOnSkillUse + definition.uniqueEffectsOnMove
-        if (allUniqueEffects.isNotEmpty()) {
+        if (definition.effects.isNotEmpty()) {
             lore.add(" ")
             lore.add(ChatColor.translateAlternateColorCodes('&', "&d[고유 효과]"))
-            allUniqueEffects.forEach { effect ->
-                lore.add(EffectLoreHelper.generateEffectLore(effect))
+            definition.effects.forEach { effect ->
+                lore.add(EffectLoreHelper.generateEffectLore(effect.action))
             }
         }
-        // <<<<<<< 고유 효과 Lore 추가 로직 끝 >>>>>>>
 
         meta.lore = lore
         meta.persistentDataContainer.set(ITEM_ID_KEY, PersistentDataType.STRING, id)

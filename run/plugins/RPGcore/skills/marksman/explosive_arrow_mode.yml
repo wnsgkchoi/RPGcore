@@ -1,0 +1,140 @@
+display_name: "&6폭발 화살 모드"
+description:
+  - "&7(토글) 활성화 시 모든 화살이 폭발하여"
+  - "&7광역 피해를 줍니다. 활성화 중 MP가 지속 소모됩니다."
+class_restrictions: [ "marksman" ]
+icon_material: "TNT"
+skill_type: "ACTIVE"
+behavior: "TOGGLE"
+max_level: 10
+level_data:
+  1:
+    mp_cost: 30 # 활성화 비용
+    cooldown_ticks: 200 # 토글 재사용 대기시간
+    effects:
+      - trigger: ON_SKILL_USE # 스킬 사용 시 토글
+        action:
+          type: "APPLY_CUSTOM_STATUS"
+          parameters:
+            status_id: "explosive_arrow_mode"
+            mp_drain_per_second: "5.0"
+            explosion_radius: "2.0"
+            explosion_damage_coeff_attack_power: "0.4"
+  2:
+    mp_cost: 30
+    cooldown_ticks: 200
+    effects:
+      - trigger: ON_SKILL_USE
+        action:
+          type: "APPLY_CUSTOM_STATUS"
+          parameters:
+            status_id: "explosive_arrow_mode"
+            mp_drain_per_second: "5.0"
+            explosion_radius: "2.2"
+            explosion_damage_coeff_attack_power: "0.45"
+  3:
+    mp_cost: 30
+    cooldown_ticks: 180
+    effects:
+      - trigger: ON_SKILL_USE
+        action:
+          type: "APPLY_CUSTOM_STATUS"
+          parameters:
+            status_id: "explosive_arrow_mode"
+            mp_drain_per_second: "5.0"
+            explosion_radius: "2.4"
+            explosion_damage_coeff_attack_power: "0.5"
+  4:
+    mp_cost: 30
+    cooldown_ticks: 180
+    effects:
+      - trigger: ON_SKILL_USE
+        action:
+          type: "APPLY_CUSTOM_STATUS"
+          parameters:
+            status_id: "explosive_arrow_mode"
+            mp_drain_per_second: "5.0"
+            explosion_radius: "2.6"
+            explosion_damage_coeff_attack_power: "0.55"
+  5:
+    mp_cost: 30
+    cooldown_ticks: 160
+    effects:
+      - trigger: ON_SKILL_USE
+        action:
+          type: "APPLY_CUSTOM_STATUS"
+          parameters:
+            status_id: "explosive_arrow_mode"
+            mp_drain_per_second: "5.0"
+            explosion_radius: "3.0"
+            explosion_damage_coeff_attack_power: "0.6"
+  6:
+    mp_cost: 30
+    cooldown_ticks: 160
+    effects:
+      - trigger: ON_SKILL_USE
+        action:
+          type: "APPLY_CUSTOM_STATUS"
+          parameters:
+            status_id: "explosive_arrow_mode"
+            mp_drain_per_second: "5.0"
+            explosion_radius: "3.2"
+            explosion_damage_coeff_attack_power: "0.65"
+  7:
+    mp_cost: 30
+    cooldown_ticks: 140
+    effects:
+      - trigger: ON_SKILL_USE
+        action:
+          type: "APPLY_CUSTOM_STATUS"
+          parameters:
+            status_id: "explosive_arrow_mode"
+            mp_drain_per_second: "5.0"
+            explosion_radius: "3.4"
+            explosion_damage_coeff_attack_power: "0.7"
+  8:
+    mp_cost: 30
+    cooldown_ticks: 140
+    effects:
+      - trigger: ON_SKILL_USE
+        action:
+          type: "APPLY_CUSTOM_STATUS"
+          parameters:
+            status_id: "explosive_arrow_mode"
+            mp_drain_per_second: "5.0"
+            explosion_radius: "3.6"
+            explosion_damage_coeff_attack_power: "0.75"
+  9:
+    mp_cost: 30
+    cooldown_ticks: 120
+    effects:
+      - trigger: ON_SKILL_USE
+        action:
+          type: "APPLY_CUSTOM_STATUS"
+          parameters:
+            status_id: "explosive_arrow_mode"
+            mp_drain_per_second: "5.0"
+            explosion_radius: "3.8"
+            explosion_damage_coeff_attack_power: "0.8"
+  10:
+    mp_cost: 30
+    cooldown_ticks: 100
+    effects:
+      - trigger: ON_SKILL_USE
+        action:
+          type: "APPLY_CUSTOM_STATUS"
+          parameters:
+            status_id: "explosive_arrow_mode"
+            mp_drain_per_second: "5.0"
+            explosion_radius: "4.0"
+            explosion_damage_coeff_attack_power: "0.9"
+upgrade_cost_per_level:
+  2: 5000
+  3: 16875
+  4: 40000
+  5: 78125
+  6: 135000
+  7: 214375
+  8: 320000
+  9: 455625
+  10: 625000
