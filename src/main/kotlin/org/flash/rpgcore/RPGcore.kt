@@ -55,7 +55,6 @@ class RPGcore : JavaPlugin() {
         InfiniteDungeonManager.start()
         AlchemyManager.load()
         ItemManager.load()
-        EffectTriggerManager.registerHandlers()
 
         server.pluginManager.registerEvents(PlayerConnectionListener(), this)
         server.pluginManager.registerEvents(StatGUIListener(), this)
