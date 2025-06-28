@@ -40,7 +40,8 @@ object CombatManager {
 
     fun applyEnvironmentalDamage(victim: Player, damage: Double, cause: EntityDamageEvent.DamageCause) {
         if (GuardianShieldManager.isPlayerProtected(victim)) {
-            GuardianShieldManager.applyDamageToShield(victim.uniqueId, damage, true, cause)
+            // 환경 데미지도 물리/마법 피해를 0으로 하여 실드에 전달
+            GuardianShieldManager.applyDamageToShield(victim.uniqueId, damage, 0.0, cause)
             return
         }
         if (damage <= 0) return
@@ -69,8 +70,8 @@ object CombatManager {
     }
 
     fun handleDamage(damager: LivingEntity, victim: LivingEntity, originalDamage: Double, cause: EntityDamageEvent.DamageCause) {
-        if (victim is Player && GuardianShieldManager.isPlayerProtected(victim)) {
-            GuardianShieldManager.applyDamageToShield(victim.uniqueId, originalDamage, true, cause)
+        // 플레이어 간 피해 비활성화
+        if (damager is Player && victim is Player) {
             return
         }
         calculateAndApplyDamage(damager, victim, 1.0, 0.0, false)
@@ -120,6 +121,7 @@ object CombatManager {
 
         if (victim is Player) {
             if (StatusEffectManager.hasStatus(victim, "offensive_stance")) {
+                // 강공 태세 시 무적 시간 없음
             } else if (System.currentTimeMillis() - (lastPlayerDamageTime[victim.uniqueId] ?: 0L) < PLAYER_INVINCIBILITY_MILLIS) {
                 return
             }
@@ -187,6 +189,12 @@ object CombatManager {
         var totalDamage = physicalDamage + magicalDamage
         if (totalDamage <= 0) return
         var doubleStrikeWillProc = false
+
+        // 수호의 맹세 효과 적용
+        if (victim is Player && GuardianShieldManager.isPlayerProtected(victim)) {
+            GuardianShieldManager.applyDamageToShield(victim.uniqueId, physicalDamage, magicalDamage, EntityDamageEvent.DamageCause.CUSTOM)
+            return // 데미지를 실드가 흡수했으므로 함수 종료
+        }
 
         if (isReflection) {
             damager.setMetadata("rpgcore_reflected_damage", FixedMetadataValue(plugin, true))
@@ -435,6 +443,7 @@ object CombatManager {
         }
 
         if (reflectionDamage > 0) {
+            recordDamage(victim, damager)
             victim.sendMessage("§f[반사] §e${damager.name}§f에게 §c${reflectionDamage.toInt()}§f의 피해를 되돌려주었습니다!")
             applyFinalDamage(victim, damager, reflectionDamage, 0.0, false, true, true)
         }

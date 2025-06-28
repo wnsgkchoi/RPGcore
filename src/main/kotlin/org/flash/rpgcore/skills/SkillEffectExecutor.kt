@@ -48,9 +48,13 @@ object SkillEffectExecutor {
 
         val levelData = skillData.levelData[level] ?: return
 
-        // DASH 스킬을 ID 대신 behavior로 처리
         if (skillData.behavior.equals("DASH", ignoreCase = true)) {
-            applyDash(caster, skillData, level)
+            // SHIELD_CHARGE는 특별한 로직을 사용
+            if (skillData.internalId == "shield_charge") {
+                applyShieldCharge(caster, skillData.levelData[level]!!.effects.first())
+            } else {
+                applyDash(caster, skillData, level)
+            }
             return
         }
 
@@ -77,7 +81,6 @@ object SkillEffectExecutor {
         }
     }
 
-    // applyWindSlash와 applyBackstep을 통합한 일반 Dash 핸들러
     private fun applyDash(caster: Player, skillData: RPGSkillData, level: Int) {
         dashingPlayers[caster.uniqueId]?.cancel()
         val effects = skillData.levelData[level]?.effects ?: return

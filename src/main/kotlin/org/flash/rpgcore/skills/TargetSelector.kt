@@ -79,7 +79,7 @@ object TargetSelector {
     // BUG-FIX: 다른 패키지에서 참조할 수 있도록 private에서 internal로 변경
     internal fun isHostile(entity: LivingEntity, perspective: LivingEntity): Boolean {
         return when (perspective) {
-            is Player -> entity is Monster || entity is Slime || entity is Ghast || entity is Phantom || EntityManager.getEntityData(entity) != null
+            is Player -> entity !is Player && (entity is Monster || entity is Slime || entity is Ghast || entity is Phantom || EntityManager.getEntityData(entity) != null)
             else -> entity is Player
         }
     }

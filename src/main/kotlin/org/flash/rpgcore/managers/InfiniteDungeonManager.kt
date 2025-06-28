@@ -353,12 +353,15 @@ object InfiniteDungeonManager {
     }
 
     fun getBossLootTableIdForWave(wave: Int): String? {
-        return when {
-            wave == 10 -> bossLootTables[10]
-            wave == 20 -> bossLootTables[20]
-            wave >= 30 && wave % 10 == 0 -> bossLootTables[30]
-            else -> null
+        // 웨이브 10, 20에 대한 개별 테이블 우선 적용
+        if (bossLootTables.containsKey(wave)) {
+            return bossLootTables[wave]
         }
+        // 30 이상의 10 단위 웨이브는 모두 30레벨 테이블 사용
+        if (wave >= 30 && wave % 10 == 0) {
+            return bossLootTables[30]
+        }
+        return null
     }
 
     fun isPlayerInDungeon(player: Player): Boolean {

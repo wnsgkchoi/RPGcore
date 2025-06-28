@@ -35,7 +35,7 @@ object LootManager {
                 lootTables[tableId] = LootTableData(tableId, dropsList)
             } catch (e: Exception) {
                 logger.severe("[LootManager] Failed to load loot table file ${file.name}: ${e.message}")
-                e.printStackTrace() // 디버깅을 위해 스택 트레이스 출력 추가
+                e.printStackTrace()
             }
         }
         logger.info("[LootManager] Loaded ${lootTables.size} loot tables.")
@@ -79,24 +79,17 @@ object LootManager {
             val finalChance = dropInfo.chance * (1.0 + itemDropRate)
             if (Random.nextDouble(0.0, 1.0) <= finalChance) {
                 if (dropInfo.type == DropType.MULTIPLE_DROP) {
-                    // 중첩된 드롭 리스트 처리
-                    dropInfo.drops?.let {
-                        // 여기서 단 하나만 드롭되도록 로직 구성 (가중치 없는 랜덤 선택)
-                        if (it.isNotEmpty()) {
-                            val selectedDrop = it.random()
-                            processSingleDrop(player, selectedDrop, itemDropRate)
-                        }
-                    }
+                    // 중첩된 드롭 리스트를 재귀적으로 처리
+                    dropInfo.drops?.let { processDropList(player, it, itemDropRate) }
                 } else {
-                    // 단일 아이템 드롭 처리
                     processSingleDrop(player, dropInfo, itemDropRate)
                 }
             }
         }
     }
 
+
     private fun processSingleDrop(player: Player, dropInfo: DropItemInfo, itemDropRate: Double) {
-        // MULTIPLE_DROP은 이미 처리되었으므로, 여기서는 단일 아이템만 처리
         if (dropInfo.type == DropType.MULTIPLE_DROP) return
 
         val amount = if (dropInfo.minAmount >= dropInfo.maxAmount) {

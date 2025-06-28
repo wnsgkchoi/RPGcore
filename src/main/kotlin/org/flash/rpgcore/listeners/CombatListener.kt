@@ -66,11 +66,15 @@ class CombatListener : Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun onGenericPlayerDamage(event: EntityDamageEvent) {
         val victim = event.entity as? Player ?: return
-        if (event is EntityDamageByEntityEvent) return
+        if (event is EntityDamageByEntityEvent) {
+            event.isCancelled = true // Ensure custom handling
+            return
+        }
 
         event.isCancelled = true
         CombatManager.applyEnvironmentalDamage(victim, event.damage, event.cause)
     }
+
 
     @EventHandler
     fun onPlayerDeathInDungeon(event: PlayerDeathEvent) {
@@ -127,56 +131,54 @@ class CombatListener : Listener {
         }
 
         val victim = event.entity as? LivingEntity ?: return
-
-        // 공격자(Damager)가 LivingEntity인지 확인하는 로직
         val damager: LivingEntity? = when (val rawDamager = event.damager) {
             is LivingEntity -> rawDamager
             is Projectile -> rawDamager.shooter as? LivingEntity
             else -> null
         }
 
-        // 공격자가 LivingEntity가 아니면 플러그인 로직을 타지 않음 (바닐라 데미지 허용)
         if (damager == null) {
+            event.isCancelled = true
+            return
+        }
+        if (damager is Player && victim is Player) {
+            event.isCancelled = true
             return
         }
 
-        // 던전 몬스터 간의 팀킬 방지
+        CombatManager.recordDamage(damager, victim)
+
         if (InfiniteDungeonManager.isDungeonMonster(victim.uniqueId) && InfiniteDungeonManager.isDungeonMonster(damager.uniqueId)) {
             event.isCancelled = true
             return
         }
 
-        // 반사 효과에 의한 피해가 다시 반사되는 무한 루프 방지
         if (event.damager.hasMetadata("rpgcore_reflected_damage")) {
             return
         }
 
-        // 투사체 반사 상태이상 처리
         if (victim is LivingEntity && StatusEffectManager.hasStatus(victim, "projectile_reflection") && event.damager is Projectile) {
             val projectile = event.damager as Projectile
             val shooter = projectile.shooter as? LivingEntity
             if (shooter != null) {
                 event.isCancelled = true
-
                 val reflectionVector = shooter.location.toVector().subtract(victim.location.toVector()).normalize()
                 val newProjectile = victim.world.spawn(victim.location.add(0.0, 1.0, 0.0), projectile.javaClass)
                 newProjectile.shooter = victim
                 newProjectile.velocity = reflectionVector.multiply(1.5)
-
                 victim.world.playSound(victim.location, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1.0f, 1.5f)
                 projectile.remove()
                 return
             }
         }
 
-        // 피격자 관련 효과 처리
         if (victim is Player) {
             val playerData = PlayerDataManager.getPlayerData(victim)
             playerData.lastDamagedTime = System.currentTimeMillis()
             handleOnHitTakenEffects(victim)
+            victim.health = victim.getAttribute(Attribute.MAX_HEALTH)?.value ?: 20.0
         }
 
-        // 데미지 처리 로직을 CombatManager로 완전히 위임
         event.isCancelled = true
         CombatManager.handleDamage(damager, victim, event.damage, event.cause)
     }
@@ -230,16 +232,9 @@ class CombatListener : Listener {
         event.droppedExp = 0
 
         val customEntityData = EntityManager.getEntityData(victim)
-        val killer: Player?
-
         val killerUUID = CombatManager.getAndClearLastDamager(victim) ?: victim.killer?.uniqueId
+        val killer = killerUUID?.let { Bukkit.getPlayer(it) }
 
-        if (killerUUID == null) {
-            if (customEntityData != null) EntityManager.unregisterEntity(victim)
-            return
-        }
-
-        killer = Bukkit.getPlayer(killerUUID)
         if (killer == null) {
             if (customEntityData != null) EntityManager.unregisterEntity(victim)
             return

@@ -4,7 +4,6 @@ import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
-import org.bukkit.Sound
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder
@@ -16,6 +15,7 @@ import org.flash.rpgcore.equipment.EquipmentSlotType
 import org.flash.rpgcore.managers.EquipmentManager
 import org.flash.rpgcore.managers.PlayerDataManager
 import org.flash.rpgcore.managers.SetBonusManager
+import org.flash.rpgcore.stats.StatType
 import org.flash.rpgcore.utils.EffectLoreHelper
 
 class EquipmentGUI(private val player: Player) : InventoryHolder {
@@ -37,6 +37,14 @@ class EquipmentGUI(private val player: Player) : InventoryHolder {
     init {
         inventory = Bukkit.createInventory(this, GUI_SIZE, GUI_TITLE)
         initializeItems()
+    }
+
+    private fun formatStatValue(value: Double, statType: StatType): String {
+        return when {
+            statType.isPercentageBased -> String.format("%.2f%%", value * 100)
+            statType == StatType.ATTACK_SPEED -> String.format("%.2f배", value)
+            else -> value.toInt().toString()
+        }
     }
 
     fun initializeItems() {
@@ -115,10 +123,35 @@ class EquipmentGUI(private val player: Player) : InventoryHolder {
             if (equippedInfo != null) {
                 val definition = equipmentManager.getEquipmentDefinition(equippedInfo.itemInternalId)
                 if (definition != null) {
-                    if (equippedInfo.upgradeLevel < definition.maxUpgradeLevel) {
+                    val currentLevel = equippedInfo.upgradeLevel
+                    upgradeLore.add("&7현재 강화: &e+${currentLevel}")
+
+                    if (currentLevel < definition.maxUpgradeLevel) {
+                        val nextLevel = currentLevel + 1
                         val cost = equipmentManager.getEquipmentUpgradeCost(player, slotType)
-                        upgradeLore.add("&7현재 강화: &e+${equippedInfo.upgradeLevel}")
-                        upgradeLore.add("&7다음 강화: &a+${equippedInfo.upgradeLevel + 1}")
+
+                        upgradeLore.add(" ")
+                        upgradeLore.add("&6--- 강화 후 옵션 (+${nextLevel}) ---")
+
+                        definition.statsPerLevel[nextLevel]?.let { nextStats ->
+                            if (nextStats.additiveStats.isEmpty() && nextStats.multiplicativeStats.isEmpty()) {
+                                upgradeLore.add("&7(스탯 변화 없음)")
+                            } else {
+                                nextStats.additiveStats.forEach { (stat, value) ->
+                                    if (value != 0.0) {
+                                        upgradeLore.add("&9${stat.displayName}: +${formatStatValue(value, stat)}")
+                                    }
+                                }
+                                nextStats.multiplicativeStats.forEach { (stat, value) ->
+                                    if (value != 0.0) {
+                                        upgradeLore.add("&9${stat.displayName}: +${formatStatValue(value, stat)}")
+                                    }
+                                }
+                            }
+                        } ?: upgradeLore.add("&c(다음 레벨 정보 없음)")
+
+
+                        upgradeLore.add(" ")
                         if (cost != Long.MAX_VALUE) {
                             upgradeLore.add("&6필요 XP: &e$cost")
                         } else {
@@ -127,7 +160,8 @@ class EquipmentGUI(private val player: Player) : InventoryHolder {
                         upgradeLore.add(" ")
                         upgradeLore.add("&a우클릭으로 강화")
                     } else {
-                        upgradeLore.add("&c최대 강화 레벨입니다. (+${equippedInfo.upgradeLevel})")
+                        upgradeLore.add(" ")
+                        upgradeLore.add("&c최대 강화 레벨입니다.")
                     }
                 } else {
                     upgradeLore.add("&c알 수 없는 아이템 정보")
@@ -172,12 +206,11 @@ class EquipmentGUI(private val player: Player) : InventoryHolder {
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&6[스탯 보너스]"))
                     statsForTier.additiveStats.forEach { (stat, value) ->
                         if (value != 0.0) {
-                            val formattedValue = if (stat.isPercentageBased) "${String.format("%.0f", value * 100)}%" else value.toInt().toString()
-                            lore.add(ChatColor.translateAlternateColorCodes('&', "&9${stat.displayName}: +$formattedValue"))
+                            lore.add(ChatColor.translateAlternateColorCodes('&', "&9${stat.displayName}: +${formatStatValue(value, stat)}"))
                         }
                     }
                     statsForTier.multiplicativeStats.forEach { (stat, value) ->
-                        if (value != 0.0) lore.add(ChatColor.translateAlternateColorCodes('&', "&9${stat.displayName}: +${String.format("%.0f", value * 100)}%"))
+                        if (value != 0.0) lore.add(ChatColor.translateAlternateColorCodes('&', "&9${stat.displayName}: +${formatStatValue(value, stat)}"))
                     }
                 }
 
