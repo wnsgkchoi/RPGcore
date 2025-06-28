@@ -37,14 +37,14 @@ object GuardianShieldManager {
             return
         }
 
-        val params = skillData.levelData[level]?.effects?.firstOrNull()?.parameters ?: return
+        val params = skillData.levelData[level]?.effects?.firstOrNull()?.action?.parameters ?: return
         val casterLocation = caster.location
 
-        val shieldHpCoeff = params["shield_hp_coeff_max_hp"]?.toString()?.toDoubleOrNull() ?: 0.0
-        val shieldDefCoeff = params["shield_def_coeff_defense"]?.toString()?.toDoubleOrNull() ?: 0.0
-        val shieldResCoeff = params["shield_res_coeff_magic_resistance"]?.toString()?.toDoubleOrNull() ?: 0.0
-        val reflectionCoeff = params["reflection_coeff_spell_power"]?.toString()?.toDoubleOrNull() ?: 0.0
-        val areaRadius = params["area_radius"]?.toString()?.toDoubleOrNull() ?: 8.0
+        val shieldHpCoeff = params["shield_hp_coeff_max_hp"]?.toDoubleOrNull() ?: 0.0
+        val shieldDefCoeff = params["shield_def_coeff_defense"]?.toDoubleOrNull() ?: 0.0
+        val shieldResCoeff = params["shield_res_coeff_magic_resistance"]?.toDoubleOrNull() ?: 0.0
+        val reflectionCoeff = params["reflection_coeff_spell_power"]?.toDoubleOrNull() ?: 0.0
+        val areaRadius = params["area_radius"]?.toDoubleOrNull() ?: 8.0
 
         val casterMaxHp = StatManager.getFinalStatValue(caster, StatType.MAX_HP)
         val casterDef = StatManager.getFinalStatValue(caster, StatType.DEFENSE_POWER)

@@ -102,11 +102,12 @@ object EquipmentManager : IEquipmentManager {
                     @Suppress("UNCHECKED_CAST")
                     val actionMap = effectMap["action"] as Map<String, Any>
                     val actionType = actionMap["type"] as String
+                    val targetSelector = actionMap["target_selector"] as? String ?: "SELF"
                     @Suppress("UNCHECKED_CAST")
                     val parameters = (actionMap["parameters"] as? Map<String, Any>)
                         ?.mapValues { it.value.toString() } ?: emptyMap()
 
-                    effects.add(Effect(trigger, EffectAction(actionType, parameters)))
+                    effects.add(Effect(trigger, EffectAction(actionType, targetSelector, parameters)))
                 } catch (e: Exception) {
                     logger.warning("[EquipmentManager] Failed to parse an effect in '${file.name}': ${e.message}")
                 }

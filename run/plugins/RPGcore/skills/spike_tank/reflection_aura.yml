@@ -10,7 +10,7 @@ max_level: 5
 level_data:
   1:
     effects:
-      - trigger: ON_HIT_TAKEN
+      - trigger: PASSIVE_STAT_MODIFIER
         action:
           type: "REFLECTION_AURA"
           parameters:
@@ -18,7 +18,7 @@ level_data:
             spell_power_reflect_coeff: "0.2"
   2:
     effects:
-      - trigger: ON_HIT_TAKEN
+      - trigger: PASSIVE_STAT_MODIFIER
         action:
           type: "REFLECTION_AURA"
           parameters:
@@ -26,7 +26,7 @@ level_data:
             spell_power_reflect_coeff: "0.25"
   3:
     effects:
-      - trigger: ON_HIT_TAKEN
+      - trigger: PASSIVE_STAT_MODIFIER
         action:
           type: "REFLECTION_AURA"
           parameters:
@@ -34,7 +34,7 @@ level_data:
             spell_power_reflect_coeff: "0.3"
   4:
     effects:
-      - trigger: ON_HIT_TAKEN
+      - trigger: PASSIVE_STAT_MODIFIER
         action:
           type: "REFLECTION_AURA"
           parameters:
@@ -42,7 +42,7 @@ level_data:
             spell_power_reflect_coeff: "0.35"
   5:
     effects:
-      - trigger: ON_HIT_TAKEN
+      - trigger: PASSIVE_STAT_MODIFIER
         action:
           type: "REFLECTION_AURA"
           parameters:

@@ -12,7 +12,6 @@ import org.flash.rpgcore.effects.TriggerType
 import org.flash.rpgcore.player.PlayerData
 import org.flash.rpgcore.providers.ISkillStatProvider
 import org.flash.rpgcore.skills.RPGSkillData
-import org.flash.rpgcore.skills.SkillEffectData
 import org.flash.rpgcore.skills.SkillLevelData
 import org.flash.rpgcore.stats.StatType
 import org.flash.rpgcore.utils.XPHelper
@@ -92,15 +91,22 @@ object SkillManager : ISkillStatProvider {
                         val durationTicks = if (currentLevelSection.contains("duration_ticks")) currentLevelSection.getInt("duration_ticks") else null
                         val maxChannelTicks = if (currentLevelSection.contains("max_channel_ticks")) currentLevelSection.getInt("max_channel_ticks") else null
 
-                        val effectsList = mutableListOf<SkillEffectData>()
+                        val effectsList = mutableListOf<Effect>()
                         currentLevelSection.getMapList("effects")?.forEach { effectMap ->
-                            val type = effectMap["type"] as? String ?: "UNKNOWN_EFFECT"
-                            val targetSelector = effectMap["target_selector"] as? String ?: "SELF"
+                            try {
+                                val trigger = TriggerType.valueOf((effectMap["trigger"] as String).uppercase())
+                                @Suppress("UNCHECKED_CAST")
+                                val actionMap = effectMap["action"] as Map<String, Any>
+                                val actionType = actionMap["type"] as String
+                                val targetSelector = actionMap["target_selector"] as? String ?: "SELF" // target_selector 파싱 추가
+                                @Suppress("UNCHECKED_CAST")
+                                val parameters = (actionMap["parameters"] as? Map<String, Any>)
+                                    ?.mapValues { it.value.toString() } ?: emptyMap()
 
-                            @Suppress("UNCHECKED_CAST")
-                            val parameters = (effectMap["parameters"] as? Map<String, Any>) ?: emptyMap()
-
-                            effectsList.add(SkillEffectData(type, targetSelector, parameters))
+                                effectsList.add(Effect(trigger, EffectAction(actionType, targetSelector, parameters)))
+                            } catch (e: Exception) {
+                                logger.warning("[SkillManager] Failed to parse an effect in skill '$skillInternalId' file: ${e.message}")
+                            }
                         }
                         levelDataMap[level] = SkillLevelData(level, mpCost, cooldownTicks, maxCharges, castTimeTicks, durationTicks, maxChannelTicks, effectsList)
                     }
@@ -132,6 +138,7 @@ object SkillManager : ISkillStatProvider {
 
         } catch (e: Exception) {
             logger.severe("Critical error loading skill file '${file.path}': ${e.message}")
+            e.printStackTrace()
         }
     }
 
@@ -186,8 +193,8 @@ object SkillManager : ISkillStatProvider {
             val skillData = getSkill(skillId)
             if (skillData?.skillType == "PASSIVE") {
                 skillData.levelData[level]?.effects?.forEach { effect ->
-                    if (effect.type == "APPLY_ATTRIBUTE_MODIFIER" && effect.parameters["attribute_id"] == statType.name && effect.parameters["operation"] == "ADD_NUMBER") {
-                        totalBonus += (effect.parameters["amount_formula"] as? Number)?.toDouble() ?: 0.0
+                    if (effect.action.type == "APPLY_ATTRIBUTE_MODIFIER" && effect.action.parameters["attribute_id"] == statType.name && effect.action.parameters["operation"] == "ADD_NUMBER") {
+                        totalBonus += (effect.action.parameters["amount_formula"] as? Number)?.toDouble() ?: 0.0
                     }
                 }
             }
@@ -202,8 +209,8 @@ object SkillManager : ISkillStatProvider {
             val skillData = getSkill(skillId)
             if (skillData?.skillType == "PASSIVE") {
                 skillData.levelData[level]?.effects?.forEach { effect ->
-                    if (effect.type == "APPLY_ATTRIBUTE_MODIFIER" && effect.parameters["attribute_id"] == statType.name && effect.parameters["operation"] == "ADD_PERCENT") {
-                        totalBonus += (effect.parameters["amount_formula"] as? Number)?.toDouble() ?: 0.0
+                    if (effect.action.type == "APPLY_ATTRIBUTE_MODIFIER" && effect.action.parameters["attribute_id"] == statType.name && effect.action.parameters["operation"] == "ADD_PERCENT") {
+                        totalBonus += (effect.action.parameters["amount_formula"] as? Number)?.toDouble() ?: 0.0
                     }
                 }
             }

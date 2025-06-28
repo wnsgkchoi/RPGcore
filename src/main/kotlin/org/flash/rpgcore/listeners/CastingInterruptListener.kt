@@ -8,6 +8,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.player.PlayerMoveEvent
 import org.bukkit.event.player.PlayerQuitEvent
+import org.flash.rpgcore.effects.TriggerType
 import org.flash.rpgcore.equipment.EquipmentSlotType
 import org.flash.rpgcore.managers.CastingManager
 import org.flash.rpgcore.managers.EquipmentManager
@@ -39,17 +40,17 @@ class CastingInterruptListener : Listener {
         val beltInfo = playerData.customEquipment[EquipmentSlotType.BELT] ?: return
         val beltData = EquipmentManager.getEquipmentDefinition(beltInfo.itemInternalId) ?: return
 
-        val effect = beltData.uniqueEffectsOnMove.find { it.type == "COOLDOWN_REDUCTION_ON_MOVE" } ?: return
+        val effect = beltData.effects.find { it.trigger == TriggerType.ON_MOVE && it.action.type == "COOLDOWN_REDUCTION_ON_MOVE" } ?: return
 
         if (StatusEffectManager.hasStatus(player, "next_skill_cdr_buff")) return
 
         val distance = event.from.distance(event.to)
         playerData.distanceTraveledForBeltEffect += distance
 
-        val distancePerTrigger = effect.parameters["distance_per_trigger"]?.toDoubleOrNull() ?: 50.0
+        val distancePerTrigger = effect.action.parameters["distance_per_trigger"]?.toDoubleOrNull() ?: 50.0
 
         if (playerData.distanceTraveledForBeltEffect >= distancePerTrigger) {
-            val reductionSeconds = effect.parameters["reduction_seconds"]?.toDoubleOrNull() ?: 1.0
+            val reductionSeconds = effect.action.parameters["reduction_seconds"]?.toDoubleOrNull() ?: 1.0
 
             StatusEffectManager.applyStatus(
                 caster = player,

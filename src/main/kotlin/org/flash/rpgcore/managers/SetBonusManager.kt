@@ -35,16 +35,14 @@ object SetBonusManager {
                 val requiredPieces = config.getInt("$path.required_pieces", 0)
 
                 val bonusStatsByTier = mutableMapOf<Int, EquipmentStats>()
-                val bonusStatsSection = config.getConfigurationSection("$path.bonus_stats_by_tier")
-                bonusStatsSection?.getKeys(false)?.forEach { tierKey ->
+                config.getConfigurationSection("$path.bonus_stats_by_tier")?.getKeys(false)?.forEach { tierKey ->
                     val tier = tierKey.toInt()
                     val tierPath = "$path.bonus_stats_by_tier.$tierKey"
                     val additiveStats = mutableMapOf<StatType, Double>()
-                    val multiplicativeStats = mutableMapOf<StatType, Double>()
-
                     config.getConfigurationSection("$tierPath.additiveStats")?.getKeys(false)?.forEach { statKey ->
                         additiveStats[StatType.valueOf(statKey.uppercase())] = config.getDouble("$tierPath.additiveStats.$statKey")
                     }
+                    val multiplicativeStats = mutableMapOf<StatType, Double>()
                     config.getConfigurationSection("$tierPath.multiplicativeStats")?.getKeys(false)?.forEach { statKey ->
                         multiplicativeStats[StatType.valueOf(statKey.uppercase())] = config.getDouble("$tierPath.multiplicativeStats.$statKey")
                     }
@@ -52,8 +50,7 @@ object SetBonusManager {
                 }
 
                 val bonusEffectsByTier = mutableMapOf<Int, List<Effect>>()
-                val bonusEffectsSection = config.getConfigurationSection("$path.bonus_effects_by_tier")
-                bonusEffectsSection?.getKeys(false)?.forEach { tierKey ->
+                config.getConfigurationSection("$path.bonus_effects_by_tier")?.getKeys(false)?.forEach { tierKey ->
                     val tier = tierKey.toInt()
                     val effectsList = config.getMapList("$path.bonus_effects_by_tier.$tierKey").mapNotNull { effectMap ->
                         try {
@@ -61,11 +58,12 @@ object SetBonusManager {
                             @Suppress("UNCHECKED_CAST")
                             val actionMap = effectMap["action"] as Map<String, Any>
                             val actionType = actionMap["type"] as String
+                            val targetSelector = actionMap["target_selector"] as? String ?: "SELF"
                             @Suppress("UNCHECKED_CAST")
                             val parameters = (actionMap["parameters"] as? Map<String, Any>)
                                 ?.mapValues { it.value.toString() } ?: emptyMap()
 
-                            Effect(trigger, EffectAction(actionType, parameters))
+                            Effect(trigger, EffectAction(actionType, targetSelector, parameters))
                         } catch (e: Exception) {
                             logger.warning("[SetBonusManager] Failed to parse an effect for set '$setId' tier $tier: ${e.message}")
                             null
@@ -94,14 +92,9 @@ object SetBonusManager {
             }
         }
 
-        val activeBonuses = mutableListOf<SetBonusData>()
-        equippedSetCounts.forEach { (setId, count) ->
-            val setBonusData = loadedSetBonuses[setId]
-            if (setBonusData != null && count >= setBonusData.requiredPieces) {
-                activeBonuses.add(setBonusData)
-            }
+        return loadedSetBonuses.values.filter { setBonusData ->
+            (equippedSetCounts[setBonusData.setId] ?: 0) >= setBonusData.requiredPieces
         }
-        return activeBonuses
     }
 
     fun getActiveSetTier(player: Player, setId: String): Int {

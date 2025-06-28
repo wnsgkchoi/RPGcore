@@ -6,14 +6,19 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerDropItemEvent
+import org.bukkit.event.player.PlayerEvent
 import org.bukkit.event.player.PlayerSwapHandItemsEvent
 import org.bukkit.inventory.ItemStack
 import org.flash.rpgcore.RPGcore
-import org.flash.rpgcore.effects.EffectTriggerManager
 import org.flash.rpgcore.effects.TriggerType
+import org.flash.rpgcore.effects.context.SkillCastEventContext
 import org.flash.rpgcore.effects.handlers.CooldownResetHandler
-import org.flash.rpgcore.managers.*
-import org.flash.rpgcore.skills.SkillEffectExecutor
+import org.flash.rpgcore.managers.ClassManager
+import org.flash.rpgcore.managers.CastingManager
+import org.flash.rpgcore.managers.EffectTriggerManager
+import org.flash.rpgcore.managers.PlayerDataManager
+import org.flash.rpgcore.managers.PlayerScoreboardManager
+import org.flash.rpgcore.managers.SkillManager
 import org.flash.rpgcore.stats.StatManager
 import org.flash.rpgcore.stats.StatType
 
@@ -45,7 +50,7 @@ class SkillKeyListener : Listener {
         val skillId = playerData.equippedActiveSkills["SLOT_F"] ?: return
         event.isCancelled = true
         if (!isWeaponValid(player)) return
-        executeSkillIfPossible(player, skillId)
+        executeSkillIfPossible(player, skillId, event)
     }
 
     @EventHandler
@@ -56,12 +61,12 @@ class SkillKeyListener : Listener {
             val skillId = if (player.isSneaking) playerData.equippedActiveSkills["SLOT_SHIFT_Q"] else playerData.equippedActiveSkills["SLOT_Q"]
             if (skillId != null) {
                 event.isCancelled = true
-                executeSkillIfPossible(player, skillId)
+                executeSkillIfPossible(player, skillId, event)
             }
         }
     }
 
-    private fun executeSkillIfPossible(player: Player, skillId: String) {
+    private fun executeSkillIfPossible(player: Player, skillId: String, causeEvent: PlayerEvent) {
         val playerData = PlayerDataManager.getPlayerData(player)
         val skill = SkillManager.getSkill(skillId) ?: return
         val level = playerData.getLearnedSkillLevel(skillId)
@@ -78,15 +83,13 @@ class SkillKeyListener : Listener {
             return
         }
 
-        // ON_SKILL_USE 트리거를 먼저 발동시켜 선행 효과(쿨타임 초기화 등)를 처리합니다.
-        EffectTriggerManager.fire(TriggerType.ON_SKILL_USE, player, skillId)
+        val context = SkillCastEventContext(causeEvent, player, skillId, level)
+        EffectTriggerManager.fire(TriggerType.ON_SKILL_USE, context)
 
-        // Player 객체에서 직접 메타데이터를 확인합니다.
         val cooldownResetProc = player.hasMetadata(CooldownResetHandler.COOLDOWN_RESET_METADATA_KEY)
         if (cooldownResetProc) {
             player.removeMetadata(CooldownResetHandler.COOLDOWN_RESET_METADATA_KEY, RPGcore.instance)
         } else {
-            // 기존 쿨타임/충전량 체크 로직 수행
             val maxCharges = levelData.maxCharges
             if (maxCharges != null && maxCharges > 0) {
                 val currentCharges = playerData.getSkillCharges(skillId, maxCharges)
@@ -114,7 +117,13 @@ class SkillKeyListener : Listener {
         }
 
         playerData.currentMp -= levelData.mpCost
-        if (levelData.castTimeTicks > 0) CastingManager.startCasting(player, skill, level) else SkillEffectExecutor.execute(player, skillId)
+        if (levelData.castTimeTicks > 0) {
+            CastingManager.startCasting(player, skill, level)
+        } else {
+            // 시전 시간이 없는 스킬은 즉시 효과 발동
+            val skillCastContext = SkillCastEventContext(causeEvent, player, skillId, level)
+            EffectTriggerManager.fire(TriggerType.ON_SKILL_USE, skillCastContext)
+        }
 
         PlayerScoreboardManager.updateScoreboard(player)
     }

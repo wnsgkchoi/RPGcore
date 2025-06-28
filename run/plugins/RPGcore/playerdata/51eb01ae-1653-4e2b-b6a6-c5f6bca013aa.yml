@@ -1,6 +1,6 @@
 player-uuid: 51eb01ae-1653-4e2b-b6a6-c5f6bca013aa
 player-name: TiredFlash
-last-login-timestamp: 1750693674832
+last-login-timestamp: 1751096645482
 current-hp: 5015.0
 current-mp: 5000.0
 current-class-id: spike_tank
@@ -9,18 +9,18 @@ potion-essences: {}
 base-stats:
   MAX_HP: 5000.0
   MAX_MP: 5000.0
-  ATTACK_POWER: 5000.0
-  DEFENSE_POWER: 500.0
-  SPELL_POWER: 1000.0
+  ATTACK_POWER: 1.0
+  DEFENSE_POWER: 5.0
+  SPELL_POWER: 5.0
   MAGIC_RESISTANCE: 500.0
   ATTACK_SPEED: 1.0
-  CRITICAL_CHANCE: 0.0
+  CRITICAL_CHANCE: 0.5
   COOLDOWN_REDUCTION: 0.3
   PHYSICAL_LIFESTEAL: 0.1
   SPELL_LIFESTEAL: 0.1
   XP_GAIN_RATE: 2.0
   ITEM_DROP_RATE: 1.0
-custom-equipment-json: '{"WEAPON":{"itemInternalId":"basic_axe","upgradeLevel":0},"CHESTPLATE":{"itemInternalId":"basic_chestplate","upgradeLevel":0},"LEGGINGS":{"itemInternalId":"basic_leggings","upgradeLevel":0},"BOOTS":{"itemInternalId":"basic_boots","upgradeLevel":0},"HELMET":{"itemInternalId":"basic_helmet","upgradeLevel":0}}'
+custom-equipment-json: '{"CHESTPLATE":{"itemInternalId":"basic_chestplate","upgradeLevel":0},"BELT":{"itemInternalId":"slaughterer_belt_t1","upgradeLevel":0},"BOOTS":{"itemInternalId":"basic_boots","upgradeLevel":0},"HELMET":{"itemInternalId":"basic_helmet","upgradeLevel":0},"CLOAK":{"itemInternalId":"slaughterer_cloak_t1","upgradeLevel":0},"GLOVES":{"itemInternalId":"slaughterer_gloves_t1","upgradeLevel":0},"LEGGINGS":{"itemInternalId":"basic_leggings","upgradeLevel":0},"WEAPON":{"itemInternalId":"basic_axe","upgradeLevel":0}}'
 learned-skills:
   fireball: 1
   iceball: 1
@@ -35,7 +35,7 @@ learned-skills:
   reflection_aura: 5
   grit: 1
   scholars_wisdom: 1
-  tough_body: 1
+  tough_body: 10
   retaliatory_will: 1
   guardians_vow: 1
 equipped-active-skills:

@@ -8,7 +8,6 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
-import org.bukkit.event.block.Action
 import org.bukkit.event.entity.EntityShootBowEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerItemHeldEvent
@@ -18,7 +17,6 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.metadata.FixedMetadataValue
 import org.bukkit.scheduler.BukkitTask
 import org.flash.rpgcore.RPGcore
-import org.flash.rpgcore.listeners.CombatListener.Companion.EXPLOSIVE_ARROW_METADATA
 import org.flash.rpgcore.managers.PlayerDataManager
 import org.flash.rpgcore.managers.SkillManager
 import org.flash.rpgcore.managers.StatusEffectManager
@@ -32,6 +30,7 @@ class BowChargeListener : Listener {
 
     companion object {
         const val CHARGE_LEVEL_METADATA = "rpgcore_charge_level"
+        const val EXPLOSIVE_ARROW_METADATA = "rpgcore_explosive_arrow"
         private val chargingTasks: MutableMap<UUID, BukkitTask> = ConcurrentHashMap()
 
         fun stopCharging(player: Player) {
@@ -54,9 +53,9 @@ class BowChargeListener : Listener {
         if (StatusEffectManager.hasStatus(player, "instant_charge")) return
 
         val skill = SkillManager.getSkill("precision_charging") ?: return
-        val params = skill.levelData[playerData.getLearnedSkillLevel(skill.internalId)]?.effects?.find { it.type == "MANAGE_PRECISION_CHARGING" }?.parameters ?: return
-        val maxLevel = (params["max_charge_level"] as? String)?.toIntOrNull() ?: 5
-        val ticksPerLevel = (params["ticks_per_level"] as? String)?.toLongOrNull() ?: 15L
+        val params = skill.levelData[playerData.getLearnedSkillLevel(skill.internalId)]?.effects?.find { it.action.type == "PRECISION_CHARGING_PASSIVE" }?.action?.parameters ?: return
+        val maxLevel = params["max_charge_level"]?.toIntOrNull() ?: 5
+        val ticksPerLevel = params["ticks_per_level"]?.toLongOrNull() ?: 15L
 
         playerData.isChargingBow = true
         playerData.bowChargeLevel = 0
@@ -98,14 +97,14 @@ class BowChargeListener : Listener {
 
         val skill = SkillManager.getSkill("precision_charging")!!
         val skillLevel = playerData.getLearnedSkillLevel(skill.internalId)
-        val skillParams = skill.levelData[skillLevel]?.effects?.find { it.type == "MANAGE_PRECISION_CHARGING" }?.parameters ?: return
+        val skillParams = skill.levelData[skillLevel]?.effects?.find { it.action.type == "PRECISION_CHARGING_PASSIVE" }?.action?.parameters ?: return
 
         if (StatusEffectManager.hasStatus(player, "instant_charge")) {
-            chargeLevelToApply = (skillParams["max_charge_level"] as? String)?.toIntOrNull() ?: 5
+            chargeLevelToApply = skillParams["max_charge_level"]?.toIntOrNull() ?: 5
             wasCharging = true
         } else if (playerData.isChargingBow) {
             chargeLevelToApply = if (playerData.bowChargeLevel > 0) playerData.bowChargeLevel - 1 else 0
-            val maxLevel = (skillParams["max_charge_level"] as? String)?.toIntOrNull() ?: 5
+            val maxLevel = skillParams["max_charge_level"]?.toIntOrNull() ?: 5
             if (chargeLevelToApply > maxLevel) chargeLevelToApply = maxLevel
             wasCharging = true
         }
@@ -116,17 +115,13 @@ class BowChargeListener : Listener {
         if (wasCharging) {
             newArrow.setMetadata(CHARGE_LEVEL_METADATA, FixedMetadataValue(plugin, chargeLevelToApply))
 
-            val noGravityLevel = (skillParams["no_gravity_level"] as? String)?.toIntOrNull() ?: 99
+            val noGravityLevel = skillParams["no_gravity_level"]?.toIntOrNull() ?: 99
             if (chargeLevelToApply >= noGravityLevel) {
                 newArrow.setGravity(false)
             }
 
-            @Suppress("UNCHECKED_CAST")
-            val chargeEffects = skillParams["charge_level_effects"] as? Map<String, Map<String, String>>
-            val pierceLevel = chargeEffects?.get(chargeLevelToApply.toString())?.get("pierce_level")?.toIntOrNull() ?: 0
-            if (pierceLevel > 0) {
-                newArrow.pierceLevel = pierceLevel
-            }
+            // 파싱 로직 변경 필요 (YAML 구조에 따라)
+            // 현재 precision_charging.yml의 charge_level_effects는 문자열로 되어있어 파싱이 필요함
         }
 
         if (StatusEffectManager.hasStatus(player, "explosive_arrow_mode")) {

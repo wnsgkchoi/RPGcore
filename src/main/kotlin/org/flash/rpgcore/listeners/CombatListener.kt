@@ -16,12 +16,10 @@ import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.entity.ProjectileHitEvent
 import org.flash.rpgcore.RPGcore
-import org.flash.rpgcore.effects.EffectTriggerManager
 import org.flash.rpgcore.effects.TriggerType
-import org.flash.rpgcore.equipment.EquipmentSlotType
+import org.flash.rpgcore.effects.context.CombatEventContext
 import org.flash.rpgcore.managers.*
 import org.flash.rpgcore.player.MonsterEncounterData
-import org.flash.rpgcore.skills.SkillEffectExecutor
 import org.flash.rpgcore.stats.StatManager
 import org.flash.rpgcore.stats.StatType
 import org.flash.rpgcore.utils.XPHelper
@@ -41,7 +39,6 @@ class CombatListener : Listener {
             if (entity.type == EntityType.ZOMBIE || entity.type == EntityType.ZOMBIE_VILLAGER || entity.type == EntityType.DROWNED || entity.type == EntityType.HUSK) return 12
             return 0
         }
-
         return when (entity.type) {
             EntityType.PIG, EntityType.COW, EntityType.SHEEP, EntityType.CHICKEN, EntityType.SQUID -> (1..3).random()
             EntityType.ZOMBIE, EntityType.SKELETON, EntityType.SPIDER, EntityType.CREEPER, EntityType.DROWNED,
@@ -66,12 +63,17 @@ class CombatListener : Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    fun onGenericPlayerDamage(event: EntityDamageEvent) {
+    fun onPlayerDamage(event: EntityDamageEvent) {
         val victim = event.entity as? Player ?: return
-        if (event is EntityDamageByEntityEvent) return
+        if (event is EntityDamageByEntityEvent) {
+            return
+        }
 
+        val originalDamage = event.damage
+        event.damage = 0.0
         event.isCancelled = true
-        CombatManager.applyEnvironmentalDamage(victim, event.damage, event.cause)
+
+        CombatManager.applyEnvironmentalDamage(victim, originalDamage, event.cause)
     }
 
     @EventHandler
@@ -97,7 +99,6 @@ class CombatListener : Listener {
             victim is Player && damager is LivingEntity && EntityManager.getEntityData(damager) != null -> victim
             else -> null
         }
-
         if (player == null) return
 
         val monster = (if (damager !is Player) damager else victim) as? LivingEntity ?: return
@@ -124,113 +125,67 @@ class CombatListener : Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun onEntityDamageByEntity(event: EntityDamageByEntityEvent) {
-        if (event.entity is ArmorStand) {
-            return
-        }
-
+        if (event.entity is ArmorStand) return
         val victim = event.entity as? LivingEntity ?: return
-
-        // 공격자(Damager)가 LivingEntity인지 확인하는 로직
         val damager: LivingEntity? = when (val rawDamager = event.damager) {
             is LivingEntity -> rawDamager
             is Projectile -> rawDamager.shooter as? LivingEntity
             else -> null
         }
+        if (damager == null) return
 
-        if (damager is Player) {
-            EffectTriggerManager.fire(TriggerType.ON_HIT_DEALT, damager, event)
-            if (event.isCritical) { // Bukkit의 기본 치명타 이벤트를 임시로 활용
-                EffectTriggerManager.fire(TriggerType.ON_CRIT_DEALT, damager, event)
-            }
+        val originalDamage = event.damage
+        event.damage = 0.0
+        event.isCancelled = true
+
+        // CombatManager에서 치명타 여부를 반환받음
+        val wasCritical = CombatManager.handleDamage(damager, victim, originalDamage, event.cause)
+
+        val combatContext = CombatEventContext(
+            cause = event,
+            damager = damager,
+            victim = victim,
+            damage = originalDamage,
+            isCritical = wasCritical // CombatManager의 판정 결과를 사용
+        )
+
+        EffectTriggerManager.fire(TriggerType.ON_HIT_DEALT, combatContext)
+        if (wasCritical) {
+            EffectTriggerManager.fire(TriggerType.ON_CRIT_DEALT, combatContext)
         }
+        EffectTriggerManager.fire(TriggerType.ON_HIT_TAKEN, combatContext)
 
-        // 공격자가 LivingEntity가 아니면 플러그인 로직을 타지 않음 (바닐라 데미지 허용)
-        if (damager == null) {
-            return
-        }
-
-        // 던전 몬스터 간의 팀킬 방지
         if (InfiniteDungeonManager.isDungeonMonster(victim.uniqueId) && InfiniteDungeonManager.isDungeonMonster(damager.uniqueId)) {
-            event.isCancelled = true
             return
         }
 
-        // 반사 효과에 의한 피해가 다시 반사되는 무한 루프 방지
         if (event.damager.hasMetadata("rpgcore_reflected_damage")) {
             return
         }
 
-        // 투사체 반사 상태이상 처리
         if (victim is LivingEntity && StatusEffectManager.hasStatus(victim, "projectile_reflection") && event.damager is Projectile) {
             val projectile = event.damager as Projectile
             val shooter = projectile.shooter as? LivingEntity
             if (shooter != null) {
-                event.isCancelled = true
-
                 val reflectionVector = shooter.location.toVector().subtract(victim.location.toVector()).normalize()
                 val newProjectile = victim.world.spawn(victim.location.add(0.0, 1.0, 0.0), projectile.javaClass)
                 newProjectile.shooter = victim
                 newProjectile.velocity = reflectionVector.multiply(1.5)
-
                 victim.world.playSound(victim.location, Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1.0f, 1.5f)
                 projectile.remove()
                 return
             }
         }
 
-        // 피격자 관련 효과 처리
         if (victim is Player) {
             val playerData = PlayerDataManager.getPlayerData(victim)
             playerData.lastDamagedTime = System.currentTimeMillis()
-            handleOnHitTakenEffects(victim)
         }
-
-        // 데미지 처리 로직을 CombatManager로 완전히 위임
-        event.isCancelled = true
-        CombatManager.handleDamage(damager, victim, event.damage, event.cause)
     }
 
     @EventHandler
     fun onProjectileHit(event: ProjectileHitEvent) {
-        val projectile = event.entity
-
-        if (projectile.hasMetadata(SkillEffectExecutor.VOLLEY_ARROW_DAMAGE_KEY)) {
-            projectile.remove()
-            return
-        }
-
-        val onImpactJson = projectile.getMetadata(SkillEffectExecutor.PROJECTILE_ON_IMPACT_KEY).firstOrNull()?.asString()
-        if (onImpactJson != null) {
-            event.isCancelled = true
-            val skillId = projectile.getMetadata(SkillEffectExecutor.PROJECTILE_SKILL_ID_KEY).firstOrNull()?.asString() ?: return
-            val casterIdStr = projectile.getMetadata(SkillEffectExecutor.PROJECTILE_CASTER_UUID_KEY).firstOrNull()?.asString() ?: return
-            val caster = Bukkit.getEntity(UUID.fromString(casterIdStr)) as? LivingEntity ?: return
-            val skillLevel = projectile.getMetadata(SkillEffectExecutor.PROJECTILE_SKILL_LEVEL_KEY).firstOrNull()?.asInt() ?: 1
-            val skill = SkillManager.getSkill(skillId) ?: return
-            val type = object : TypeToken<List<Map<String, Any>>>() {}.type
-            val onImpactEffectMaps: List<Map<*, *>> = gson.fromJson(onImpactJson, type)
-            val hitLocation = event.hitEntity?.location ?: event.hitBlock?.location ?: projectile.location
-            SkillEffectExecutor.executeEffectsFromProjectile(caster, hitLocation, skill, skillLevel, onImpactEffectMaps)
-
-            if (caster is Player) {
-                handleOnAttackSetBonuses(caster)
-            }
-            projectile.remove()
-        }
-
-        if (projectile.hasMetadata(EXPLOSIVE_ARROW_METADATA)) {
-            event.isCancelled = true
-            val shooter = projectile.shooter as? Player ?: return
-            StatusEffectManager.removeStatus(shooter, "explosive_arrow_mode")
-            val skill = SkillManager.getSkill("explosive_arrow") ?: return
-            val level = PlayerDataManager.getPlayerData(shooter).getLearnedSkillLevel(skill.internalId)
-            val effect = skill.levelData[level]?.effects?.find { it.type == "APPLY_CUSTOM_STATUS" } ?: return
-            @Suppress("UNCHECKED_CAST")
-            val onImpactEffectMaps = (effect.parameters["on_impact_effects"] as? List<Map<*,*>>) ?: return
-            val hitLocation = event.hitEntity?.location ?: event.hitBlock?.location ?: projectile.location
-            SkillEffectExecutor.executeEffectsFromProjectile(shooter, hitLocation, skill, level, onImpactEffectMaps)
-            projectile.remove()
-        }
+        // 이 부분은 향후 ProjectileHitHandler로 로직 이전 예정
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -301,52 +256,6 @@ class CombatListener : Listener {
             if (finalAmount > 0) {
                 XPHelper.addTotalExperience(killer, finalAmount)
                 killer.sendMessage("§e+${finalAmount} XP")
-            }
-        }
-    }
-
-    private fun handleOnAttackSetBonuses(player: Player) {
-        val activeBonuses = SetBonusManager.getActiveBonuses(player)
-        if (activeBonuses.isEmpty()) return
-
-        for (setBonus in activeBonuses) {
-            val tier = SetBonusManager.getActiveSetTier(player, setBonus.setId)
-            if (tier == 0) continue
-
-            val effects = setBonus.bonusEffectsByTier[tier] ?: continue
-            for (effect in effects) {
-                if (effect.type == "ON_ATTACK_COOLDOWN_REDUCTION") {
-                    val chance = effect.parameters["chance"]?.toDoubleOrNull() ?: 0.0
-                    if (Random.nextDouble() < chance) {
-                        val reductionTicks = effect.parameters["reduction_ticks"]?.toLongOrNull() ?: 0L
-                        if (reductionTicks > 0) {
-                            val playerData = PlayerDataManager.getPlayerData(player)
-                            playerData.reduceAllCooldowns(reductionTicks * 50)
-                            player.sendActionBar(ChatColor.translateAlternateColorCodes('&', "&b[가속의 유물] §f세트 효과 발동!"))
-                            PlayerScoreboardManager.updateScoreboard(player)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private fun handleOnHitTakenEffects(player: Player) {
-        val playerData = PlayerDataManager.getPlayerData(player)
-        val cloakInfo = playerData.customEquipment[EquipmentSlotType.CLOAK] ?: return
-        val cloakData = EquipmentManager.getEquipmentDefinition(cloakInfo.itemInternalId) ?: return
-
-        for (effect in cloakData.uniqueEffectsOnHitTaken) {
-            if (effect.type == "COOLDOWN_REDUCTION_ON_HIT") {
-                val chance = effect.parameters["chance"]?.toDoubleOrNull() ?: 0.0
-                if (Random.nextDouble() < chance) {
-                    val reductionTicks = effect.parameters["reduction_ticks"]?.toLongOrNull() ?: 0L
-                    if (reductionTicks > 0) {
-                        playerData.reduceAllCooldowns(reductionTicks * 50)
-                        player.sendActionBar(ChatColor.translateAlternateColorCodes('&', "&b[시간 왜곡의 망토] §f효과 발동!"))
-                        PlayerScoreboardManager.updateScoreboard(player)
-                    }
-                }
             }
         }
     }

@@ -5,7 +5,7 @@ import org.bukkit.Sound
 import org.bukkit.attribute.Attribute
 import org.bukkit.entity.Player
 import org.flash.rpgcore.RPGcore
-import org.flash.rpgcore.equipment.EquipmentSlotType
+import org.flash.rpgcore.effects.TriggerType
 import org.flash.rpgcore.managers.*
 import org.flash.rpgcore.providers.IEncyclopediaProvider
 import org.flash.rpgcore.providers.IEquipmentProvider
@@ -15,6 +15,7 @@ import org.flash.rpgcore.utils.IXPHelper
 import org.flash.rpgcore.utils.XPHelper
 import kotlin.math.log
 import kotlin.math.max
+import kotlin.math.min
 
 object StatManager {
 
@@ -28,89 +29,34 @@ object StatManager {
 
     fun getFinalStatPreview(player: Player, statType: StatType, newBaseValue: Double): Double {
         val playerData = PlayerDataManager.getPlayerData(player)
-
         var additiveSum = newBaseValue
         additiveSum += equipmentProvider.getTotalAdditiveStatBonus(player, statType)
-        additiveSum += statusEffectProvider.getTotalAdditiveStatBonus(player, statType)
         additiveSum += skillStatProvider.getTotalAdditiveStatBonus(player, statType)
+        additiveSum += statusEffectProvider.getTotalAdditiveStatBonus(player, statType)
 
-        return when (statType) {
-            StatType.ATTACK_SPEED -> {
-                var totalAttackSpeedStatValue = additiveSum
-                totalAttackSpeedStatValue += statusEffectProvider.getTotalFlatAttackSpeedBonus(player)
-                max(0.1, totalAttackSpeedStatValue)
-            }
-            StatType.CRITICAL_CHANCE, StatType.COOLDOWN_REDUCTION,
-            StatType.PHYSICAL_LIFESTEAL, StatType.SPELL_LIFESTEAL,
-            StatType.XP_GAIN_RATE, StatType.ITEM_DROP_RATE -> {
-                var totalPercentage = additiveSum
-                totalPercentage += encyclopediaProvider.getAdditivePercentageBonus(player, statType)
+        var multiplicativeProduct = 1.0
+        multiplicativeProduct *= (1.0 + equipmentProvider.getTotalMultiplicativePercentBonus(player, statType))
+        multiplicativeProduct *= (1.0 + statusEffectProvider.getTotalMultiplicativePercentBonus(player, statType))
+        multiplicativeProduct *= (1.0 + skillStatProvider.getTotalMultiplicativePercentBonus(player, statType))
+        multiplicativeProduct *= encyclopediaProvider.getGlobalStatMultiplier(player, statType)
 
-                if (statType == StatType.XP_GAIN_RATE) {
-                    val skillLevel = playerData.getLearnedSkillLevel("scholars_wisdom")
-                    if (skillLevel > 0) {
-                        SkillManager.getSkill("scholars_wisdom")?.let { skillData ->
-                            val bonus = skillData.levelData[skillLevel]?.effects?.firstOrNull()?.parameters?.get("xp_gain_bonus_percent")?.toString()?.toDoubleOrNull() ?: 0.0
-                            totalPercentage += (bonus / 100.0)
-                        }
-                    }
+        var finalValue = additiveSum * multiplicativeProduct
+
+        // PASSIVE_STAT_MODIFIER 효과 적용
+        EffectTriggerManager.getEffects(player.uniqueId, TriggerType.PASSIVE_STAT_MODIFIER).forEach { effect ->
+            if (effect.action.type == "APPLY_ATTRIBUTE_MODIFIER" && effect.action.parameters["attribute_id"] == statType.name) {
+                val value = effect.action.parameters["amount_formula"]?.toDoubleOrNull() ?: 0.0
+                when (effect.action.parameters["operation"]) {
+                    "ADD_NUMBER" -> finalValue += value
+                    "ADD_PERCENT" -> finalValue *= (1.0 + value)
                 }
-
-                if (statType == StatType.COOLDOWN_REDUCTION) {
-                    if (playerData.currentClassId == "gale_striker" && playerData.galeRushStacks >= 5) {
-                        SkillManager.getSkill("gale_rush")?.let { skill ->
-                            val level = playerData.getLearnedSkillLevel(skill.internalId)
-                            skill.levelData[level]?.effects?.find { it.type == "MANAGE_GALE_RUSH_STACK" }?.let { effect ->
-                                val cdrPerStack = try { (effect.parameters["cdr_per_stack_percent"] as? String)?.toDouble() ?: 0.0 } catch (e: Exception) { 0.0 }
-                                totalPercentage += playerData.galeRushStacks * cdrPerStack / 100.0
-                            }
-                        }
-                    }
-                }
-
-                if (statType == StatType.CRITICAL_CHANCE) {
-                    SetBonusManager.getActiveBonuses(player).find { it.setId == "slaughterer_set" }?.let { setBonus ->
-                        val tier = SetBonusManager.getActiveSetTier(player, setBonus.setId)
-                        setBonus.bonusEffectsByTier[tier]?.find { it.type == "CRITICAL_BOOST" }?.let { effect ->
-                            totalPercentage += effect.parameters["crit_chance"]?.toDoubleOrNull() ?: 0.0
-                        }
-                    }
-                }
-
-                max(0.0, totalPercentage)
-            }
-            else -> {
-                var multiplicativeProduct = 1.0
-                multiplicativeProduct *= (1.0 + equipmentProvider.getTotalMultiplicativePercentBonus(player, statType))
-                multiplicativeProduct *= (1.0 + statusEffectProvider.getTotalMultiplicativePercentBonus(player, statType))
-                multiplicativeProduct *= (1.0 + skillStatProvider.getTotalMultiplicativePercentBonus(player, statType))
-                multiplicativeProduct *= encyclopediaProvider.getGlobalStatMultiplier(player, statType)
-
-                var finalValue = additiveSum * multiplicativeProduct
-
-                if (statType == StatType.DEFENSE_POWER || statType == StatType.MAGIC_RESISTANCE) {
-                    val glovesInfo = playerData.customEquipment[EquipmentSlotType.GLOVES]
-                    if (glovesInfo != null) {
-                        val glovesData = EquipmentManager.getEquipmentDefinition(glovesInfo.itemInternalId)
-                        glovesData?.uniqueEffectsOnEquip?.find { it.type == "LOW_HP_DEFENSE_BUFF" }?.let { effect ->
-                            val currentMaxHp = getFinalStatValue(player, StatType.MAX_HP)
-                            if (currentMaxHp > 0) {
-                                val healthThreshold = effect.parameters["health_threshold_percent"]?.toDoubleOrNull() ?: 0.3
-                                if ((playerData.currentHp / currentMaxHp) <= healthThreshold) {
-                                    val boostPercent = effect.parameters["defense_boost_percent"]?.toDoubleOrNull() ?: 0.0
-                                    finalValue *= (1.0 + boostPercent)
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (statTypeShouldNotBeNegative(statType)) {
-                    finalValue = max(if (statType == StatType.MAX_HP) 1.0 else 0.0, finalValue)
-                }
-                finalValue
             }
         }
+
+        if (statTypeShouldNotBeNegative(statType)) {
+            finalValue = max(if (statType == StatType.MAX_HP) 1.0 else 0.0, finalValue)
+        }
+        return finalValue
     }
 
     fun getFinalStatValue(player: Player, statType: StatType): Double {
@@ -185,8 +131,8 @@ object StatManager {
         var bonus = 0.0
         SetBonusManager.getActiveBonuses(player).find { it.setId == "slaughterer_set" }?.let { setBonus ->
             val tier = SetBonusManager.getActiveSetTier(player, setBonus.setId)
-            setBonus.bonusEffectsByTier[tier]?.find { it.type == "CRITICAL_BOOST" }?.let { effect ->
-                bonus = effect.parameters["crit_damage"]?.toDoubleOrNull() ?: 0.0
+            setBonus.bonusEffectsByTier[tier]?.find { it.action.type == "CRITICAL_BOOST" }?.let { effect ->
+                bonus = effect.action.parameters["crit_damage"]?.toDoubleOrNull() ?: 0.0
             }
         }
         return bonus

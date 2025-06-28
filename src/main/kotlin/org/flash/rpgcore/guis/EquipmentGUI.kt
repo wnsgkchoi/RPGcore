@@ -186,7 +186,7 @@ class EquipmentGUI(private val player: Player) : InventoryHolder {
                     lore.add(" ")
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&d[고유 효과]"))
                     effectsForTier.forEach { effect ->
-                        lore.add(EffectLoreHelper.generateEffectLore(effect))
+                        lore.add(EffectLoreHelper.generateEffectLore(effect.action))
                     }
                 }
 

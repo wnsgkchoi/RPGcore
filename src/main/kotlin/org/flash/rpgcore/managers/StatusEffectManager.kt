@@ -7,6 +7,7 @@ import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
 import org.bukkit.scheduler.BukkitRunnable
 import org.flash.rpgcore.RPGcore
+import org.flash.rpgcore.effects.TriggerType
 import org.flash.rpgcore.equipment.EquipmentSlotType
 import org.flash.rpgcore.providers.IStatusEffectProvider
 import org.flash.rpgcore.stats.StatType
@@ -26,7 +27,6 @@ object StatusEffectManager : IStatusEffectProvider {
     )
 
     private val activeEffects: MutableMap<UUID, MutableSet<ActiveStatusEffect>> = ConcurrentHashMap()
-
     private val debuffStatusIds = setOf("BURNING", "FREEZING", "PARALYZING")
 
     fun start() {
@@ -56,9 +56,9 @@ object StatusEffectManager : IStatusEffectProvider {
             if (cloakInfo != null) {
                 val cloakData = EquipmentManager.getEquipmentDefinition(cloakInfo.itemInternalId)
                 if (cloakData != null) {
-                    val effect = cloakData.uniqueEffectsOnEquip.find { it.type == "DEBUFF_DURATION_REDUCTION" }
+                    val effect = cloakData.effects.find { it.trigger == TriggerType.ON_EQUIP && it.action.type == "DEBUFF_DURATION_REDUCTION" }
                     if (effect != null) {
-                        val reductionPercent = effect.parameters["reduction_percent"]?.toDoubleOrNull() ?: 0.0
+                        val reductionPercent = effect.action.parameters["reduction_percent"]?.toDoubleOrNull() ?: 0.0
                         finalDurationTicks = (finalDurationTicks * (1.0 - reductionPercent)).toInt()
                         target.sendActionBar(ChatColor.translateAlternateColorCodes('&', "&7[면죄의 장막] §f해로운 효과의 지속시간이 감소합니다!"))
                     }
@@ -117,7 +117,7 @@ object StatusEffectManager : IStatusEffectProvider {
                 if (caster !is Player) return
                 val masterySkill = SkillManager.getSkill("freezing_stack_mastery") ?: return
                 val level = PlayerDataManager.getPlayerData(caster).getLearnedSkillLevel(masterySkill.internalId)
-                val params = masterySkill.levelData[level]?.effects?.find { it.type == "FREEZING_STACK_MASTERY" }?.parameters ?: return
+                val params = masterySkill.levelData[level]?.effects?.find { it.action.type == "FREEZING_STACK_MASTERY" }?.action?.parameters ?: return
 
                 val slowAmount = params["move_speed_reduction_percent"]?.toString()?.toIntOrNull() ?: 20
                 val slowAmplifier = (slowAmount / 15).coerceAtLeast(0)
@@ -134,9 +134,11 @@ object StatusEffectManager : IStatusEffectProvider {
         val playerEffects = activeEffects[player.uniqueId] ?: return 0.0
 
         for (effect in playerEffects) {
+            // 학살자 세트의 공격 속도 버프 처리 로직
             if (effect.statusId == "crit_attack_speed_buff" && statType == StatType.ATTACK_SPEED) {
                 totalBonus += effect.parameters["attack_speed_bonus"]?.toString()?.toDoubleOrNull() ?: 0.0
             }
+            // 여기에 다른 상태 효과들의 합연산 보너스를 추가할 수 있습니다.
         }
         return totalBonus
     }
@@ -145,19 +147,15 @@ object StatusEffectManager : IStatusEffectProvider {
         var totalBonus = 0.0
         val playerData = PlayerDataManager.getPlayerData(player)
 
-        // '전투 열기' (fury_stack) 로직
         if (playerData.currentClassId == "frenzy_dps" && playerData.furyStacks > 0 && statType == StatType.ATTACK_POWER) {
             SkillManager.getSkill("fury_stack")?.let { skillData ->
                 val level = playerData.getLearnedSkillLevel("fury_stack")
-                skillData.levelData[level]?.effects?.find { it.type == "MANAGE_FURY_STACK" }?.parameters?.let { params ->
+                skillData.levelData[level]?.effects?.find { it.action.type == "MANAGE_FURY_STACK" }?.action?.parameters?.let { params ->
                     val percentPerStack = params["attack_power_per_stack"]?.toString()?.toDoubleOrNull() ?: 0.0
                     totalBonus += playerData.furyStacks * percentPerStack / 100.0
                 }
             }
         }
-
-        // 여기에 다른 상태이상으로 인한 곱연산 보너스 로직 추가...
-
         return totalBonus
     }
 
@@ -165,19 +163,15 @@ object StatusEffectManager : IStatusEffectProvider {
         var totalBonus = 0.0
         val playerData = PlayerDataManager.getPlayerData(player)
 
-        // '전투 열기' (fury_stack) 로직
         if (playerData.currentClassId == "frenzy_dps" && playerData.furyStacks > 0) {
             SkillManager.getSkill("fury_stack")?.let { skillData ->
                 val level = playerData.getLearnedSkillLevel("fury_stack")
-                skillData.levelData[level]?.effects?.find { it.type == "MANAGE_FURY_STACK" }?.parameters?.let { params ->
+                skillData.levelData[level]?.effects?.find { it.action.type == "MANAGE_FURY_STACK" }?.action?.parameters?.let { params ->
                     val bonusPer10 = params["attack_speed_per_10_stack"]?.toString()?.toDoubleOrNull() ?: 0.0
                     totalBonus += (playerData.furyStacks / 10) * bonusPer10
                 }
             }
         }
-
-        // 여기에 다른 상태이상으로 인한 합연산 공격속도 보너스 로직 추가...
-
         return totalBonus
     }
 }

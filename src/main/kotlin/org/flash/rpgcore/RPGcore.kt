@@ -9,18 +9,14 @@ import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitRunnable
 import org.flash.rpgcore.commands.RPGCommandExecutor
-import org.flash.rpgcore.effects.EffectTriggerManager
-import org.flash.rpgcore.entities.CustomEntityData
 import org.flash.rpgcore.listeners.*
 import org.flash.rpgcore.managers.*
 import org.flash.rpgcore.monsters.CustomMonsterData
-import org.flash.rpgcore.monsters.MonsterSkillInfo
 import org.flash.rpgcore.monsters.ai.AggroType
 import org.flash.rpgcore.stats.StatManager
 import org.flash.rpgcore.stats.StatType
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.random.Random
 
 class RPGcore : JavaPlugin() {
 
@@ -124,8 +120,8 @@ class RPGcore : JavaPlugin() {
                             val furySkill = SkillManager.getSkill("fury_stack")
                             if (furySkill != null) {
                                 val level = playerData.getLearnedSkillLevel(furySkill.internalId)
-                                val params = furySkill.levelData[level]?.effects?.find { it.type == "MANAGE_FURY_STACK" }?.parameters
-                                val expireMillis = (params?.get("stack_expire_ticks")?.toString()?.toLongOrNull() ?: 60L) * 50L
+                                val params = furySkill.levelData[level]?.effects?.find { it.action.type == "MANAGE_FURY_STACK" }?.action?.parameters
+                                val expireMillis = (params?.get("stack_expire_ticks")?.toLongOrNull() ?: 60L) * 50L
                                 if (System.currentTimeMillis() - playerData.lastFuryActionTime > expireMillis) {
                                     playerData.furyStacks--
                                     needsUpdate = true
@@ -136,9 +132,9 @@ class RPGcore : JavaPlugin() {
                         if (playerData.currentClassId == "gale_striker" && playerData.galeRushStacks > 0) {
                             SkillManager.getSkill("gale_rush")?.let { skill ->
                                 val level = playerData.getLearnedSkillLevel(skill.internalId)
-                                val params = skill.levelData[level]?.effects?.find { it.type == "MANAGE_GALE_RUSH_STACK" }?.parameters
-                                val expireTicks = params?.get("stack_expire_ticks")?.toString()?.toLongOrNull() ?: 100L
-                                val decayAmount = params?.get("stack_decay_amount")?.toString()?.toIntOrNull() ?: 1
+                                val params = skill.levelData[level]?.effects?.find { it.action.type == "MANAGE_GALE_RUSH_STACK" }?.action?.parameters
+                                val expireTicks = params?.get("stack_expire_ticks")?.toLongOrNull() ?: 100L
+                                val decayAmount = params?.get("stack_decay_amount")?.toIntOrNull() ?: 1
                                 if (System.currentTimeMillis() - playerData.lastGaleRushActionTime > expireTicks * 50L) {
                                     playerData.galeRushStacks = (playerData.galeRushStacks - decayAmount).coerceAtLeast(0)
                                     playerData.lastGaleRushActionTime = System.currentTimeMillis()
@@ -150,11 +146,11 @@ class RPGcore : JavaPlugin() {
                         val bulwarkSet = SetBonusManager.getActiveBonuses(player).find { it.setId == "bulwark_set" }
                         if (bulwarkSet != null) {
                             val tier = SetBonusManager.getActiveSetTier(player, "bulwark_set")
-                            val effect = bulwarkSet.bonusEffectsByTier[tier]?.find { it.type == "OUT_OF_COMBAT_SHIELD" }
+                            val effect = bulwarkSet.bonusEffectsByTier[tier]?.find { it.action.type == "OUT_OF_COMBAT_SHIELD" }
                             if (effect != null) {
-                                val checkInterval = (effect.parameters["check_interval_ticks"]?.toLongOrNull() ?: 100L) * 50
+                                val checkInterval = (effect.action.parameters["check_interval_ticks"]?.toLongOrNull() ?: 100L) * 50
                                 if (System.currentTimeMillis() - playerData.lastDamagedTime > checkInterval) {
-                                    val maxShield = StatManager.getFinalStatValue(player, StatType.MAX_HP) * (effect.parameters["shield_percent_max_hp"]?.toDoubleOrNull() ?: 0.0)
+                                    val maxShield = StatManager.getFinalStatValue(player, StatType.MAX_HP) * (effect.action.parameters["shield_percent_max_hp"]?.toDoubleOrNull() ?: 0.0)
                                     if (playerData.currentShield < maxShield) {
                                         playerData.currentShield = maxShield
                                         player.sendActionBar("§7[강철의 보루] §f보호막이 재생성되었습니다.")
@@ -243,7 +239,7 @@ class RPGcore : JavaPlugin() {
                             var skillCasted = false
                             if (monsterDef.skills.isNotEmpty()) {
                                 for (skillInfo in monsterDef.skills.shuffled()) {
-                                    if (isSkillReady(monster, entityData, skillInfo, currentTarget)) {
+                                    if (MonsterSkillManager.isSkillReady(monster, entityData, skillInfo, currentTarget)) {
                                         MonsterSkillManager.castSkill(monster, currentTarget, skillInfo)
                                         skillCasted = true
                                         break
@@ -286,32 +282,6 @@ class RPGcore : JavaPlugin() {
                 val pData = PlayerDataManager.getPlayerData(it)
                 pData.currentHp / StatManager.getFinalStatValue(it, StatType.MAX_HP)
             }
-        }
-    }
-
-    private fun isSkillReady(monster: LivingEntity, entityData: CustomEntityData, skillInfo: MonsterSkillInfo, target: LivingEntity): Boolean {
-        val cooldown = entityData.skillCooldowns[skillInfo.internalId] ?: 0L
-        if (System.currentTimeMillis() < cooldown) return false
-
-        if (Random.nextDouble() > skillInfo.chance) return false
-
-        val condition = skillInfo.condition ?: return true
-
-        return when (condition["type"]?.toString()?.uppercase()) {
-            "HP_BELOW" -> {
-                val value = condition["value"]?.toString()?.toDoubleOrNull() ?: return false
-                val hpRatio = entityData.currentHp / entityData.maxHp
-                if (value < 1.0) hpRatio <= value else entityData.currentHp <= value
-            }
-            "DISTANCE_ABOVE" -> {
-                val value = condition["value"]?.toString()?.toDoubleOrNull() ?: return false
-                monster.location.distanceSquared(target.location) >= value * value
-            }
-            "DISTANCE_BELOW" -> {
-                val value = condition["value"]?.toString()?.toDoubleOrNull() ?: return false
-                monster.location.distanceSquared(target.location) <= value * value
-            }
-            else -> true
         }
     }
 }

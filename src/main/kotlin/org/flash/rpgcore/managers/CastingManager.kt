@@ -5,8 +5,10 @@ import org.bukkit.entity.Player
 import org.bukkit.scheduler.BukkitRunnable
 import org.bukkit.scheduler.BukkitTask
 import org.flash.rpgcore.RPGcore
+import org.flash.rpgcore.managers.EffectTriggerManager
+import org.flash.rpgcore.effects.TriggerType
+import org.flash.rpgcore.effects.context.SkillCastEventContext
 import org.flash.rpgcore.skills.RPGSkillData
-import org.flash.rpgcore.skills.SkillEffectExecutor
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
@@ -17,6 +19,7 @@ object CastingManager {
     private data class CastingInfo(
         val player: Player,
         val skill: RPGSkillData,
+        val level: Int,
         val task: BukkitTask
     )
 
@@ -39,27 +42,25 @@ object CastingManager {
 
         val task = object : BukkitRunnable() {
             override fun run() {
-                // 시전 완료
                 castingPlayers.remove(player.uniqueId)
                 player.sendActionBar(ChatColor.translateAlternateColorCodes('&', "&a${skill.displayName} &f시전 완료!"))
-                SkillEffectExecutor.execute(player, skill.internalId)
+
+                // 수정된 Context 생성
+                val context = SkillCastEventContext(caster = player, skillId = skill.internalId, skillLevel = level)
+                EffectTriggerManager.fire(TriggerType.ON_SKILL_USE, context)
             }
         }.runTaskLater(plugin, castTime)
 
-        castingPlayers[player.uniqueId] = CastingInfo(player, skill, task)
+        castingPlayers[player.uniqueId] = CastingInfo(player, skill, level, task)
     }
 
     fun interruptCasting(player: Player, reason: String) {
-        castingPlayers[player.uniqueId]?.let {
+        castingPlayers.remove(player.uniqueId)?.let {
             it.task.cancel()
-            castingPlayers.remove(player.uniqueId)
             player.sendActionBar(ChatColor.translateAlternateColorCodes('&', "&c시전이 중단되었습니다. ($reason)"))
 
-            // 스킬 쿨타임 및 MP 롤백 (정책에 따라 결정)
-            // 여기서는 쿨타임은 돌려주지 않고, MP는 돌려주는 것으로 가정
             val playerData = PlayerDataManager.getPlayerData(player)
-            val level = playerData.getLearnedSkillLevel(it.skill.internalId)
-            it.skill.levelData[level]?.let { levelData ->
+            it.skill.levelData[it.level]?.let { levelData ->
                 playerData.currentMp += levelData.mpCost
                 PlayerScoreboardManager.updateScoreboard(player)
             }
