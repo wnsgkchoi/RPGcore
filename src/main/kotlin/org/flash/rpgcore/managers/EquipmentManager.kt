@@ -18,13 +18,15 @@ import org.flash.rpgcore.equipment.EquipmentData
 import org.flash.rpgcore.equipment.EquipmentSlotType
 import org.flash.rpgcore.equipment.EquipmentStats
 import org.flash.rpgcore.equipment.EquippedItemInfo
+import org.flash.rpgcore.listeners.PlayerConnectionListener
+import org.flash.rpgcore.providers.IEquipmentProvider
 import org.flash.rpgcore.stats.StatManager
 import org.flash.rpgcore.stats.StatType
 import org.flash.rpgcore.utils.EffectLoreHelper
 import org.flash.rpgcore.utils.XPHelper
 import java.io.File
 
-object EquipmentManager : IEquipmentManager {
+object EquipmentManager : IEquipmentProvider {
 
     private val plugin = RPGcore.instance
     private val logger = plugin.logger
@@ -64,7 +66,7 @@ object EquipmentManager : IEquipmentManager {
             val displayName = ChatColor.translateAlternateColorCodes('&', config.getString("display_name", internalId)!!)
             val material = Material.matchMaterial(config.getString("material", "STONE")!!.uppercase()) ?: Material.STONE
             val customModelData = if (config.contains("custom_model_data")) config.getInt("custom_model_data") else null
-            val lore = config.getStringList("lore").map { ChatColor.translateAlternateColorCodes('&', it) }
+            val lore = config.getStringList("description").map { ChatColor.translateAlternateColorCodes('&', it) }
             val equipmentType = EquipmentSlotType.valueOf(config.getString("equipment_type", "WEAPON")!!.uppercase())
             val tier = config.getInt("tier", 1)
             val requiredClassInternalIds = config.getStringList("required_class_internal_ids")
@@ -96,20 +98,31 @@ object EquipmentManager : IEquipmentManager {
             }
 
             val effects = mutableListOf<Effect>()
-            config.getMapList("effects")?.forEach { effectMap ->
-                try {
-                    val trigger = TriggerType.valueOf((effectMap["trigger"] as String).uppercase())
-                    @Suppress("UNCHECKED_CAST")
-                    val actionMap = effectMap["action"] as Map<String, Any>
-                    val actionType = actionMap["type"] as String
-                    val targetSelector = actionMap["target_selector"] as? String ?: "SELF"
-                    @Suppress("UNCHECKED_CAST")
-                    val parameters = (actionMap["parameters"] as? Map<String, Any>)
-                        ?.mapValues { it.value.toString() } ?: emptyMap()
+            val effectSources = listOf("effects", "unique_effects_on_equip", "unique_effects_on_hit_dealt", "unique_effects_on_hit_taken", "unique_effects_on_skill_use", "unique_effects_on_move")
 
-                    effects.add(Effect(trigger, EffectAction(actionType, targetSelector, parameters)))
-                } catch (e: Exception) {
-                    logger.warning("[EquipmentManager] Failed to parse an effect in '${file.name}': ${e.message}")
+            effectSources.forEach { source ->
+                if (config.isList(source)) {
+                    config.getMapList(source)?.forEach { effectMap ->
+                        try {
+                            // 이펙트 트리거 타입을 소스 이름으로부터 유추하거나, 명시적으로 지정
+                            val triggerName = effectMap["trigger"] as? String ?: source.replace("unique_effects_on_", "").uppercase()
+                            val trigger = TriggerType.valueOf(triggerName)
+
+                            @Suppress("UNCHECKED_CAST")
+                            val actionMap = (effectMap["action"] as? Map<String, Any>) ?: effectMap
+
+                            val actionType = actionMap["type"] as String
+                            val targetSelector = actionMap["target_selector"] as? String ?: "SELF"
+
+                            @Suppress("UNCHECKED_CAST")
+                            val parameters = (actionMap["parameters"] as? Map<String, Any>)
+                                ?.mapValues { it.value.toString() } ?: emptyMap()
+
+                            effects.add(Effect(trigger, EffectAction(actionType, targetSelector, parameters)))
+                        } catch (e: Exception) {
+                            logger.warning("[EquipmentManager] Failed to parse an effect in '${file.name}' from source '$source': ${e.message}")
+                        }
+                    }
                 }
             }
 
@@ -125,6 +138,7 @@ object EquipmentManager : IEquipmentManager {
             equipmentDefinitions[internalId] = equipmentData
         } catch (e: Exception) {
             logger.severe("Critical error loading equipment file '${file.path}': ${e.message}")
+            e.printStackTrace()
         }
     }
 
@@ -286,35 +300,41 @@ object EquipmentManager : IEquipmentManager {
             return false
         }
 
-        val previouslyEquippedInfo = playerData.customEquipment[slot]
-        if (previouslyEquippedInfo != null) {
-            val itemToReturnToInventory = getEquippedItemStack(player, slot)
-            if (itemToReturnToInventory != null) {
-                val leftover = player.inventory.addItem(itemToReturnToInventory)
-                leftover.forEach { (_, item) ->
-                    player.world.dropItemNaturally(player.location, item)
-                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&e[System] &f인벤토리가 가득 차서 이전에 착용 중이던 아이템을 바닥에 드롭했습니다."))
-                }
+        unequipItem(player, slot, false)?.let {
+            player.inventory.addItem(it).takeIf { it.isNotEmpty() }?.forEach { (_, dropped) ->
+                player.world.dropItemNaturally(player.location, dropped)
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&e[System] &f인벤토리가 가득 차서 이전에 착용 중이던 아이템을 바닥에 드롭했습니다."))
             }
         }
 
         playerData.customEquipment[slot] = EquippedItemInfo(itemId, upgradeLevel)
-        StatManager.fullyRecalculateAndApplyStats(player)
-        PlayerDataManager.savePlayerData(player, async = true)
-        logger.info("[EquipmentManager] Player ${player.name} equipped ${definition.displayName} (+${upgradeLevel}) in ${slot.displayName}. Stats recalculated.")
         player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&e[System] &f${definition.displayName}&e 아이템을 장착했습니다."))
         player.playSound(player.location, Sound.ITEM_ARMOR_EQUIP_GENERIC, 1.0f, 1.0f)
+
+        PlayerConnectionListener.updateAllPlayerEffects(player)
+        PlayerDataManager.savePlayerData(player, async = true)
+        logger.info("[EquipmentManager] Player ${player.name} equipped ${definition.displayName} (+${upgradeLevel}) in ${slot.displayName}. Effects and stats recalculated.")
+
         return true
     }
 
     override fun unequipItem(player: Player, slot: EquipmentSlotType): ItemStack? {
+        return unequipItem(player, slot, true)
+    }
+
+    private fun unequipItem(player: Player, slot: EquipmentSlotType, updateEffects: Boolean): ItemStack? {
         val playerData = PlayerDataManager.getPlayerData(player)
         val equippedInfo = playerData.customEquipment[slot] ?: return null
         val itemStackToReturn = getEquippedItemStack(player, slot)
+
         playerData.customEquipment[slot] = null
-        StatManager.fullyRecalculateAndApplyStats(player)
-        PlayerDataManager.savePlayerData(player, async = true)
-        logger.info("[EquipmentManager] Player ${player.name} unequipped item from ${slot.displayName}. Stats recalculated.")
+
+        if (updateEffects) {
+            PlayerConnectionListener.updateAllPlayerEffects(player)
+            PlayerDataManager.savePlayerData(player, async = true)
+            logger.info("[EquipmentManager] Player ${player.name} unequipped item from ${slot.displayName}. Effects and stats recalculated.")
+        }
+
         if (itemStackToReturn != null) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&e[System] &f${itemStackToReturn.itemMeta?.displayName ?: equippedInfo.itemInternalId}&e 아이템을 해제했습니다."))
         }

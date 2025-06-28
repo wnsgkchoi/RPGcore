@@ -8,15 +8,24 @@ import org.bukkit.entity.Phantom
 import org.bukkit.entity.Player
 import org.bukkit.entity.Slime
 import org.flash.rpgcore.effects.Effect
+import org.flash.rpgcore.effects.context.CombatEventContext
+import org.flash.rpgcore.effects.context.EventContext
 import org.flash.rpgcore.managers.EntityManager
 
 object TargetSelector {
 
-    fun findTargets(caster: LivingEntity, effect: Effect, impactLocation: Location? = null): List<LivingEntity> {
+    fun findTargets(caster: LivingEntity, effect: Effect, context: EventContext? = null, impactLocation: Location? = null): List<LivingEntity> {
         val action = effect.action
         val params = action.parameters
         return when (action.targetSelector.uppercase()) {
             "SELF" -> listOf(caster)
+            "TARGET" -> {
+                if (context is CombatEventContext) {
+                    listOf(context.victim)
+                } else {
+                    emptyList()
+                }
+            }
             "SINGLE_ENEMY" -> {
                 val range = params["range"]?.toDoubleOrNull() ?: 10.0
                 val target = caster.getTargetEntity(range.toInt(), false)
@@ -54,7 +63,7 @@ object TargetSelector {
                         angle <= angleRadians
                     }
             }
-            "AREA_ENEMY_IN_PATH" -> {
+            "PATH_ENEMY" -> {
                 val pathLength = params["path_length"]?.toDoubleOrNull() ?: 7.0
                 val pathWidth = params["path_width"]?.toDoubleOrNull() ?: 2.0
                 val startPoint = caster.location.clone()
@@ -78,7 +87,7 @@ object TargetSelector {
         }
     }
 
-    internal fun isHostile(entity: LivingEntity, perspective: LivingEntity): Boolean {
+    private fun isHostile(entity: LivingEntity, perspective: LivingEntity): Boolean {
         return when (perspective) {
             is Player -> entity is Monster || entity is Slime || entity is Ghast || entity is Phantom || EntityManager.getEntityData(entity) != null
             else -> entity is Player

@@ -6,17 +6,12 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.inventory.ClickType
 import org.bukkit.event.inventory.InventoryClickEvent
-import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
-import org.flash.rpgcore.RPGcore
 import org.flash.rpgcore.guis.SkillLibraryGUI
 import org.flash.rpgcore.guis.SkillManagementGUI
 import org.flash.rpgcore.managers.SkillManager
 
 class SkillManagementGUIListener : Listener {
-
-    private val plugin = RPGcore.instance
-    private val logger = plugin.logger
 
     @EventHandler
     fun onInventoryClick(event: InventoryClickEvent) {
@@ -56,17 +51,16 @@ class SkillManagementGUIListener : Listener {
                 }
 
                 if (SkillManager.upgradeSkill(player, skillId)) {
+                    // 강화 성공 시, GUI와 플레이어 효과 모두 갱신
                     holder.refreshDisplay()
+                    PlayerConnectionListener.updateAllPlayerEffects(player)
                 }
             }
 
             "OPEN_SKILL_LIBRARY" -> {
                 if (slotIdentifier.isNullOrEmpty() || slotType.isNullOrEmpty()) {
-                    logger.warning("[SkillManagementGUIListener] Player ${player.name} clicked a change button without slot identifier/type NBT.")
                     return
                 }
-
-                // SkillLibraryGUI를 열도록 수정
                 SkillLibraryGUI(player, slotType, slotIdentifier).open()
             }
         }

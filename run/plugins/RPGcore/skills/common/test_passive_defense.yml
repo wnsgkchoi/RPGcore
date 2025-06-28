@@ -1,0 +1,20 @@
+display_name: "&7[Test] 강철 피부"
+description:
+  - "&7(패시브) 피부를 단련하여 방어력을 영구적으로"
+  - "&7증가시킵니다."
+class_restrictions: [ "common" ]
+icon_material: "IRON_BLOCK"
+skill_type: "PASSIVE"
+behavior: "PASSIVE"
+max_level: 1
+level_data:
+  1:
+    effects:
+      - trigger: "PASSIVE_STAT_MODIFIER"
+        action:
+          type: "APPLY_ATTRIBUTE_MODIFIER"
+          target_selector: "SELF"
+          parameters:
+            attribute_id: "DEFENSE_POWER"
+            operation: "ADD_NUMBER"
+            amount_formula: "10.0"

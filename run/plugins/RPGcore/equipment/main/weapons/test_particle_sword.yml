@@ -1,0 +1,21 @@
+display_name: "&e[Test] 번개 검"
+description:
+  - "&7공격 시 낮은 확률로 번개 파티클이 발생합니다."
+material: "GOLDEN_SWORD"
+equipment_type: WEAPON
+max_upgrade_level: 0
+statsPerLevel:
+  0:  { additiveStats: { ATTACK_POWER: 1.0 } }
+effects:
+  - trigger: ON_HIT_DEALT
+    action:
+      type: "PARTICLE"
+      target_selector: "TARGET"
+      parameters:
+        chance: "0.2" # 20% 확률
+        particle_id: "ELECTRIC_SPARK"
+        count: "30"
+        offset_x: "0.3"
+        offset_y: "0.5"
+        offset_z: "0.3"
+        extra: "0.1"

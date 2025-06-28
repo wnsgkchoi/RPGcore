@@ -7,11 +7,9 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.persistence.PersistentDataType
-import org.flash.rpgcore.RPGcore
 import org.flash.rpgcore.guis.SkillLibraryGUI
 import org.flash.rpgcore.guis.SkillManagementGUI
 import org.flash.rpgcore.managers.PlayerDataManager
-import org.flash.rpgcore.managers.PlayerScoreboardManager
 
 class SkillLibraryGUIListener : Listener {
 
@@ -38,16 +36,11 @@ class SkillLibraryGUIListener : Listener {
         val targetSlotId = persistentData.get(SkillLibraryGUI.TARGET_SLOT_ID_NBT_KEY, PersistentDataType.STRING)
 
         when (action) {
-            "NEXT_PAGE" -> {
+            "NEXT_PAGE", "PREV_PAGE" -> {
                 val currentPage = persistentData.get(SkillLibraryGUI.PAGE_NBT_KEY, PersistentDataType.INTEGER) ?: 0
                 if (targetSlotType != null && targetSlotId != null) {
-                    SkillLibraryGUI(player, targetSlotType, targetSlotId, currentPage + 1).open()
-                }
-            }
-            "PREV_PAGE" -> {
-                val currentPage = persistentData.get(SkillLibraryGUI.PAGE_NBT_KEY, PersistentDataType.INTEGER) ?: 0
-                if (targetSlotType != null && targetSlotId != null) {
-                    SkillLibraryGUI(player, targetSlotType, targetSlotId, currentPage - 1).open()
+                    val newPage = if (action == "NEXT_PAGE") currentPage + 1 else currentPage - 1
+                    SkillLibraryGUI(player, targetSlotType, targetSlotId, newPage).open()
                 }
             }
             "GO_BACK" -> {
@@ -55,27 +48,24 @@ class SkillLibraryGUIListener : Listener {
             }
             "SELECT_SKILL" -> {
                 val skillId = persistentData.get(SkillLibraryGUI.SKILL_ID_NBT_KEY, PersistentDataType.STRING) ?: return
-                val constructorArgs = holder
-                val finalTargetSlotType = constructorArgs.targetSlotType
-                val finalTargetSlotId = constructorArgs.targetSlotIdentifier
                 val playerData = PlayerDataManager.getPlayerData(player)
 
-                if (finalTargetSlotType.equals("ACTIVE", ignoreCase = true)) {
-                    playerData.equipActiveSkill(finalTargetSlotId, skillId)
+                if (holder.targetSlotType.equals("ACTIVE", ignoreCase = true)) {
+                    playerData.equipActiveSkill(holder.targetSlotIdentifier, skillId)
                 } else {
-                    val slotIndex = finalTargetSlotId.toIntOrNull()
+                    val slotIndex = holder.targetSlotIdentifier.toIntOrNull()
                     if (slotIndex != null) {
                         playerData.equipPassiveSkill(slotIndex, skillId)
                     }
                 }
 
-                // --- 수정된 부분 ---
-                PlayerScoreboardManager.updateScoreboard(player) // 스코어보드 즉시 갱신
-                // --- 수정 끝 ---
+                // FIX: 스킬 장착/해제 후 모든 효과와 스탯을 즉시 갱신
+                PlayerConnectionListener.updateAllPlayerEffects(player)
 
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&a[System] &f스킬을 장착했습니다."))
                 player.playSound(player.location, Sound.UI_STONECUTTER_TAKE_RESULT, 1.0f, 1.2f)
 
+                // 갱신된 정보로 스킬 관리창을 다시 엶
                 SkillManagementGUI(player).open()
             }
         }
