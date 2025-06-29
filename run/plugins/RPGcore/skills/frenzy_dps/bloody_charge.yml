@@ -1,0 +1,80 @@
+display_name: "&c피의 돌격"
+description:
+  - "&7전방으로 돌격하며 모든 피해를 경감하고"
+  - "&7경로상의 모든 적을 통과합니다."
+class_restrictions: [ "frenzy_dps" ]
+icon_material: "REDSTONE"
+skill_type: "ACTIVE"
+behavior: "DASH"
+max_level: 10
+level_data:
+  1:
+    mp_cost: 20
+    cooldown_ticks: 200 # 10초
+    max_charge: 2
+    effects:
+      - { type: "BLOODY_CHARGE", parameters: { distance: 6.0, damage_reduction_percent: 30.0 } }
+  2:
+    mp_cost: 20
+    cooldown_ticks: 190
+    max_charge: 2
+    effects:
+      - { type: "BLOODY_CHARGE", parameters: { distance: 6.0, damage_reduction_percent: 35.0 } }
+  3:
+    mp_cost: 20
+    cooldown_ticks: 180
+    max_charge: 2
+    effects:
+      - { type: "BLOODY_CHARGE", parameters: { distance: 6.5, damage_reduction_percent: 40.0 } }
+  4:
+    mp_cost: 22
+    cooldown_ticks: 170
+    max_charge: 3
+    effects:
+      - { type: "BLOODY_CHARGE", parameters: { distance: 6.5, damage_reduction_percent: 45.0 } }
+  5:
+    mp_cost: 22
+    cooldown_ticks: 160
+    max_charge: 3
+    effects:
+      - { type: "BLOODY_CHARGE", parameters: { distance: 7.0, damage_reduction_percent: 50.0 } }
+  6:
+    mp_cost: 24
+    cooldown_ticks: 150
+    max_charge: 3
+    effects:
+      - { type: "BLOODY_CHARGE", parameters: { distance: 7.0, damage_reduction_percent: 55.0 } }
+  7:
+    mp_cost: 24
+    cooldown_ticks: 140
+    max_charge: 4
+    effects:
+      - { type: "BLOODY_CHARGE", parameters: { distance: 7.5, damage_reduction_percent: 60.0 } }
+  8:
+    mp_cost: 26
+    cooldown_ticks: 130
+    max_charge: 4
+    effects:
+      - { type: "BLOODY_CHARGE", parameters: { distance: 7.5, damage_reduction_percent: 65.0 } }
+  9:
+    mp_cost: 28
+    cooldown_ticks: 120
+    max_charge: 4
+    effects:
+      - { type: "BLOODY_CHARGE", parameters: { distance: 8.0, damage_reduction_percent: 70.0 } }
+  10:
+    mp_cost: 30
+    cooldown_ticks: 100
+    max_charge: 5
+    effects:
+      - { type: "BLOODY_CHARGE", parameters: { distance: 8.0, damage_reduction_percent: 80.0 } }
+upgrade_cost_per_level:
+  2: 20000
+  3: 45000
+  4: 80000
+  5: 130000
+  6: 200000
+  7: 300000
+  8: 450000
+  9: 650000
+  10: 900000

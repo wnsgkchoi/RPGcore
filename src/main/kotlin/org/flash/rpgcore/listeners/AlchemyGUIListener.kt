@@ -23,7 +23,7 @@ class AlchemyGUIListener : Listener {
         val extractionSlots = listOf(20, 21, 22, 23, 24, 29, 30, 31, 32, 33)
 
         // 추출 탭의 입력 슬롯이거나 플레이어 인벤토리일 경우, 기본 동작 허용 (아이템 넣고 빼기)
-        if (clickedInventory == alchemyGUI.inventory && event.slot in extractionSlots) {
+        if (alchemyGUI.currentMode == AlchemyGUI.GUIMode.ESSENCE_EXTRACTION && clickedInventory == alchemyGUI.inventory && event.slot in extractionSlots) {
             return
         }
         if (clickedInventory is PlayerInventory) {
@@ -66,7 +66,7 @@ class AlchemyGUIListener : Listener {
 
         // 레시피 클릭 (포션 조합 또는 정수 연성)
         if (recipeId != null) {
-            val allRecipes = AlchemyManager.getPotionRecipes() + AlchemyManager.getEssenceUpgradeRecipes()
+            val allRecipes = AlchemyManager.getAllPotionRecipes()
             val recipe = allRecipes.find { it.recipeId == recipeId }
             if (recipe != null) {
                 if (AlchemyManager.brew(player, recipe)) {

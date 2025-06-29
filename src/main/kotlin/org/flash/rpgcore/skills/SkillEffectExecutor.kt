@@ -48,35 +48,29 @@ object SkillEffectExecutor {
 
         val levelData = skillData.levelData[level] ?: return
 
-        if (skillData.behavior.equals("DASH", ignoreCase = true)) {
-            // SHIELD_CHARGE는 특별한 로직을 사용
-            if (skillData.internalId == "shield_charge") {
-                applyShieldCharge(caster, skillData.levelData[level]!!.effects.first())
-            } else {
-                applyDash(caster, skillData, level)
-            }
-            return
-        }
+        // 데미지 효과를 먼저 처리하기 위해 분리
+        val damageEffects = levelData.effects.filter { it.type.equals("DAMAGE", ignoreCase = true) }
+        val otherEffects = levelData.effects.filter { !it.type.equals("DAMAGE", ignoreCase = true) }
 
-        if (skillData.behavior.equals("TOGGLE", ignoreCase = true)) {
-            val statusEffectData = levelData.effects.firstOrNull { it.type == "APPLY_CUSTOM_STATUS" }
-            if (statusEffectData != null) {
-                val statusId = statusEffectData.parameters["status_id"]?.toString() ?: skillData.internalId
-                if (StatusEffectManager.hasStatus(caster, statusId)) {
-                    StatusEffectManager.removeStatus(caster, statusId)
-                    caster.sendActionBar(ChatColor.translateAlternateColorCodes('&', "&e${skillData.displayName} &f효과가 &c비활성화&f되었습니다."))
-                } else {
-                    handleSingleEffect(caster, caster, statusEffectData, skillData, level)
-                    caster.sendActionBar(ChatColor.translateAlternateColorCodes('&', "&a${skillData.displayName} &f효과가 &a활성화&f되었습니다."))
-                }
-            }
-            return
-        }
-
-        levelData.effects.forEach { effect ->
+        // 데미지 효과 우선 적용
+        damageEffects.forEach { effect ->
+            logger.info("[DEBUG] Executing DAMAGE effect for skill: $skillId") // 디버그 로그
             val targets = TargetSelector.findTargets(caster, effect, null)
+            logger.info("[DEBUG] Found ${targets.size} targets for skill: $skillId") // 디버그 로그
             targets.forEach { target ->
                 handleSingleEffect(caster, target, effect, skillData, level)
+            }
+        }
+
+        // 나머지 효과들 적용
+        otherEffects.forEach { effect ->
+            if (effect.targetSelector.uppercase() == "SELF") {
+                handleSingleEffect(caster, caster, effect, skillData, level)
+            } else {
+                val targets = TargetSelector.findTargets(caster, effect, null)
+                targets.forEach { target ->
+                    handleSingleEffect(caster, target, effect, skillData, level)
+                }
             }
         }
     }
@@ -160,6 +154,7 @@ object SkillEffectExecutor {
             "EMPOWER_NEXT_SHOT" -> if (target == caster) applyEmpowerNextShot(caster, effect)
             "APPLY_RETALIATORY_SHIELD" -> applyRetaliatoryShield(caster, effect, skillData, level)
             "DEPLOY_GUARDIAN_SHIELD" -> GuardianShieldManager.deployShield(caster, skillData, level)
+            "BLOODY_CHARGE" -> if (target == caster) FrenzyDpsSkillHandler.handleBloodyCharge(caster, effect.parameters)
             else -> logger.warning("[SkillEffectExecutor] Unknown effect type: ${effect.type}")
         }
     }
@@ -247,7 +242,7 @@ object SkillEffectExecutor {
         val invincibilityTicks = params["invincibility_duration_ticks"]?.toString()?.toLongOrNull() ?: 0L
 
         if (invincibilityTicks > 0) {
-            StatusEffectManager.applyStatus(caster, caster, "invincibility", invincibilityTicks.toInt(), emptyMap())
+            StatusEffectManager.applyStatus(caster, caster, "invincibility", invincibilityTicks.toInt())
         }
 
         val task = object : BukkitRunnable() {

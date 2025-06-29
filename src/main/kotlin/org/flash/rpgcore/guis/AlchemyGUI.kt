@@ -18,7 +18,7 @@ import org.flash.rpgcore.managers.ItemManager
 import org.flash.rpgcore.managers.PlayerDataManager
 import org.flash.rpgcore.managers.PotionRecipeData
 
-class AlchemyGUI(private val player: Player, private var currentMode: GUIMode = GUIMode.POTION_BREWING) : InventoryHolder {
+class AlchemyGUI(private val player: Player, val currentMode: GUIMode = GUIMode.POTION_BREWING) : InventoryHolder {
 
     private val inventory: Inventory
 

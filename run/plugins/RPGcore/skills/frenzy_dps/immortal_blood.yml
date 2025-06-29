@@ -1,0 +1,70 @@
+display_name: "&4불사혈공"
+description:
+  - "&7죽음에 이르는 피해를 받으면 체력을 회복하고"
+  - "&7주변에 강력한 폭발을 일으키며 잠시 무적이 됩니다."
+class_restrictions: [ "frenzy_dps" ]
+icon_material: "TOTEM_OF_UNDYING"
+skill_type: "PASSIVE"
+behavior: "TRIGGERED_BUFF"
+max_level: 15
+level_data:
+  1:
+    effects:
+      - { type: "IMMORTAL_BLOOD", parameters: { cooldown_seconds: 600, heal_percent_max_hp: 20.0, explosion_damage_coeff_max_hp: 0.5, explosion_damage_coeff_attack_power: 1.0, invincibility_ticks: 100 } }
+  2:
+    effects:
+      - { type: "IMMORTAL_BLOOD", parameters: { cooldown_seconds: 580, heal_percent_max_hp: 22.0, explosion_damage_coeff_max_hp: 0.55, explosion_damage_coeff_attack_power: 1.1, invincibility_ticks: 100 } }
+  3:
+    effects:
+      - { type: "IMMORTAL_BLOOD", parameters: { cooldown_seconds: 560, heal_percent_max_hp: 24.0, explosion_damage_coeff_max_hp: 0.6, explosion_damage_coeff_attack_power: 1.2, invincibility_ticks: 100 } }
+  4:
+    effects:
+      - { type: "IMMORTAL_BLOOD", parameters: { cooldown_seconds: 540, heal_percent_max_hp: 26.0, explosion_damage_coeff_max_hp: 0.65, explosion_damage_coeff_attack_power: 1.3, invincibility_ticks: 100 } }
+  5:
+    effects:
+      - { type: "IMMORTAL_BLOOD", parameters: { cooldown_seconds: 520, heal_percent_max_hp: 30.0, explosion_damage_coeff_max_hp: 0.7, explosion_damage_coeff_attack_power: 1.4, invincibility_ticks: 100 } }
+  6:
+    effects:
+      - { type: "IMMORTAL_BLOOD", parameters: { cooldown_seconds: 500, heal_percent_max_hp: 34.0, explosion_damage_coeff_max_hp: 0.75, explosion_damage_coeff_attack_power: 1.5, invincibility_ticks: 100 } }
+  7:
+    effects:
+      - { type: "IMMORTAL_BLOOD", parameters: { cooldown_seconds: 480, heal_percent_max_hp: 38.0, explosion_damage_coeff_max_hp: 0.8, explosion_damage_coeff_attack_power: 1.6, invincibility_ticks: 100 } }
+  8:
+    effects:
+      - { type: "IMMORTAL_BLOOD", parameters: { cooldown_seconds: 460, heal_percent_max_hp: 42.0, explosion_damage_coeff_max_hp: 0.85, explosion_damage_coeff_attack_power: 1.7, invincibility_ticks: 100 } }
+  9:
+    effects:
+      - { type: "IMMORTAL_BLOOD", parameters: { cooldown_seconds: 440, heal_percent_max_hp: 46.0, explosion_damage_coeff_max_hp: 0.9, explosion_damage_coeff_attack_power: 1.8, invincibility_ticks: 100 } }
+  10:
+    effects:
+      - { type: "IMMORTAL_BLOOD", parameters: { cooldown_seconds: 400, heal_percent_max_hp: 50.0, explosion_damage_coeff_max_hp: 1.0, explosion_damage_coeff_attack_power: 2.0, invincibility_ticks: 100 } }
+  11:
+    effects:
+      - { type: "IMMORTAL_BLOOD", parameters: { cooldown_seconds: 380, heal_percent_max_hp: 55.0, explosion_damage_coeff_max_hp: 1.1, explosion_damage_coeff_attack_power: 2.2, invincibility_ticks: 100 } }
+  12:
+    effects:
+      - { type: "IMMORTAL_BLOOD", parameters: { cooldown_seconds: 360, heal_percent_max_hp: 60.0, explosion_damage_coeff_max_hp: 1.2, explosion_damage_coeff_attack_power: 2.4, invincibility_ticks: 100 } }
+  13:
+    effects:
+      - { type: "IMMORTAL_BLOOD", parameters: { cooldown_seconds: 340, heal_percent_max_hp: 65.0, explosion_damage_coeff_max_hp: 1.3, explosion_damage_coeff_attack_power: 2.6, invincibility_ticks: 100 } }
+  14:
+    effects:
+      - { type: "IMMORTAL_BLOOD", parameters: { cooldown_seconds: 320, heal_percent_max_hp: 70.0, explosion_damage_coeff_max_hp: 1.4, explosion_damage_coeff_attack_power: 2.8, invincibility_ticks: 100 } }
+  15:
+    effects:
+      - { type: "IMMORTAL_BLOOD", parameters: { cooldown_seconds: 300, heal_percent_max_hp: 80.0, explosion_damage_coeff_max_hp: 1.5, explosion_damage_coeff_attack_power: 3.0, invincibility_ticks: 100 } }
+upgrade_cost_per_level:
+  2: 500000
+  3: 1200000
+  4: 2200000
+  5: 3500000
+  6: 5200000
+  7: 7500000
+  8: 10500000
+  9: 14500000
+  10: 20000000
+  11: 27000000
+  12: 36000000
+  13: 47000000
+  14: 60000000
+  15: 75000000

@@ -98,11 +98,12 @@ class SkillKeyListener : Listener {
             // 충전식 스킬 로직
             val currentCharges = playerData.getSkillCharges(skillId, maxCharges)
             if (currentCharges > 0) {
-                if (currentCharges == maxCharges) {
+                playerData.useSkillCharge(skillId)
+                // 만약 재충전 쿨다운이 돌고 있지 않다면, 지금 시작
+                if (!playerData.isOnChargeCooldown(skillId)) {
                     val cooldown = levelData.cooldownTicks.toLong() * 50
                     playerData.startChargeCooldown(skillId, System.currentTimeMillis() + cooldown)
                 }
-                playerData.useSkillCharge(skillId)
             } else {
                 val remaining = playerData.getRemainingChargeCooldownMillis(skillId) / 1000.0
                 player.sendMessage("§c재충전 중입니다. (${String.format("%.1f", remaining)}초)")
@@ -123,7 +124,6 @@ class SkillKeyListener : Listener {
         playerData.currentMp -= levelData.mpCost
         if (handleCooldownResetEffect(player)) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&b[신속의 손길] §f재사용 대기시간이 초기화되었습니다!"))
-            // 여기서 쿨타임/충전량 초기화 로직 추가 가능
         }
 
         if (levelData.castTimeTicks > 0) CastingManager.startCasting(player, skill, level) else SkillEffectExecutor.execute(player, skillId)

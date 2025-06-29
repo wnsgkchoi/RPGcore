@@ -1,0 +1,69 @@
+display_name: "&c혈식"
+description:
+  - "&710초 동안 모든 물리 공격에 흡혈 효과를 부여합니다."
+class_restrictions: [ "frenzy_dps" ]
+icon_material: "REDSTONE_BLOCK"
+skill_type: "ACTIVE"
+behavior: "BUFF"
+max_level: 10
+level_data:
+  1:
+    mp_cost: 50
+    cooldown_ticks: 400 # 20초
+    effects:
+      - { type: "APPLY_CUSTOM_STATUS", parameters: { status_id: "bloodthirst", duration_ticks: 200, lifesteal_percent: 10.0 } }
+  2:
+    mp_cost: 50
+    cooldown_ticks: 380
+    effects:
+      - { type: "APPLY_CUSTOM_STATUS", parameters: { status_id: "bloodthirst", duration_ticks: 200, lifesteal_percent: 15.0 } }
+  3:
+    mp_cost: 55
+    cooldown_ticks: 360
+    effects:
+      - { type: "APPLY_CUSTOM_STATUS", parameters: { status_id: "bloodthirst", duration_ticks: 200, lifesteal_percent: 20.0 } }
+  4:
+    mp_cost: 55
+    cooldown_ticks: 340
+    effects:
+      - { type: "APPLY_CUSTOM_STATUS", parameters: { status_id: "bloodthirst", duration_ticks: 200, lifesteal_percent: 25.0 } }
+  5:
+    mp_cost: 60
+    cooldown_ticks: 320
+    effects:
+      - { type: "APPLY_CUSTOM_STATUS", parameters: { status_id: "bloodthirst", duration_ticks: 200, lifesteal_percent: 30.0 } }
+  6:
+    mp_cost: 60
+    cooldown_ticks: 300
+    effects:
+      - { type: "APPLY_CUSTOM_STATUS", parameters: { status_id: "bloodthirst", duration_ticks: 200, lifesteal_percent: 35.0 } }
+  7:
+    mp_cost: 65
+    cooldown_ticks: 280
+    effects:
+      - { type: "APPLY_CUSTOM_STATUS", parameters: { status_id: "bloodthirst", duration_ticks: 200, lifesteal_percent: 40.0 } }
+  8:
+    mp_cost: 70
+    cooldown_ticks: 260
+    effects:
+      - { type: "APPLY_CUSTOM_STATUS", parameters: { status_id: "bloodthirst", duration_ticks: 200, lifesteal_percent: 45.0 } }
+  9:
+    mp_cost: 75
+    cooldown_ticks: 240
+    effects:
+      - { type: "APPLY_CUSTOM_STATUS", parameters: { status_id: "bloodthirst", duration_ticks: 200, lifesteal_percent: 50.0 } }
+  10:
+    mp_cost: 80
+    cooldown_ticks: 200
+    effects:
+      - { type: "APPLY_CUSTOM_STATUS", parameters: { status_id: "bloodthirst", duration_ticks: 200, lifesteal_percent: 60.0 } }
+upgrade_cost_per_level:
+  2: 25000
+  3: 50000
+  4: 90000
+  5: 150000
+  6: 250000
+  7: 400000
+  8: 600000
+  9: 900000
+  10: 1300000

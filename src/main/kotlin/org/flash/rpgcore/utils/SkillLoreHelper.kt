@@ -88,6 +88,25 @@ object SkillLoreHelper {
                 val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
                 "&7피격 시, &e${(params["buff_duration_ticks"]?.toString()?.toIntOrNull() ?: 0) / 20}초&7 안에 가하는 다음 공격의 최종 데미지가 &c${params["damage_multiplier_on_next_hit"]}배&7 증가합니다."
             }
+            "bloody_charge" -> {
+                val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
+                val maxCharges = levelSpecificData.maxCharges ?: 1
+                val distance = params["distance"]?.toString()?.toDoubleOrNull() ?: 0.0
+                val reduction = params["damage_reduction_percent"]?.toString()?.toDoubleOrNull() ?: 0.0
+                "&7최대 &e${maxCharges}회&7까지 충전 가능. 전방 &e${distance}칸&7을 돌격하며, 돌격하는 동안 받는 모든 피해가 &a${reduction}%&7 감소합니다. 경로 상의 적을 통과합니다."
+            }
+            "bloodthirst" -> {
+                val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
+                val duration = (params["duration_ticks"]?.toString()?.toIntOrNull() ?: 0) / 20
+                val lifesteal = params["lifesteal_percent"]?.toString()?.toDoubleOrNull() ?: 0.0
+                "&e${duration}초&7 동안 모든 공격에 &c${lifesteal}%&7의 물리 흡혈 효과를 부여합니다."
+            }
+            "immortal_blood" -> {
+                val params = levelSpecificData.effects.firstOrNull()?.parameters ?: return skillData.description
+                val cooldown = params["cooldown_seconds"]?.toString()?.toLongOrNull() ?: 0
+                val heal = params["heal_percent_max_hp"]?.toString()?.toDoubleOrNull() ?: 0.0
+                "&7죽음에 이르는 피해를 받으면 즉시 최대 체력의 &a${heal}%&7를 회복하고 주변에 폭발을 일으키며, &e5초&7간 무적이 됩니다. (재사용 대기시간: &e${cooldown}초&7)"
+            }
 
             // 철마수
             "reflection_aura" -> {

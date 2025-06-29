@@ -10,6 +10,7 @@ import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.metadata.FixedMetadataValue
 import org.flash.rpgcore.RPGcore
 import org.flash.rpgcore.equipment.EquipmentSlotType
+import org.flash.rpgcore.skills.FrenzyDpsSkillHandler
 import org.flash.rpgcore.skills.SkillEffectData
 import org.flash.rpgcore.stats.StatManager
 import org.flash.rpgcore.stats.StatType
@@ -27,11 +28,10 @@ object CombatManager {
     private val lastPlayerDamageTime: MutableMap<UUID, Long> = ConcurrentHashMap()
     private val lastDamagerMap: MutableMap<UUID, UUID> = ConcurrentHashMap()
     private const val PLAYER_INVINCIBILITY_MILLIS = 500L
+    const val CUSTOM_DAMAGE_META = "rpgcore_damage_in_progress"
 
     fun recordDamage(damager: LivingEntity, victim: LivingEntity) {
-        if (damager is Player) {
-            lastDamagerMap[victim.uniqueId] = damager.uniqueId
-        }
+        lastDamagerMap[victim.uniqueId] = damager.uniqueId
     }
 
     fun getAndClearLastDamager(victim: LivingEntity): UUID? {
@@ -40,7 +40,6 @@ object CombatManager {
 
     fun applyEnvironmentalDamage(victim: Player, damage: Double, cause: EntityDamageEvent.DamageCause) {
         if (GuardianShieldManager.isPlayerProtected(victim)) {
-            // 환경 데미지도 물리/마법 피해를 0으로 하여 실드에 전달
             GuardianShieldManager.applyDamageToShield(victim.uniqueId, damage, 0.0, cause)
             return
         }
@@ -60,6 +59,9 @@ object CombatManager {
             PlayerScoreboardManager.updateScoreboard(victim)
         }
         if (remainingDamage <= 0) return
+
+        if (FrenzyDpsSkillHandler.handleImmortalBlood(victim, remainingDamage)) return
+
         val newHp = playerData.currentHp - remainingDamage
         playerData.currentHp = max(0.0, newHp)
         victim.sendMessage("§7환경으로부터 §c${damage.toInt()}§7의 피해를 입었습니다! (남은 체력: §e${playerData.currentHp.toInt()}§7)")
@@ -70,10 +72,7 @@ object CombatManager {
     }
 
     fun handleDamage(damager: LivingEntity, victim: LivingEntity, originalDamage: Double, cause: EntityDamageEvent.DamageCause) {
-        // 플레이어 간 피해 비활성화
-        if (damager is Player && victim is Player) {
-            return
-        }
+        if (damager is Player && victim is Player) return
         calculateAndApplyDamage(damager, victim, 1.0, 0.0, false)
     }
 
@@ -121,7 +120,6 @@ object CombatManager {
 
         if (victim is Player) {
             if (StatusEffectManager.hasStatus(victim, "offensive_stance")) {
-                // 강공 태세 시 무적 시간 없음
             } else if (System.currentTimeMillis() - (lastPlayerDamageTime[victim.uniqueId] ?: 0L) < PLAYER_INVINCIBILITY_MILLIS) {
                 return
             }
@@ -190,10 +188,9 @@ object CombatManager {
         if (totalDamage <= 0) return
         var doubleStrikeWillProc = false
 
-        // 수호의 맹세 효과 적용
         if (victim is Player && GuardianShieldManager.isPlayerProtected(victim)) {
             GuardianShieldManager.applyDamageToShield(victim.uniqueId, physicalDamage, magicalDamage, EntityDamageEvent.DamageCause.CUSTOM)
-            return // 데미지를 실드가 흡수했으므로 함수 종료
+            return
         }
 
         if (isReflection) {
@@ -202,6 +199,15 @@ object CombatManager {
 
         if (victim is Player && !isReflection) {
             val playerData = PlayerDataManager.getPlayerData(victim)
+
+            if (StatusEffectManager.hasStatus(victim, "damage_reduction")) {
+                val status = StatusEffectManager.getActiveStatus(victim, "damage_reduction")
+                val reduction = status?.parameters?.get("reduction_percent")?.toString()?.toDoubleOrNull() ?: 0.0
+                if (reduction > 0) {
+                    totalDamage *= (1.0 - (reduction / 100.0))
+                }
+            }
+
             val toughBodyLevel = playerData.getLearnedSkillLevel("tough_body")
             if (toughBodyLevel > 0) {
                 SkillManager.getSkill("tough_body")?.let { skillData ->
@@ -348,77 +354,84 @@ object CombatManager {
 
         if (totalDamage <= 0.1) return
 
-        if (victim is Player && !isReflection) handleReflection(victim, damager, totalDamage)
-
-        if (victim is Player) {
-            val victimData = PlayerDataManager.getPlayerData(victim)
-            if (victimData.currentClassId == "frenzy_dps") {
-                handleFuryStackChange(victim)
-                val skillLevel = victimData.getLearnedSkillLevel("bloody_smell")
-                if(skillLevel > 0) {
-                    val skill = SkillManager.getSkill("bloody_smell")!!
-                    val effect = skill.levelData[skillLevel]!!.effects.first()
-                    val buffParams = effect.parameters + mapOf("status_id" to "bloody_smell_buff")
-                    StatusEffectManager.applyStatus(victim, victim, "bloody_smell_buff", buffParams["buff_duration_ticks"]?.toString()?.toIntOrNull() ?: 100, buffParams)
-                }
-            }
+        if (victim is Player && !isReflection) {
+            if (FrenzyDpsSkillHandler.handleImmortalBlood(victim, totalDamage)) return
+            handleReflection(victim, damager, totalDamage)
         }
 
-        if (victim is Player) {
-            val playerData = PlayerDataManager.getPlayerData(victim)
-            val newHp = playerData.currentHp - totalDamage
-            playerData.currentHp = max(0.0, newHp)
-            val damagerName = if (damager is Player) damager.name else damager.customName ?: damager.type.name
-            val doubleStrikeMsg = if(isDoubleStrikeProc) "&4(2회 타격!)" else ""
-            victim.sendMessage("§c${damagerName}(으)로부터 ${totalDamage.toInt()}의 피해를 입었습니다! ${doubleStrikeMsg} (남은 체력: ${playerData.currentHp.toInt()})")
-            if (damager is Player) {
-                val victimName = ChatColor.stripColor(victim.customName ?: victim.type.name.replace("_", " ").lowercase().replaceFirstChar { it.titlecase() })
-                val hpStr = "§c-${totalDamage.toInt()} §f(${max(0.0, newHp).toInt()}/${StatManager.getFinalStatValue(victim, StatType.MAX_HP).toInt()})"
-                val critStr = if (isCritical) "&l(치명타!)" else ""
-                val doubleDmgStr = if(doubleStrikeWillProc) "&4(2회 타격!)" else ""
-                damager.sendActionBar(ChatColor.translateAlternateColorCodes('&', "&e${victimName} ${hpStr} ${critStr} ${doubleDmgStr}"))
+        victim.setMetadata(CUSTOM_DAMAGE_META, FixedMetadataValue(plugin, true))
+        try {
+            if (victim is Player) {
+                val playerData = PlayerDataManager.getPlayerData(victim)
+                if (playerData.currentClassId == "frenzy_dps") {
+                    handleFuryStackChange(victim)
+                    val skillLevel = playerData.getLearnedSkillLevel("bloody_smell")
+                    if(skillLevel > 0) {
+                        val skill = SkillManager.getSkill("bloody_smell")!!
+                        val effect = skill.levelData[skillLevel]!!.effects.first()
+                        val buffParams = effect.parameters + mapOf("status_id" to "bloody_smell_buff")
+                        StatusEffectManager.applyStatus(victim, victim, "bloody_smell_buff", buffParams["buff_duration_ticks"]?.toString()?.toIntOrNull() ?: 100, buffParams)
+                    }
+                }
             }
-            if (playerData.currentHp <= 0) victim.health = 0.0
-            PlayerScoreboardManager.updateScoreboard(victim)
-        } else {
-            val customMobData = EntityManager.getEntityData(victim)
-            if (customMobData != null) {
-                customMobData.currentHp -= totalDamage
-                val newHp = customMobData.currentHp
-                val maxHp = customMobData.maxHp
-                val vanillaMaxHealth = victim.getAttribute(Attribute.MAX_HEALTH)?.value ?: 2048.0
-                victim.health = max(0.0, (newHp / maxHp) * vanillaMaxHealth)
-                if (newHp <= 0) victim.health = 0.0
-                if (BossBarManager.isBoss(victim.uniqueId)) BossBarManager.updateBossHp(victim, newHp, maxHp)
+
+            if (victim is Player) {
+                val playerData = PlayerDataManager.getPlayerData(victim)
+                val newHp = playerData.currentHp - totalDamage
+                playerData.currentHp = max(0.0, newHp)
+                val damagerName = if (damager is Player) damager.name else damager.customName ?: damager.type.name
+                val doubleStrikeMsg = if(isDoubleStrikeProc) "&4(2회 타격!)" else ""
+                victim.sendMessage("§c${damagerName}(으)로부터 ${totalDamage.toInt()}의 피해를 입었습니다! ${doubleStrikeMsg} (남은 체력: ${playerData.currentHp.toInt()})")
+                if (damager is Player) {
+                    val victimName = ChatColor.stripColor(victim.customName ?: victim.type.name.replace("_", " ").lowercase().replaceFirstChar { it.titlecase() })
+                    val hpStr = "§c-${totalDamage.toInt()} §f(${max(0.0, newHp).toInt()}/${StatManager.getFinalStatValue(victim, StatType.MAX_HP).toInt()})"
+                    val critStr = if (isCritical) "&l(치명타!)" else ""
+                    val doubleDmgStr = if(doubleStrikeWillProc) "&4(2회 타격!)" else ""
+                    damager.sendActionBar(ChatColor.translateAlternateColorCodes('&', "&e${victimName} ${hpStr} ${critStr} ${doubleDmgStr}"))
+                }
+                if (playerData.currentHp <= 0) victim.health = 0.0
+                PlayerScoreboardManager.updateScoreboard(victim)
             } else {
-                victim.health = max(0.0, victim.health - totalDamage)
-            }
-            if (damager is Player) {
-                val remainingHp = if (customMobData != null) customMobData.currentHp else victim.health
-                val maxHp = if (customMobData != null) customMobData.maxHp else victim.getAttribute(Attribute.MAX_HEALTH)?.value ?: victim.health
-                if (magicalDamage == 0.0 && physicalDamage > 0.0 && !isReflection) {
-                    val direction = victim.location.toVector().subtract(damager.location.toVector()).normalize()
-                    direction.y = 0.35
-                    victim.velocity = direction.multiply(0.5)
+                val customMobData = EntityManager.getEntityData(victim)
+                if (customMobData != null) {
+                    customMobData.currentHp -= totalDamage
+                    val newHp = customMobData.currentHp
+                    val maxHp = customMobData.maxHp
+                    val vanillaMaxHealth = victim.getAttribute(Attribute.MAX_HEALTH)?.value ?: 2048.0
+                    victim.health = max(0.0, (newHp / maxHp) * vanillaMaxHealth)
+                    if (newHp <= 0) victim.health = 0.0
+                    if (BossBarManager.isBoss(victim.uniqueId)) BossBarManager.updateBossHp(victim, newHp, maxHp)
+                } else {
+                    victim.health = max(0.0, victim.health - totalDamage)
                 }
-                val victimName = ChatColor.stripColor(victim.customName ?: victim.type.name.replace("_", " ").lowercase().replaceFirstChar { it.titlecase() })
-                val hpStr = "§c-${totalDamage.toInt()} §f(${max(0.0, remainingHp).toInt()}/${maxHp.toInt()})"
-                val critStr = if (isCritical) "&l(치명타!)" else ""
-                val doubleDmgStr = if(doubleStrikeWillProc) "&4(2회 타격!)" else ""
-                damager.sendActionBar(ChatColor.translateAlternateColorCodes('&', "&e${victimName} ${hpStr} ${critStr} ${doubleDmgStr}"))
+                if (damager is Player) {
+                    val remainingHp = if (customMobData != null) customMobData.currentHp else victim.health
+                    val maxHp = if (customMobData != null) customMobData.maxHp else victim.getAttribute(Attribute.MAX_HEALTH)?.value ?: victim.health
+                    if (magicalDamage == 0.0 && physicalDamage > 0.0 && !isReflection) {
+                        val direction = victim.location.toVector().subtract(damager.location.toVector()).normalize()
+                        direction.y = 0.35
+                        victim.velocity = direction.multiply(0.5)
+                    }
+                    val victimName = ChatColor.stripColor(victim.customName ?: victim.type.name.replace("_", " ").lowercase().replaceFirstChar { it.titlecase() })
+                    val hpStr = "§c-${totalDamage.toInt()} §f(${max(0.0, remainingHp).toInt()}/${maxHp.toInt()})"
+                    val critStr = if (isCritical) "&l(치명타!)" else ""
+                    val doubleDmgStr = if(doubleStrikeWillProc) "&4(2회 타격!)" else ""
+                    damager.sendActionBar(ChatColor.translateAlternateColorCodes('&', "&e${victimName} ${hpStr} ${critStr} ${doubleDmgStr}"))
+                }
             }
-        }
 
-        if (damager is Player && !isReflection) {
-            handleLifesteal(damager, physicalDamage, magicalDamage)
-        }
+            if (damager is Player && !isReflection) {
+                handleLifesteal(damager, physicalDamage, magicalDamage)
+            }
 
-        if (doubleStrikeWillProc) {
-            damager.sendMessage(ChatColor.translateAlternateColorCodes('&', "&4[잔상의 망토] §f공격이 한 번 더 적중합니다!"))
-            val secondIsCritical = Random.nextDouble() < (if (damager is Player) StatManager.getFinalStatValue(damager, StatType.CRITICAL_CHANCE) else 0.0)
-            applyFinalDamage(damager, victim, physicalDamage, magicalDamage, secondIsCritical, isReflection, isSkill, true)
+            if (doubleStrikeWillProc) {
+                damager.sendMessage(ChatColor.translateAlternateColorCodes('&', "&4[잔상의 망토] §f공격이 한 번 더 적중합니다!"))
+                val secondIsCritical = Random.nextDouble() < (if (damager is Player) StatManager.getFinalStatValue(damager, StatType.CRITICAL_CHANCE) else 0.0)
+                applyFinalDamage(damager, victim, physicalDamage, magicalDamage, secondIsCritical, isReflection, isSkill, true)
+            }
+        } finally {
+            victim.removeMetadata(CUSTOM_DAMAGE_META, plugin)
         }
-
         if (isReflection) {
             damager.removeMetadata("rpgcore_reflected_damage", plugin)
         }

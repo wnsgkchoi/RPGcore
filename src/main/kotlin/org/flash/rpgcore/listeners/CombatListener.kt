@@ -19,6 +19,7 @@ import org.flash.rpgcore.RPGcore
 import org.flash.rpgcore.equipment.EquipmentSlotType
 import org.flash.rpgcore.managers.*
 import org.flash.rpgcore.player.MonsterEncounterData
+import org.flash.rpgcore.skills.FrenzyDpsSkillHandler
 import org.flash.rpgcore.skills.SkillEffectExecutor
 import org.flash.rpgcore.stats.StatManager
 import org.flash.rpgcore.stats.StatType
@@ -66,8 +67,18 @@ class CombatListener : Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun onGenericPlayerDamage(event: EntityDamageEvent) {
         val victim = event.entity as? Player ?: return
+        if (victim.hasMetadata(CombatManager.CUSTOM_DAMAGE_META)) return
+
+        if (StatusEffectManager.hasStatus(victim, "invincibility")) {
+            event.isCancelled = true
+            return
+        }
+        if (FrenzyDpsSkillHandler.handleImmortalBlood(victim, event.finalDamage)) {
+            event.isCancelled = true
+            return
+        }
         if (event is EntityDamageByEntityEvent) {
-            event.isCancelled = true // Ensure custom handling
+            event.isCancelled = true
             return
         }
 
@@ -126,11 +137,22 @@ class CombatListener : Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun onEntityDamageByEntity(event: EntityDamageByEntityEvent) {
+        if (event.entity.hasMetadata(CombatManager.CUSTOM_DAMAGE_META)) return
         if (event.entity is ArmorStand) {
             return
         }
 
         val victim = event.entity as? LivingEntity ?: return
+        if (victim is Player) {
+            if (StatusEffectManager.hasStatus(victim, "invincibility")) {
+                event.isCancelled = true
+                return
+            }
+            if (FrenzyDpsSkillHandler.handleImmortalBlood(victim, event.finalDamage)) {
+                event.isCancelled = true
+                return
+            }
+        }
         val damager: LivingEntity? = when (val rawDamager = event.damager) {
             is LivingEntity -> rawDamager
             is Projectile -> rawDamager.shooter as? LivingEntity
@@ -232,7 +254,9 @@ class CombatListener : Listener {
         event.droppedExp = 0
 
         val customEntityData = EntityManager.getEntityData(victim)
-        val killerUUID = CombatManager.getAndClearLastDamager(victim) ?: victim.killer?.uniqueId
+        val killerUUID = CombatManager.getAndClearLastDamager(victim)
+            ?: customEntityData?.lastDamager
+            ?: victim.killer?.uniqueId
         val killer = killerUUID?.let { Bukkit.getPlayer(it) }
 
         if (killer == null) {
@@ -245,27 +269,21 @@ class CombatListener : Listener {
             event.drops.clear()
             val monsterDefinition = MonsterManager.getMonsterData(customEntityData.monsterId) ?: return
 
-            xpToAward = if (InfiniteDungeonManager.isDungeonMonster(victim.uniqueId)) {
-                val session = InfiniteDungeonManager.getSessionByMonster(victim.uniqueId)
-                if (session != null) {
-                    session.monsterUUIDs.remove(victim.uniqueId)
-                    val wave = session.wave.toDouble()
-                    val xpCoeff = InfiniteDungeonManager.xpScalingCoeff
-                    val xpScale = (xpCoeff.first * wave * wave) + (xpCoeff.second * wave) + xpCoeff.third
-                    (monsterDefinition.xpReward * xpScale).toInt()
-                } else {
-                    monsterDefinition.xpReward
-                }
+            val session = InfiniteDungeonManager.getSessionByMonster(victim.uniqueId)
+
+            xpToAward = if (session != null) {
+                session.monsterUUIDs.remove(victim.uniqueId)
+                val wave = session.wave.toDouble()
+                val xpCoeff = InfiniteDungeonManager.xpScalingCoeff
+                val xpScale = (xpCoeff.first * wave * wave) + (xpCoeff.second * wave) + xpCoeff.third
+                (monsterDefinition.xpReward * xpScale).toInt()
             } else {
                 monsterDefinition.xpReward
             }
 
-            if (monsterDefinition.isBoss && InfiniteDungeonManager.isDungeonMonster(victim.uniqueId)) {
-                val session = InfiniteDungeonManager.getSessionByMonster(victim.uniqueId)
-                if (session != null) {
-                    InfiniteDungeonManager.getBossLootTableIdForWave(session.wave)?.let { tableId ->
-                        LootManager.processLoot(killer, tableId)
-                    }
+            if (monsterDefinition.isBoss && session != null) {
+                InfiniteDungeonManager.getBossLootTableIdForWave(session.wave)?.let { tableId ->
+                    LootManager.processLoot(killer, tableId)
                 }
             } else {
                 monsterDefinition.dropTableId?.let { tableId -> LootManager.processLoot(killer, tableId) }

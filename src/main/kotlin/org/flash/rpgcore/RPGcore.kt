@@ -54,6 +54,7 @@ class RPGcore : JavaPlugin() {
         InfiniteDungeonManager.start()
         AlchemyManager.load()
         ItemManager.load()
+        GuardianShieldManager.start()
 
         server.pluginManager.registerEvents(PlayerConnectionListener(), this)
         server.pluginManager.registerEvents(StatGUIListener(), this)
@@ -183,27 +184,26 @@ class RPGcore : JavaPlugin() {
 
                         playerData.skillCooldowns.entries.removeIf { it.value < System.currentTimeMillis() && needsUpdate.let { true } }
 
-                        playerData.skillChargeCooldowns.keys.toList().forEach { skillId ->
-                            if (!playerData.isOnChargeCooldown(skillId)) {
-                                val skill = SkillManager.getSkill(skillId)
-                                val level = playerData.getLearnedSkillLevel(skillId)
-                                val maxCharges = skill?.levelData?.get(level)?.maxCharges
-                                if (maxCharges != null) {
-                                    val currentCharges = playerData.getSkillCharges(skillId, maxCharges)
-                                    if (currentCharges < maxCharges) {
-                                        playerData.skillCharges[skillId] = currentCharges + 1
-                                        player.sendMessage("§b[${skill.displayName}] §f충전 완료! (§e${currentCharges + 1}/${maxCharges}§b)")
-                                        if (currentCharges + 1 < maxCharges) {
-                                            val cooldown = skill.levelData[level]?.cooldownTicks ?: 200
-                                            playerData.startChargeCooldown(skillId, System.currentTimeMillis() + cooldown * 50)
-                                        } else {
-                                            playerData.skillChargeCooldowns.remove(skillId)
-                                        }
-                                        needsUpdate = true
+                        // <<< 스킬 충전 로직 수정 시작 >>>
+                        playerData.learnedSkills.keys.forEach { skillId ->
+                            val skill = SkillManager.getSkill(skillId) ?: return@forEach
+                            val level = playerData.getLearnedSkillLevel(skillId)
+                            val maxCharges = skill.levelData[level]?.maxCharges
+                            if (maxCharges != null && maxCharges > 0) {
+                                val currentCharges = playerData.getSkillCharges(skillId, maxCharges)
+                                if (currentCharges < maxCharges && !playerData.isOnChargeCooldown(skillId)) {
+                                    val newChargeCount = currentCharges + 1
+                                    playerData.skillCharges[skillId] = newChargeCount
+                                    player.sendMessage("§b[${skill.displayName}] §f충전 완료! (§e${newChargeCount}/${maxCharges}§b)")
+                                    if (newChargeCount < maxCharges) {
+                                        val cooldown = skill.levelData[level]?.cooldownTicks ?: 200
+                                        playerData.startChargeCooldown(skillId, System.currentTimeMillis() + cooldown * 50)
                                     }
+                                    needsUpdate = true
                                 }
                             }
                         }
+                        // <<< 스킬 충전 로직 수정 끝 >>>
 
                         if (needsUpdate) {
                             PlayerScoreboardManager.updateScoreboard(player)
@@ -269,6 +269,7 @@ class RPGcore : JavaPlugin() {
     }
 
     override fun onDisable() {
+        GuardianShieldManager.stop()
         PlayerDataManager.saveAllOnlinePlayerData()
         logger.info("[RPGcore] 플러그인이 비활성화되었습니다.")
     }
