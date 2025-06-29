@@ -16,6 +16,7 @@ import org.flash.rpgcore.equipment.EquipmentSlotType
 import org.flash.rpgcore.managers.EquipmentManager
 import org.flash.rpgcore.managers.PlayerDataManager
 import org.flash.rpgcore.managers.SetBonusManager
+import org.flash.rpgcore.stats.StatType
 import org.flash.rpgcore.utils.EffectLoreHelper
 
 class EquipmentGUI(private val player: Player) : InventoryHolder {
@@ -115,19 +116,40 @@ class EquipmentGUI(private val player: Player) : InventoryHolder {
             if (equippedInfo != null) {
                 val definition = equipmentManager.getEquipmentDefinition(equippedInfo.itemInternalId)
                 if (definition != null) {
-                    if (equippedInfo.upgradeLevel < definition.maxUpgradeLevel) {
+                    val currentLevel = equippedInfo.upgradeLevel
+                    val nextLevel = currentLevel + 1
+                    if (currentLevel < definition.maxUpgradeLevel) {
                         val cost = equipmentManager.getEquipmentUpgradeCost(player, slotType)
-                        upgradeLore.add("&7현재 강화: &e+${equippedInfo.upgradeLevel}")
-                        upgradeLore.add("&7다음 강화: &a+${equippedInfo.upgradeLevel + 1}")
+                        upgradeLore.add("&7현재 강화: &e+${currentLevel}")
+                        upgradeLore.add("&7다음 강화: &a+${nextLevel}")
+                        upgradeLore.add(" ")
+                        upgradeLore.add("&6--- 강화 후 스탯 ---")
+
+                        val nextLevelStats = definition.statsPerLevel[nextLevel]
+                        if (nextLevelStats != null) {
+                            nextLevelStats.additiveStats.forEach { (stat, value) ->
+                                if (value != 0.0) {
+                                    val formatted = if (stat.isPercentageBased) "${String.format("%.1f", value * 100)}%" else value.toInt().toString()
+                                    upgradeLore.add(ChatColor.translateAlternateColorCodes('&', "&9  ${stat.displayName}: +$formatted"))
+                                }
+                            }
+                            nextLevelStats.multiplicativeStats.forEach { (stat, value) ->
+                                if (value != 0.0) upgradeLore.add(ChatColor.translateAlternateColorCodes('&', "&9  ${stat.displayName}: +${String.format("%.1f", value * 100)}%"))
+                            }
+                        } else {
+                            upgradeLore.add("&c  (다음 레벨 스탯 정보 없음)")
+                        }
+
+                        upgradeLore.add(" ")
                         if (cost != Long.MAX_VALUE) {
                             upgradeLore.add("&6필요 XP: &e$cost")
                         } else {
-                            upgradeLore.add("&c강화 비용 정보를 찾을 수 없음")
+                            upgradeLore.add("&c강화 비용 정보 없음")
                         }
                         upgradeLore.add(" ")
                         upgradeLore.add("&a우클릭으로 강화")
                     } else {
-                        upgradeLore.add("&c최대 강화 레벨입니다. (+${equippedInfo.upgradeLevel})")
+                        upgradeLore.add("&c최대 강화 레벨입니다. (+${currentLevel})")
                     }
                 } else {
                     upgradeLore.add("&c알 수 없는 아이템 정보")

@@ -16,6 +16,9 @@ object SkillLoreHelper {
         lore.add(ChatColor.translateAlternateColorCodes('&',"&6--- 현재 레벨 ($level) ---"))
         if (levelData.mpCost > 0) lore.add(ChatColor.translateAlternateColorCodes('&',"&bMP 소모: &3${levelData.mpCost}"))
         if (levelData.cooldownTicks > 0) lore.add(ChatColor.translateAlternateColorCodes('&',"&9쿨타임: &3${String.format("%.1f", levelData.cooldownTicks / 20.0)}초"))
+        levelData.maxCharges?.let { lore.add(ChatColor.translateAlternateColorCodes('&',"&d최대 충전: &3${it}회")) }
+        if (levelData.durationTicks != null && levelData.durationTicks > 0) lore.add(ChatColor.translateAlternateColorCodes('&',"&a지속시간: &3${String.format("%.1f", levelData.durationTicks / 20.0)}초"))
+
 
         return lore
     }
@@ -24,12 +27,13 @@ object SkillLoreHelper {
         val lore = mutableListOf<String>()
         val levelData = skillData.levelData[nextLevel] ?: return listOf("${ChatColor.RED}다음 레벨 정보 없음")
 
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&b[${skillData.skillType}] &8${skillData.behavior} ${if (skillData.element != null) "/ ${skillData.element}" else ""}"))
-        lore.add(" ")
+        lore.add(ChatColor.translateAlternateColorCodes('&',"&a--- 강화 후 (${nextLevel} 레벨) ---"))
         lore.addAll(generateDynamicDescription(skillData, nextLevel))
         lore.add(" ")
         if (levelData.mpCost > 0) lore.add(ChatColor.translateAlternateColorCodes('&',"&bMP 소모: &3${levelData.mpCost}"))
         if (levelData.cooldownTicks > 0) lore.add(ChatColor.translateAlternateColorCodes('&',"&9쿨타임: &3${String.format("%.1f", levelData.cooldownTicks / 20.0)}초"))
+        levelData.maxCharges?.let { lore.add(ChatColor.translateAlternateColorCodes('&',"&d최대 충전: &3${it}회")) }
+        if (levelData.durationTicks != null && levelData.durationTicks > 0) lore.add(ChatColor.translateAlternateColorCodes('&',"&a지속시간: &3${String.format("%.1f", levelData.durationTicks / 20.0)}초"))
 
         return lore
     }
