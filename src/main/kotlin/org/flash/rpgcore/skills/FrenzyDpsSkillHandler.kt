@@ -1,4 +1,4 @@
 package org.flash.rpgcore.skills
 
-class ActiveGuardianShield {
+class FrenzyDpsSkillHandler {
 }
